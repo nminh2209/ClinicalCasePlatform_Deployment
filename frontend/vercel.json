@@ -4,11 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
-  "env": {
-    "VITE_API_URL": "@vite_api_url",
-    "VITE_APP_NAME": "Clinical Case Platform",
-    "VITE_APP_ENV": "production"
-  },
   "regions": ["sin1"],
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
