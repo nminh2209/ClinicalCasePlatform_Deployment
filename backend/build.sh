@@ -14,4 +14,10 @@ python manage.py collectstatic --no-input
 echo "Running database migrations..."
 python manage.py migrate
 
+echo "Populating medical terms..."
+python manage.py populate_medical_terms || echo "Medical terms already populated"
+
+echo "Populating test data..."
+python manage.py populate_test_data || echo "Test data already populated"
+
 echo "Build completed successfully!"
