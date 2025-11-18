@@ -15,9 +15,9 @@ echo "Running database migrations..."
 python manage.py migrate
 
 echo "Populating medical terms..."
-python populate_medical_terms || echo "Medical terms already populated"
+python populate_medical_terms.py || echo "Medical terms already populated"
 
 echo "Populating test data..."
-python populate_test_data || echo "Test data already populated"
+python populate_test_data.py || echo "Test data already populated"
 
 echo "Build completed successfully!"
