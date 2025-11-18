@@ -1,0 +1,42 @@
+{
+  "id": 89,
+  "title": "Động kinh - Yến Nguyễn Văn",
+  "exported_at": "2025-11-15T09:45:11.586245+00:00",
+  "case_status": "Đã phê duyệt",
+  "patient": {
+    "name": "Bệnh nhân (ẩn danh - 2)",
+    "age": 17,
+    "gender": "Nữ",
+    "medical_record_number": "MRN657467",
+    "ethnicity": "Không xác định",
+    "occupation": "Không xác định",
+    "admission_date": "N/A",
+    "discharge_date": "N/A"
+  },
+  "history": "Không có thông tin",
+  "chief_complaint": "Không có thông tin",
+  "examination": "Không có thông tin",
+  "investigations": "Không có thông tin",
+  "diagnosis": "Không có thông tin",
+  "treatment": "Không có thông tin",
+  "follow_up": "Không có thông tin",
+  "learning_objectives": "Không có thông tin",
+  "learning_tags": "",
+  "complexity_level": "Cơ bản",
+  "metadata": {
+    "specialty": "Thần kinh cơ",
+    "priority_level": "Trung bình",
+    "complexity_level": "Cơ bản",
+    "estimated_study_hours": null,
+    "created_by": "Yến Nguyễn Văn",
+    "created_at": "15/11/2025 09:37",
+    "updated_at": "15/11/2025 09:37"
+  },
+  "attachments": [],
+  "_export_metadata": {
+    "format": "json",
+    "version": "1.0",
+    "exported_at": "2025-11-15T09:45:11.587314+00:00",
+    "template": "default"
+  }
+}

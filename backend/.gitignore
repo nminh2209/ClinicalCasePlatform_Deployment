@@ -1,0 +1,22 @@
+.env
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Celery
+celerybeat-schedule*
+celerybeat.pid
+
+# Media files
+media/
+media_test/
+
+# SQLite databases (if any)
+*.sqlite3
+db.sqlite3
+
+# Logs
+logs/*.log
+*.log
