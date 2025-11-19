@@ -13,7 +13,7 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(','
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = os.environ.get(
     'CORS_ALLOWED_ORIGINS',
-    'https://your-app.vercel.app,http://localhost:5173'
+    'https://clinical-case-platform-deployment.vercel.app,http://localhost:5173'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
@@ -67,7 +67,7 @@ SECURE_HSTS_PRELOAD = not DEBUG
 # CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     'CSRF_TRUSTED_ORIGINS',
-    'https://clinical-case-api.onrender.com,https://your-app.vercel.app'
+    'https://clinical-case-api.onrender.com,https://clinical-case-platform-deployment.vercel.app'
 ).split(',')
 
 # Logging

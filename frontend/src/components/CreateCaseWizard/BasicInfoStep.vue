@@ -11,6 +11,12 @@
               :error="errors.title" />
           </div>
 
+          <div class="space-y-2 md:col-span-2">
+            <Label for="patientName">Patient Name *</Label>
+            <Input id="patientName" v-model="localData.patient_name" placeholder="Enter patient name (can be anonymized)"
+              :error="errors.patient_name" />
+          </div>
+
           <div class="space-y-2">
             <Label for="specialty">Specialty *</Label>
             <Input id="specialty" v-model="localData.specialty" placeholder="e.g., Cardiology, Neurology"
@@ -152,6 +158,10 @@ const validateStep = () => {
 
   if (!localData.value.title?.trim()) {
     errors.value.title = 'Case title is required'
+  }
+
+  if (!localData.value.patient_name?.trim()) {
+    errors.value.patient_name = 'Patient name is required'
   }
 
   if (!localData.value.specialty?.trim()) {

@@ -132,7 +132,7 @@ const stepValidations = ref<Record<number, boolean>>({})
 const caseData = ref<Record<string, any>>({
   // Case Basic Fields (from Case model)
   title: '',
-  template: null,
+  patient_name: '',
   repository: null,
   specialty: '',
   complexity_level: 'intermediate',
@@ -326,9 +326,67 @@ const handleStepClick = (stepIndex: number) => {
   currentStep.value = stepIndex
 }
 
-const handleSaveDraft = () => {
-  toast.success("Case saved as draft!")
-  emit('close')
+const handleSaveDraft = async () => {
+  try {
+    // Prepare the case data payload with draft status
+    const payload = {
+      title: caseData.value.title,
+      patient_name: caseData.value.patient_name || caseData.value.title,
+      repository: caseData.value.repository || 1,
+      specialty: caseData.value.specialty,
+      complexity_level: caseData.value.complexity_level,
+      patient_age: caseData.value.patient_age,
+      patient_gender: caseData.value.patient_gender,
+      patient_ethnicity: caseData.value.patient_ethnicity,
+      patient_occupation: caseData.value.patient_occupation,
+      medical_record_number: caseData.value.medical_record_number,
+      admission_date: caseData.value.admission_date,
+      chief_complaint_brief: caseData.value.chief_complaint_brief,
+      keywords: caseData.value.keywords,
+      case_status: 'draft', // Explicitly set as draft
+      
+      // Nested models
+      clinical_history: caseData.value.clinical_history,
+      physical_examination: caseData.value.physical_examination,
+      detailed_investigations: caseData.value.detailed_investigations,
+      diagnosis_management: caseData.value.diagnosis_management,
+      learning_outcomes: caseData.value.learning_outcomes
+    }
+
+    // Check if there are attachments
+    const hasAttachments = caseData.value.attachments && caseData.value.attachments.length > 0
+
+    let response
+    if (hasAttachments) {
+      // Use FormData for multipart upload
+      const formData = new FormData()
+      formData.append('data', JSON.stringify(payload))
+
+      caseData.value.attachments.forEach((file: File, index: number) => {
+        formData.append(`attachment_${index}`, file)
+      })
+
+      response = await api.post('/cases/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+    } else {
+      // Use regular JSON for cases without attachments
+      response = await api.post('/cases/', payload)
+    }
+
+    toast.success("Case saved as draft successfully!")
+
+    // Navigate to the new case
+    setTimeout(() => {
+      emit('complete', { caseId: response.data.id, caseData: response.data })
+    }, 500)
+  } catch (error: any) {
+    console.error('Error saving draft:', error)
+    const errorMessage = error.response?.data?.message || error.response?.data?.detail || 'Failed to save draft. Please try again.'
+    toast.error(errorMessage)
+  }
 }
 
 const handleComplete = async () => {
@@ -340,47 +398,81 @@ const handleComplete = async () => {
   }
 
   try {
-    // Prepare FormData for multipart upload (for files)
-    const formData = new FormData()
-    
-    // Prepare the case data payload
-    const payload = {
-      title: caseData.value.title,
-      specialty: caseData.value.specialty,
-      difficulty_level: caseData.value.difficulty_level,
-      complexity_level: caseData.value.complexity_level,
-      patient_age: caseData.value.patient_age,
-      patient_gender: caseData.value.patient_gender,
-      patient_ethnicity: caseData.value.patient_ethnicity,
-      patient_occupation: caseData.value.patient_occupation,
-      medical_record_number: caseData.value.medical_record_number,
-      admission_date: caseData.value.admission_date,
-      presenting_location: caseData.value.presenting_location,
+    // Helper function to remove empty fields from nested objects
+    const cleanObject = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return obj
       
-      // Nested models
-      clinical_history: caseData.value.clinical_history,
-      physical_examination: caseData.value.physical_examination,
-      detailed_investigations: caseData.value.detailed_investigations,
-      diagnosis_management: caseData.value.diagnosis_management,
-      learning_outcomes: caseData.value.learning_outcomes
+      const cleaned: any = {}
+      for (const [key, value] of Object.entries(obj)) {
+        // Keep non-empty values and numbers (including 0)
+        if (value !== '' && value !== null && value !== undefined) {
+          cleaned[key] = value
+        }
+      }
+      return Object.keys(cleaned).length > 0 ? cleaned : undefined
     }
 
-    // Append case data as JSON
-    formData.append('data', JSON.stringify(payload))
+    // Prepare the case data payload
+    const payload: any = {
+      title: caseData.value.title,
+      patient_name: caseData.value.patient_name || caseData.value.title, // Use title as fallback
+      repository: caseData.value.repository || 1, // Default repository ID - should be configurable
+      specialty: caseData.value.specialty,
+      complexity_level: caseData.value.complexity_level,
+      patient_age: caseData.value.patient_age || 25, // Default age if not provided
+    }
 
-    // Append files if any
-    if (caseData.value.attachments && caseData.value.attachments.length > 0) {
+    // Add optional basic fields only if they have values
+    if (caseData.value.patient_gender) payload.patient_gender = caseData.value.patient_gender
+    if (caseData.value.patient_ethnicity) payload.patient_ethnicity = caseData.value.patient_ethnicity
+    if (caseData.value.patient_occupation) payload.patient_occupation = caseData.value.patient_occupation
+    if (caseData.value.medical_record_number) payload.medical_record_number = caseData.value.medical_record_number
+    if (caseData.value.admission_date) payload.admission_date = caseData.value.admission_date
+    if (caseData.value.chief_complaint_brief) payload.chief_complaint_brief = caseData.value.chief_complaint_brief
+    if (caseData.value.keywords) payload.keywords = caseData.value.keywords
+
+    // Add nested models only if they have data
+    const cleanedClinicalHistory = cleanObject(caseData.value.clinical_history)
+    if (cleanedClinicalHistory) payload.clinical_history = cleanedClinicalHistory
+
+    const cleanedPhysicalExam = cleanObject(caseData.value.physical_examination)
+    if (cleanedPhysicalExam) payload.physical_examination = cleanedPhysicalExam
+
+    const cleanedInvestigations = cleanObject(caseData.value.detailed_investigations)
+    if (cleanedInvestigations) payload.detailed_investigations = cleanedInvestigations
+
+    const cleanedDiagnosis = cleanObject(caseData.value.diagnosis_management)
+    if (cleanedDiagnosis) payload.diagnosis_management = cleanedDiagnosis
+
+    const cleanedLearning = cleanObject(caseData.value.learning_outcomes)
+    if (cleanedLearning) payload.learning_outcomes = cleanedLearning
+
+    console.log('=== CASE CREATION PAYLOAD ===')
+    console.log('Full payload:', JSON.stringify(payload, null, 2))
+    console.log('=== END PAYLOAD ===')
+
+    // Check if there are attachments
+    const hasAttachments = caseData.value.attachments && caseData.value.attachments.length > 0
+
+    let response
+    if (hasAttachments) {
+      // Use FormData for multipart upload
+      const formData = new FormData()
+      formData.append('data', JSON.stringify(payload))
+
       caseData.value.attachments.forEach((file: File, index: number) => {
         formData.append(`attachment_${index}`, file)
       })
-    }
 
-    // Make API call to create case
-    const response = await api.post('/cases/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+      response = await api.post('/cases/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+    } else {
+      // Use regular JSON for cases without attachments
+      response = await api.post('/cases/', payload)
+    }
 
     toast.success("Medical case created successfully!")
 
@@ -390,7 +482,32 @@ const handleComplete = async () => {
     }, 500)
   } catch (error: any) {
     console.error('Error creating case:', error)
-    const errorMessage = error.response?.data?.message || 'Failed to create case. Please try again.'
+    console.error('Error response:', error.response?.data)
+    console.error('Error status:', error.response?.status)
+    
+    // Display detailed error information
+    let errorMessage = 'Failed to create case. Please try again.'
+    
+    if (error.response?.data) {
+      // Log the full error object to see all validation errors
+      console.error('Full error object:', JSON.stringify(error.response.data, null, 2))
+      
+      // If there's a specific error message
+      if (error.response.data.message || error.response.data.detail) {
+        errorMessage = error.response.data.message || error.response.data.detail
+      } else {
+        // If there are field-specific errors, show them
+        const errors = error.response.data
+        const errorFields = Object.keys(errors)
+        if (errorFields.length > 0) {
+          const firstField = errorFields[0]
+          const firstError = Array.isArray(errors[firstField]) ? errors[firstField][0] : errors[firstField]
+          errorMessage = `${firstField}: ${firstError}`
+          console.error('Validation errors:', errors)
+        }
+      }
+    }
+    
     toast.error(errorMessage)
   }
 }

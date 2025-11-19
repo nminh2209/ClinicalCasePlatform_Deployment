@@ -18,7 +18,7 @@ from .medical_models import (
 from accounts.serializers import UserSerializer
 from accounts.models import User
 # from templates.models import CaseTemplate
-# from repositories.models import Repository
+from repositories.models import Repository
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -36,7 +36,6 @@ class ClinicalHistorySerializer(serializers.ModelSerializer):
         model = ClinicalHistory
         fields = [
             "id",
-            "case",
             "chief_complaint",
             "history_present_illness",
             "past_medical_history",
@@ -46,6 +45,15 @@ class ClinicalHistorySerializer(serializers.ModelSerializer):
             "medications",
             "review_systems",
         ]
+        extra_kwargs = {
+            'history_present_illness': {'required': False},
+            'past_medical_history': {'required': False},
+            'family_history': {'required': False},
+            'social_history': {'required': False},
+            'allergies': {'required': False},
+            'medications': {'required': False},
+            'review_systems': {'required': False},
+        }
 
 
 class PhysicalExaminationSerializer(serializers.ModelSerializer):
@@ -55,9 +63,17 @@ class PhysicalExaminationSerializer(serializers.ModelSerializer):
         model = PhysicalExamination
         fields = [
             "id",
-            "case",
             "general_appearance",
+            "consciousness_level",
             "vital_signs",
+            "vital_signs_bp",
+            "vital_signs_hr",
+            "vital_signs_rr",
+            "vital_signs_temp",
+            "vital_signs_spo2",
+            "height_cm",
+            "weight_kg",
+            "bmi",
             "head_neck",
             "cardiovascular",
             "respiratory",
@@ -67,6 +83,27 @@ class PhysicalExaminationSerializer(serializers.ModelSerializer):
             "skin",
             "other_systems",
         ]
+        extra_kwargs = {
+            'general_appearance': {'required': False},
+            'consciousness_level': {'required': False},
+            'vital_signs': {'required': False},
+            'vital_signs_bp': {'required': False},
+            'vital_signs_hr': {'required': False},
+            'vital_signs_rr': {'required': False},
+            'vital_signs_temp': {'required': False},
+            'vital_signs_spo2': {'required': False},
+            'height_cm': {'required': False},
+            'weight_kg': {'required': False},
+            'bmi': {'required': False},
+            'head_neck': {'required': False},
+            'cardiovascular': {'required': False},
+            'respiratory': {'required': False},
+            'abdominal': {'required': False},
+            'neurological': {'required': False},
+            'musculoskeletal': {'required': False},
+            'skin': {'required': False},
+            'other_systems': {'required': False},
+        }
 
 
 class InvestigationsSerializer(serializers.ModelSerializer):
@@ -76,16 +113,41 @@ class InvestigationsSerializer(serializers.ModelSerializer):
         model = Investigations
         fields = [
             "id",
-            "case",
             "laboratory_results",
+            "hemoglobin_level",
+            "white_cell_count",
+            "glucose_level",
+            "creatinine_level",
             "imaging_studies",
             "ecg_findings",
+            "ecg_rhythm",
+            "ecg_rate",
             "pathology_results",
+            "arterial_blood_gas",
+            "ph_level",
             "special_tests",
             "microbiology",
             "biochemistry",
             "hematology",
         ]
+        extra_kwargs = {
+            'laboratory_results': {'required': False},
+            'hemoglobin_level': {'required': False},
+            'white_cell_count': {'required': False},
+            'glucose_level': {'required': False},
+            'creatinine_level': {'required': False},
+            'imaging_studies': {'required': False},
+            'ecg_findings': {'required': False},
+            'ecg_rhythm': {'required': False},
+            'ecg_rate': {'required': False},
+            'pathology_results': {'required': False},
+            'arterial_blood_gas': {'required': False},
+            'ph_level': {'required': False},
+            'special_tests': {'required': False},
+            'microbiology': {'required': False},
+            'biochemistry': {'required': False},
+            'hematology': {'required': False},
+        }
 
 
 class DiagnosisManagementSerializer(serializers.ModelSerializer):
@@ -95,7 +157,6 @@ class DiagnosisManagementSerializer(serializers.ModelSerializer):
         model = DiagnosisManagement
         fields = [
             "id",
-            "case",
             "primary_diagnosis",
             "differential_diagnosis",
             "icd10_codes",
@@ -106,6 +167,17 @@ class DiagnosisManagementSerializer(serializers.ModelSerializer):
             "prognosis",
             "complications",
         ]
+        extra_kwargs = {
+            'primary_diagnosis': {'required': False},
+            'differential_diagnosis': {'required': False},
+            'icd10_codes': {'required': False},
+            'treatment_plan': {'required': False},
+            'medications_prescribed': {'required': False},
+            'procedures_performed': {'required': False},
+            'follow_up_plan': {'required': False},
+            'prognosis': {'required': False},
+            'complications': {'required': False},
+        }
 
 
 class LearningOutcomesSerializer(serializers.ModelSerializer):
@@ -115,7 +187,6 @@ class LearningOutcomesSerializer(serializers.ModelSerializer):
         model = LearningOutcomes
         fields = [
             "id",
-            "case",
             "learning_objectives",
             "key_concepts",
             "clinical_pearls",
@@ -123,6 +194,14 @@ class LearningOutcomesSerializer(serializers.ModelSerializer):
             "discussion_points",
             "assessment_criteria",
         ]
+        extra_kwargs = {
+            'learning_objectives': {'required': False},
+            'key_concepts': {'required': False},
+            'clinical_pearls': {'required': False},
+            'references': {'required': False},
+            'discussion_points': {'required': False},
+            'assessment_criteria': {'required': False},
+        }
 
 
 class CaseListSerializer(serializers.ModelSerializer):
@@ -339,6 +418,11 @@ class CaseCreateUpdateSerializer(serializers.ModelSerializer):
             "specialty",
             "keywords",
             "case_status",
+            # Additional fields from frontend
+            "complexity_level",
+            "patient_ethnicity",
+            "patient_occupation",
+            "chief_complaint_brief",
             # New detailed medical sections
             "clinical_history",
             "physical_examination",
@@ -424,6 +508,15 @@ class CaseCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_repository(self, value):
+        if not value:
+            # If no repository provided, get the first public repository
+            try:
+                value = Repository.objects.filter(is_public=True).first()
+                if not value:
+                    raise serializers.ValidationError("No public repository available")
+            except Repository.DoesNotExist:
+                raise serializers.ValidationError("No repository available")
+        
         user = self.context["request"].user
         if value.owner != user and not value.is_public:
             raise serializers.ValidationError(
@@ -883,7 +976,7 @@ class StudentNotesSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["student", "submitted_at", "created_at", "updated_at"]
+        read_only_fields = ["case", "student", "submitted_at", "created_at", "updated_at"]
 
     def create(self, validated_data):
         validated_data["student"] = self.context["request"].user

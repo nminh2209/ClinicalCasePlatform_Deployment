@@ -637,6 +637,19 @@ const handleSave = async () => {
   try {
     console.log('Starting save...', caseData.value)
     
+    // Helper function to clean nested objects
+    const cleanObject = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return obj
+      
+      const cleaned: any = {}
+      for (const [key, value] of Object.entries(obj)) {
+        if (value !== '' && value !== null && value !== undefined) {
+          cleaned[key] = value
+        }
+      }
+      return Object.keys(cleaned).length > 0 ? cleaned : undefined
+    }
+    
     // 1. Update main case data with properly formatted nested objects
     const caseUpdateData: any = {
       title: caseData.value.title,
@@ -645,51 +658,58 @@ const handleSave = async () => {
       patient_age: caseData.value.patient_age,
       patient_gender: caseData.value.patient_gender,
       medical_record_number: caseData.value.medical_record_number,
-      // Keep status as draft when saving
       case_status: 'draft',
-      // Include nested medical data - backend expects these exact field names
-      clinical_history: {
-        chief_complaint: caseData.value.clinical_history?.chief_complaint || '',
-        history_present_illness: caseData.value.clinical_history?.history_present_illness || '',
-        past_medical_history: caseData.value.clinical_history?.past_medical_history || '',
-        family_history: caseData.value.clinical_history?.family_history || '',
-        social_history: caseData.value.clinical_history?.social_history || '',
-        allergies: caseData.value.clinical_history?.allergies || '',
-        medications: caseData.value.clinical_history?.medications || '',
-        review_systems: caseData.value.clinical_history?.review_systems || ''
-      },
-      physical_examination: {
-        general_appearance: caseData.value.physical_examination?.general_appearance || '',
-        vital_signs: caseData.value.physical_examination?.vital_signs || '',
-        head_neck: caseData.value.physical_examination?.head_neck || '',
-        cardiovascular: caseData.value.physical_examination?.cardiovascular || '',
-        respiratory: caseData.value.physical_examination?.respiratory || '',
-        abdominal: caseData.value.physical_examination?.abdominal || '',
-        neurological: caseData.value.physical_examination?.neurological || '',
-        musculoskeletal: caseData.value.physical_examination?.musculoskeletal || '',
-        skin: caseData.value.physical_examination?.skin || '',
-        other_systems: caseData.value.physical_examination?.other_findings || ''
-      },
-      detailed_investigations: {
-        laboratory_results: caseData.value.investigations?.laboratory_results || '',
-        imaging_studies: caseData.value.investigations?.imaging_studies || '',
-        ecg_findings: caseData.value.investigations?.ecg_findings || '',
-        special_tests: caseData.value.investigations?.special_tests || '',
-        biochemistry: caseData.value.investigations?.biochemistry || '',
-        hematology: caseData.value.investigations?.hematology || '',
-        microbiology: caseData.value.investigations?.microbiology || ''
-      },
-      diagnosis_management: {
-        primary_diagnosis: caseData.value.diagnosis_management?.primary_diagnosis || '',
-        differential_diagnosis: caseData.value.diagnosis_management?.differential_diagnosis || '',
-        treatment_plan: caseData.value.diagnosis_management?.treatment_plan || '',
-        medications_prescribed: caseData.value.diagnosis_management?.medications_prescribed || '',
-        procedures_performed: caseData.value.diagnosis_management?.procedures_performed || '',
-        follow_up_plan: caseData.value.diagnosis_management?.follow_up_plan || '',
-        prognosis: caseData.value.diagnosis_management?.prognosis || '',
-        complications: caseData.value.diagnosis_management?.complications || ''
-      }
     }
+    
+    // Build nested objects and only include if they have data
+    const clinicalHistory = cleanObject({
+      chief_complaint: caseData.value.clinical_history?.chief_complaint,
+      history_present_illness: caseData.value.clinical_history?.history_present_illness,
+      past_medical_history: caseData.value.clinical_history?.past_medical_history,
+      family_history: caseData.value.clinical_history?.family_history,
+      social_history: caseData.value.clinical_history?.social_history,
+      allergies: caseData.value.clinical_history?.allergies,
+      medications: caseData.value.clinical_history?.medications,
+      review_systems: caseData.value.clinical_history?.review_systems
+    })
+    if (clinicalHistory) caseUpdateData.clinical_history = clinicalHistory
+    
+    const physicalExam = cleanObject({
+      general_appearance: caseData.value.physical_examination?.general_appearance,
+      vital_signs: caseData.value.physical_examination?.vital_signs,
+      head_neck: caseData.value.physical_examination?.head_neck,
+      cardiovascular: caseData.value.physical_examination?.cardiovascular,
+      respiratory: caseData.value.physical_examination?.respiratory,
+      abdominal: caseData.value.physical_examination?.abdominal,
+      neurological: caseData.value.physical_examination?.neurological,
+      musculoskeletal: caseData.value.physical_examination?.musculoskeletal,
+      skin: caseData.value.physical_examination?.skin,
+      other_systems: caseData.value.physical_examination?.other_findings
+    })
+    if (physicalExam) caseUpdateData.physical_examination = physicalExam
+    
+    const investigations = cleanObject({
+      laboratory_results: caseData.value.investigations?.laboratory_results,
+      imaging_studies: caseData.value.investigations?.imaging_studies,
+      ecg_findings: caseData.value.investigations?.ecg_findings,
+      special_tests: caseData.value.investigations?.special_tests,
+      biochemistry: caseData.value.investigations?.biochemistry,
+      hematology: caseData.value.investigations?.hematology,
+      microbiology: caseData.value.investigations?.microbiology
+    })
+    if (investigations) caseUpdateData.detailed_investigations = investigations
+    
+    const diagnosisManagement = cleanObject({
+      primary_diagnosis: caseData.value.diagnosis_management?.primary_diagnosis,
+      differential_diagnosis: caseData.value.diagnosis_management?.differential_diagnosis,
+      treatment_plan: caseData.value.diagnosis_management?.treatment_plan,
+      medications_prescribed: caseData.value.diagnosis_management?.medications_prescribed,
+      procedures_performed: caseData.value.diagnosis_management?.procedures_performed,
+      follow_up_plan: caseData.value.diagnosis_management?.follow_up_plan,
+      prognosis: caseData.value.diagnosis_management?.prognosis,
+      complications: caseData.value.diagnosis_management?.complications
+    })
+    if (diagnosisManagement) caseUpdateData.diagnosis_management = diagnosisManagement
     
     // Only include repository and template if they exist and are valid IDs
     if (caseData.value.repository) {
@@ -744,6 +764,8 @@ const handleSave = async () => {
   } catch (error: any) {
     console.error('Error saving case:', error)
     console.error('Error response:', error.response?.data)
+    console.error('Error status:', error.response?.status)
+    console.error('Full error object:', JSON.stringify(error.response?.data, null, 2))
     
     // Show specific error messages
     if (error.response?.data) {

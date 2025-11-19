@@ -68,6 +68,7 @@ class CaseListCreateView(generics.ListCreateAPIView):
     """
 
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -195,6 +196,38 @@ class CaseListCreateView(generics.ListCreateAPIView):
         if self.request.method == "POST":
             return CaseCreateUpdateSerializer
         return CaseListSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Handle case creation with potential file uploads
+        """
+        # If request has multipart data with 'data' field, parse it
+        if hasattr(request, 'data') and 'data' in request.data:
+            import json
+            try:
+                case_data = json.loads(request.data['data'])
+                # Create a new request-like object with parsed data
+                from django.http import QueryDict
+                from django.utils.datastructures import MultiValueDict
+                
+                # Create a mutable copy of request.data
+                mutable_data = MultiValueDict()
+                for key, value in request.data.items():
+                    if key != 'data':
+                        mutable_data[key] = value
+                
+                # Add parsed JSON data
+                for key, value in case_data.items():
+                    mutable_data[key] = value
+                
+                # Replace request.data with the combined data
+                request._full_data = mutable_data
+                request._data = mutable_data
+                
+            except (json.JSONDecodeError, KeyError):
+                pass
+        
+        return super().create(request, *args, **kwargs)
 
 
 class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
