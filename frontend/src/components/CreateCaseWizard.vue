@@ -497,13 +497,16 @@ const handleComplete = async () => {
         errorMessage = error.response.data.message || error.response.data.detail
       } else {
         // If there are field-specific errors, show them
-        const errors = error.response.data
+        const errors = error.response.data as Record<string, any>
         const errorFields = Object.keys(errors)
         if (errorFields.length > 0) {
           const firstField = errorFields[0]
-          const firstError = Array.isArray(errors[firstField]) ? errors[firstField][0] : errors[firstField]
-          errorMessage = `${firstField}: ${firstError}`
-          console.error('Validation errors:', errors)
+          if (firstField) {
+            const fieldError = errors[firstField]
+            const firstError = Array.isArray(fieldError) ? fieldError[0] : fieldError
+            errorMessage = `${firstField}: ${firstError}`
+            console.error('Validation errors:', errors)
+          }
         }
       }
     }
