@@ -111,6 +111,7 @@ import {
   Sparkles
 } from '@/components/icons'
 import { Stethoscope } from 'lucide-vue-next'
+import api from '@/services/api'
 
 const props = defineProps({
   studentDepartment: {
@@ -129,71 +130,104 @@ const currentStepRef = ref(null)
 const stepValidations = ref<Record<number, boolean>>({})
 
 const caseData = ref<Record<string, any>>({
-  // Template selection
+  // Case Basic Fields (from Case model)
+  title: '',
   template: null,
+  repository: null,
+  specialty: '',
+  complexity_level: 'intermediate',
+  patient_age: null,
+  patient_gender: '',
+  medical_record_number: '',
+  admission_date: null,
+  discharge_date: null,
+  case_summary: '',
+  chief_complaint_brief: '',
+  keywords: '',
+  patient_ethnicity: '',
+  patient_occupation: '',
+  estimated_study_hours: null,
+  requires_follow_up: false,
+  follow_up_date: null,
 
-  // Patient information
-  patient: {
-    firstName: '',
-    lastName: '',
-    age: null,
-    gender: '',
-    mrn: '',
-    dateOfBirth: ''
+  // ClinicalHistory (OneToOne)
+  clinical_history: {
+    chief_complaint: '',
+    history_present_illness: '',
+    past_medical_history: '',
+    family_history: '',
+    social_history: '',
+    medications: '',
+    allergies: '',
+    immunizations: '',
+    surgical_history: '',
+    review_of_systems: ''
   },
 
-  // Clinical presentation
-  chiefComplaint: '',
-  historyOfPresentIllness: '',
-  pastMedicalHistory: '',
-
-  // Vital signs
-  vitalSigns: {
-    temperature: null,
-    heartRate: null,
-    bloodPressureSystolic: null,
-    bloodPressureDiastolic: null,
-    respiratoryRate: null,
-    oxygenSaturation: null,
-    weight: null,
-    height: null,
-    bmi: null,
-    painScale: null,
-    notes: ''
+  // PhysicalExamination (OneToOne)
+  physical_examination: {
+    general_appearance: '',
+    consciousness_level: 'alert',
+    vital_signs: '',
+    vital_signs_bp: '',
+    vital_signs_hr: null,
+    vital_signs_rr: null,
+    vital_signs_temp: null,
+    vital_signs_spo2: null,
+    head_neck: '',
+    cardiovascular: '',
+    respiratory: '',
+    abdominal: '',
+    neurological: '',
+    musculoskeletal: '',
+    skin: '',
+    other_systems: ''
   },
 
-  // Physical examination
-  physicalExam: {
-    generalAppearance: '',
-    mentalStatus: '',
-    notes: ''
+  // Investigations (OneToOne as investigations_detail)
+  detailed_investigations: {
+    laboratory_results: '',
+    hemoglobin_level: null,
+    white_cell_count: null,
+    glucose_level: null,
+    creatinine_level: null,
+    imaging_studies: '',
+    ecg_findings: '',
+    ecg_rhythm: '',
+    ecg_rate: null,
+    pathology_results: '',
+    arterial_blood_gas: '',
+    ph_level: null,
+    special_tests: '',
+    microbiology: '',
+    biochemistry: '',
+    hematology: ''
   },
 
-  // Diagnostic workup
-  diagnosticWorkup: {
-    labTests: [],
-    labResults: {},
-    imagingStudies: [],
-    imagingFindings: {},
-    otherTests: [],
-    otherTestResults: {},
-    otherLabTests: '',
-    otherImaging: '',
-    additionalTests: ''
+  // DiagnosisManagement (OneToOne)
+  diagnosis_management: {
+    primary_diagnosis: '',
+    differential_diagnosis: '',
+    icd10_codes: '',
+    treatment_plan: '',
+    medications_prescribed: '',
+    procedures_performed: '',
+    follow_up_plan: '',
+    prognosis: '',
+    complications: ''
   },
 
-  // Assessment and plan
-  assessment: {
-    primaryDiagnosis: '',
-    differentialDiagnosis: '',
-    clinicalReasoning: '',
-    medications: [],
-    procedures: '',
-    followUp: '',
-    learningObjectives: []
+  // LearningOutcomes (OneToOne)
+  learning_outcomes: {
+    learning_objectives: '',
+    key_concepts: '',
+    clinical_pearls: '',
+    references: '',
+    discussion_points: '',
+    assessment_criteria: ''
   },
 
-  // Attachments
+  // Medical attachments (will be uploaded separately)
   attachments: []
 })
 
@@ -297,7 +331,7 @@ const handleSaveDraft = () => {
   emit('close')
 }
 
-const handleComplete = () => {
+const handleComplete = async () => {
   // Check if final step is valid
   const isValid = stepValidations.value[currentStep.value] !== false
   if (!isValid) {
@@ -305,16 +339,60 @@ const handleComplete = () => {
     return
   }
 
-  // Generate case ID
-  const newCaseId = `case-${Date.now()}`
+  try {
+    // Prepare FormData for multipart upload (for files)
+    const formData = new FormData()
+    
+    // Prepare the case data payload
+    const payload = {
+      title: caseData.value.title,
+      specialty: caseData.value.specialty,
+      difficulty_level: caseData.value.difficulty_level,
+      complexity_level: caseData.value.complexity_level,
+      patient_age: caseData.value.patient_age,
+      patient_gender: caseData.value.patient_gender,
+      patient_ethnicity: caseData.value.patient_ethnicity,
+      patient_occupation: caseData.value.patient_occupation,
+      medical_record_number: caseData.value.medical_record_number,
+      admission_date: caseData.value.admission_date,
+      presenting_location: caseData.value.presenting_location,
+      
+      // Nested models
+      clinical_history: caseData.value.clinical_history,
+      physical_examination: caseData.value.physical_examination,
+      detailed_investigations: caseData.value.detailed_investigations,
+      diagnosis_management: caseData.value.diagnosis_management,
+      learning_outcomes: caseData.value.learning_outcomes
+    }
 
-  // In a real app, save to backend here
-  toast.success("Medical case created successfully!")
+    // Append case data as JSON
+    formData.append('data', JSON.stringify(payload))
 
-  // Navigate to the new case
-  setTimeout(() => {
-    emit('complete', { caseId: newCaseId, caseData: caseData.value })
-  }, 500)
+    // Append files if any
+    if (caseData.value.attachments && caseData.value.attachments.length > 0) {
+      caseData.value.attachments.forEach((file: File, index: number) => {
+        formData.append(`attachment_${index}`, file)
+      })
+    }
+
+    // Make API call to create case
+    const response = await api.post('/cases/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    toast.success("Medical case created successfully!")
+
+    // Navigate to the new case
+    setTimeout(() => {
+      emit('complete', { caseId: response.data.id, caseData: response.data })
+    }, 500)
+  } catch (error: any) {
+    console.error('Error creating case:', error)
+    const errorMessage = error.response?.data?.message || 'Failed to create case. Please try again.'
+    toast.error(errorMessage)
+  }
 }
 
 const handleTemplateSelect = (template: any) => {

@@ -15,14 +15,19 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <Button variant="outline" @click="handleSave" :disabled="!hasUnsavedChanges">
+        <Button variant="outline" @click="handleSave" :disabled="!hasUnsavedChanges || !canEdit">
           <Save class="h-4 w-4 mr-2" />
           Lưu nháp
         </Button>
-        <Button @click="handleSubmit" class="bg-blue-600 hover:bg-blue-700 text-grey">
+        <Button @click="handleSubmit" class="bg-blue-600 hover:bg-blue-700 text-grey" :disabled="!canEdit">
           <Send class="h-4 w-4 mr-2" />
           Nộp để xem xét
         </Button>
+      </div>
+      <!-- Permission Notice -->
+      <div v-if="!canEdit" class="mt-2 text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-md border border-amber-200">
+        <span v-if="!isOwner">⚠️ Bạn không phải là chủ sở hữu của ca bệnh này. Chỉ được xem.</span>
+        <span v-else-if="!isDraft">ℹ️ Ca bệnh đã được nộp. Không thể chỉnh sửa.</span>
       </div>
     </div>
 
@@ -38,11 +43,11 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="text-sm text-gray-500">Tiêu đề</label>
-                <Input v-model="caseData.title" placeholder="Nhập tiêu đề hồ sơ..." />
+                <Input v-model="caseData.title" placeholder="Nhập tiêu đề hồ sơ..." :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Chuyên khoa</label>
-                <select v-model="caseData.specialty" class="w-full p-2 border rounded-md">
+                <select v-model="caseData.specialty" class="w-full p-2 border rounded-md" :disabled="!canEdit">
                   <option value="">Chọn chuyên khoa</option>
                   <option value="Hồi sức tích cực">Hồi sức tích cực</option>
                   <option value="Tim mạch">Tim mạch</option>
@@ -69,15 +74,15 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="text-sm text-gray-500">Tên bệnh nhân</label>
-                <Input v-model="caseData.patient_name" placeholder="Nhập tên bệnh nhân..." />
+                <Input v-model="caseData.patient_name" placeholder="Nhập tên bệnh nhân..." :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Tuổi</label>
-                <Input v-model.number="caseData.patient_age" type="number" placeholder="Tuổi..." />
+                <Input v-model.number="caseData.patient_age" type="number" placeholder="Tuổi..." :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Giới tính</label>
-                <select v-model="caseData.patient_gender" class="w-full p-2 border rounded-md">
+                <select v-model="caseData.patient_gender" class="w-full p-2 border rounded-md" :disabled="!canEdit">
                   <option value="">Chọn giới tính</option>
                   <option value="male">Nam</option>
                   <option value="female">Nữ</option>
@@ -86,7 +91,7 @@
               </div>
               <div>
                 <label class="text-sm text-gray-500">Số hồ sơ bệnh án</label>
-                <Input v-model="caseData.medical_record_number" placeholder="Số hồ sơ..." />
+                <Input v-model="caseData.medical_record_number" placeholder="Số hồ sơ..." :disabled="!canEdit" />
               </div>
             </div>
           </CardContent>
@@ -100,19 +105,19 @@
           <CardContent class="space-y-4">
             <div>
               <label class="text-sm text-gray-500">Lý do khám chính</label>
-              <Textarea v-model="caseData.clinical_history.chief_complaint" placeholder="Lý do khám chính..." />
+              <Textarea v-model="caseData.clinical_history.chief_complaint" placeholder="Lý do khám chính..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Bệnh sử hiện tại</label>
-              <Textarea v-model="caseData.clinical_history.history_present_illness" placeholder="Bệnh sử hiện tại..." />
+              <Textarea v-model="caseData.clinical_history.history_present_illness" placeholder="Bệnh sử hiện tại..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Tiền sử bệnh tật</label>
-              <Textarea v-model="caseData.clinical_history.past_medical_history" placeholder="Tiền sử bệnh tật..." />
+              <Textarea v-model="caseData.clinical_history.past_medical_history" placeholder="Tiền sử bệnh tật..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Thuốc đang sử dụng</label>
-              <Textarea v-model="caseData.clinical_history.medications" placeholder="Thuốc đang dùng..." />
+              <Textarea v-model="caseData.clinical_history.medications" placeholder="Thuốc đang dùng..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -125,19 +130,19 @@
           <CardContent class="space-y-4">
             <div>
               <label class="text-sm text-gray-500">Tình trạng chung</label>
-              <Textarea v-model="caseData.physical_examination.general_appearance" placeholder="Tình trạng chung..." />
+              <Textarea v-model="caseData.physical_examination.general_appearance" placeholder="Tình trạng chung..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Sinh hiệu</label>
-              <Textarea v-model="caseData.physical_examination.vital_signs" placeholder="Sinh hiệu..." />
+              <Textarea v-model="caseData.physical_examination.vital_signs" placeholder="Sinh hiệu..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Tim mạch</label>
-              <Textarea v-model="caseData.physical_examination.cardiovascular" placeholder="Khám tim mạch..." />
+              <Textarea v-model="caseData.physical_examination.cardiovascular" placeholder="Khám tim mạch..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Hô hấp</label>
-              <Textarea v-model="caseData.physical_examination.respiratory" placeholder="Khám hô hấp..." />
+              <Textarea v-model="caseData.physical_examination.respiratory" placeholder="Khám hô hấp..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -150,15 +155,15 @@
           <CardContent class="space-y-4">
             <div>
               <label class="text-sm text-gray-500">Xét nghiệm</label>
-              <Textarea v-model="caseData.investigations.laboratory_results" placeholder="Kết quả xét nghiệm..." />
+              <Textarea v-model="caseData.investigations.laboratory_results" placeholder="Kết quả xét nghiệm..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Chẩn đoán hình ảnh</label>
-              <Textarea v-model="caseData.investigations.imaging_studies" placeholder="Kết quả chẩn đoán hình ảnh..." />
+              <Textarea v-model="caseData.investigations.imaging_studies" placeholder="Kết quả chẩn đoán hình ảnh..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Điện tâm đồ</label>
-              <Textarea v-model="caseData.investigations.ecg_findings" placeholder="Kết quả điện tâm đồ..." />
+              <Textarea v-model="caseData.investigations.ecg_findings" placeholder="Kết quả điện tâm đồ..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -171,11 +176,11 @@
           <CardContent class="space-y-4">
             <div>
               <label class="text-sm text-gray-500">Chẩn đoán chính</label>
-              <Textarea v-model="caseData.diagnosis_management.primary_diagnosis" placeholder="Chẩn đoán chính..." />
+              <Textarea v-model="caseData.diagnosis_management.primary_diagnosis" placeholder="Chẩn đoán chính..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Kế hoạch điều trị</label>
-              <Textarea v-model="caseData.diagnosis_management.treatment_plan" placeholder="Kế hoạch điều trị..." />
+              <Textarea v-model="caseData.diagnosis_management.treatment_plan" placeholder="Kế hoạch điều trị..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -422,6 +427,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import CardContent from '@/components/ui/CardContent.vue'
@@ -465,6 +471,24 @@ const hasUnsavedChanges = ref(false)
 const showPreview = ref(false)
 const activeTab = ref('assessment')
 const { toast } = useToast()
+const authStore = useAuthStore()
+
+// Loaded case metadata
+const caseOwnerId = ref<number | null>(null)
+const caseStatus = ref<string>('draft')
+
+// Permission checks
+const isOwner = computed(() => {
+  return authStore.user && caseOwnerId.value && authStore.user.id === caseOwnerId.value
+})
+
+const isDraft = computed(() => {
+  return caseStatus.value === 'draft'
+})
+
+const canEdit = computed(() => {
+  return isOwner.value && isDraft.value
+})
 
 // File upload state
 const fileInput = ref<HTMLInputElement>()
@@ -822,7 +846,20 @@ onMounted(async () => {
   try {
     // Load case data from API
     const caseDetails = await casesService.getCase(props.caseId)
-    console.log('Loaded case details:', caseDetails)
+    
+    // Store owner and status for permission checks
+    // Backend uses 'student' field instead of 'created_by'
+    if (caseDetails.student) {
+      caseOwnerId.value = typeof caseDetails.student === 'object' 
+        ? caseDetails.student.id 
+        : caseDetails.student
+    } else if (caseDetails.created_by) {
+      caseOwnerId.value = typeof caseDetails.created_by === 'object' 
+        ? caseDetails.created_by.id 
+        : caseDetails.created_by
+    }
+    
+    caseStatus.value = caseDetails.case_status || caseDetails.status || 'draft'
     
     // Ensure all nested objects are initialized
     caseData.value = {

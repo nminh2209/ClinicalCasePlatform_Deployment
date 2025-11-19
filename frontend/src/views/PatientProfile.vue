@@ -171,39 +171,39 @@
         </div>
       </div>
 
-      <!-- Student Responses -->
-      <div class="border-t pt-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-lg">📝 Student Responses</h2>
+      <!-- Learning Outcomes -->
+      <div v-if="caseData.learning_outcomes" class="border-t pt-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-lg">🎓 Learning Outcomes</h2>
 
-        <!-- Clinical Assessment -->
+        <!-- Learning Objectives -->
         <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">Clinical Assessment</h3>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">Learning Objectives</h3>
           <div class="text-gray-700 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 whitespace-pre-line">
-            {{ caseData.final_diagnosis || 'No content yet' }}
+            {{ caseData.learning_outcomes.learning_objectives || 'Not specified' }}
           </div>
         </div>
 
-        <!-- Differential Diagnosis -->
+        <!-- Key Concepts -->
         <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">Differential Diagnosis</h3>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">Key Concepts</h3>
           <div class="text-gray-700 bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500 whitespace-pre-line">
-            {{ caseData.differential_diagnosis || 'No content yet' }}
+            {{ caseData.learning_outcomes.key_concepts || 'Not specified' }}
           </div>
         </div>
 
-        <!-- Treatment Plan -->
+        <!-- Clinical Pearls -->
         <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">Treatment Plan</h3>
-          <div class="text-gray-700 bg-green-50 p-4 rounded-lg border-l-4 border-green-500 whitespace-pre-line">
-            {{ caseData.treatment_plan || 'No content yet' }}
-          </div>
-        </div>
-
-        <!-- Learning Points -->
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">Learning Points</h3>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">Clinical Pearls</h3>
           <div class="text-gray-700 bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500 whitespace-pre-line">
-            {{ caseData.notes || 'No content yet' }}
+            {{ caseData.learning_outcomes.clinical_pearls || 'Not specified' }}
+          </div>
+        </div>
+
+        <!-- References -->
+        <div v-if="caseData.learning_outcomes.references" class="mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">References</h3>
+          <div class="text-gray-700 bg-green-50 p-4 rounded-lg border-l-4 border-green-500 whitespace-pre-line">
+            {{ caseData.learning_outcomes.references }}
           </div>
         </div>
       </div>

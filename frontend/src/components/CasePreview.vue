@@ -23,10 +23,10 @@
           <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">👤 Thông tin bệnh nhân</h3>
             <div class="grid grid-cols-2 gap-3 text-sm">
-              <div><span class="font-medium">Tên:</span> {{ caseData.patientName || 'Chưa nhập' }}</div>
-              <div><span class="font-medium">Tuổi:</span> {{ caseData.patientAge || 'Chưa nhập' }}</div>
-              <div><span class="font-medium">Giới tính:</span> {{ caseData.patientGender || 'Chưa nhập' }}</div>
-              <div><span class="font-medium">Số hồ sơ:</span> {{ caseData.medicalRecordNumber || 'Chưa nhập' }}</div>
+              <div><span class="font-medium">Tên:</span> {{ caseData.patient_name || 'Chưa nhập' }}</div>
+              <div><span class="font-medium">Tuổi:</span> {{ caseData.patient_age || 'Chưa nhập' }}</div>
+              <div><span class="font-medium">Giới tính:</span> {{ formatGender(caseData.patient_gender) }}</div>
+              <div><span class="font-medium">Số hồ sơ:</span> {{ caseData.medical_record_number || 'Chưa nhập' }}</div>
             </div>
           </div>
 
@@ -36,22 +36,22 @@
             
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Lý do khám chính</h4>
-              <p class="text-gray-700 bg-gray-50 p-3 rounded-lg">{{ caseData.chiefComplaint || 'Chưa nhập' }}</p>
+              <p class="text-gray-700 bg-gray-50 p-3 rounded-lg">{{ caseData.clinical_history?.chief_complaint || 'Chưa nhập' }}</p>
             </div>
 
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Bệnh sử hiện tại</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.historyOfPresentIllness || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history?.history_present_illness || 'Chưa nhập' }}</div>
             </div>
 
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Tiền sử bệnh tật</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.pastMedicalHistory || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history?.past_medical_history || 'Chưa nhập' }}</div>
             </div>
 
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Thuốc đang sử dụng</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.medications || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history?.medications || 'Chưa nhập' }}</div>
             </div>
           </div>
 
@@ -61,22 +61,22 @@
             
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Tình trạng chung</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.generalAppearance || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination?.general_appearance || 'Chưa nhập' }}</div>
             </div>
 
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Dấu hiệu sinh tồn</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.vitalSigns || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ formatVitalSigns() }}</div>
             </div>
 
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Tim mạch</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.cardiovascular || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination?.cardiovascular || 'Chưa nhập' }}</div>
             </div>
 
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Hô hấp</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.respiratory || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination?.respiratory || 'Chưa nhập' }}</div>
             </div>
           </div>
 
@@ -86,17 +86,17 @@
             
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Xét nghiệm</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line font-mono text-sm">{{ caseData.labsAndImaging || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line font-mono text-sm">{{ caseData.detailed_investigations?.laboratory_results || 'Chưa nhập' }}</div>
             </div>
 
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Chẩn đoán hình ảnh</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.imagingStudies || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.detailed_investigations?.imaging_studies || 'Chưa nhập' }}</div>
             </div>
 
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Điện tâm đồ</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.ecgFindings || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.detailed_investigations?.ecg_findings || 'Chưa nhập' }}</div>
             </div>
           </div>
 
@@ -106,12 +106,12 @@
             
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Chẩn đoán chính</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.primaryDiagnosis || 'Chưa nhập' }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management?.primary_diagnosis || 'Chưa nhập' }}</div>
             </div>
 
             <div class="mb-4">
-              <h4 class="text-md font-semibold text-gray-800 mb-2">Kế hoạch điều trị (từ form)</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.treatmentPlanForm || 'Chưa nhập' }}</div>
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Kế hoạch điều trị</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management?.treatment_plan || 'Chưa nhập' }}</div>
             </div>
           </div>
 
@@ -178,39 +178,31 @@
             </div>
           </div>
 
-          <!-- Student Responses -->
-          <div class="border-t pt-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-lg">📝 Phản hồi của sinh viên</h2>
+          <!-- Learning Outcomes -->
+          <div v-if="caseData.learning_outcomes" class="border-t pt-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-lg">🎓 Mục tiêu học tập</h2>
 
-            <!-- Clinical Assessment -->
+            <!-- Learning Objectives -->
             <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">Đánh giá lâm sàng</h3>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">Mục tiêu</h3>
               <div class="text-gray-700 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500 whitespace-pre-line">
-                {{ caseData.finalDiagnosis || 'Chưa có nội dung' }}
+                {{ caseData.learning_outcomes.learning_objectives || 'Chưa có nội dung' }}
               </div>
             </div>
 
-            <!-- Differential Diagnosis -->
+            <!-- Key Concepts -->
             <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">Chẩn đoán phân biệt</h3>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">Khái niệm chính</h3>
               <div class="text-gray-700 bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500 whitespace-pre-line">
-                {{ caseData.differentialDiagnosis || 'Chưa có nội dung' }}
+                {{ caseData.learning_outcomes.key_concepts || 'Chưa có nội dung' }}
               </div>
             </div>
 
-            <!-- Treatment Plan -->
+            <!-- Clinical Pearls -->
             <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">Kế hoạch điều trị</h3>
-              <div class="text-gray-700 bg-green-50 p-4 rounded-lg border-l-4 border-green-500 whitespace-pre-line">
-                {{ caseData.treatmentPlan || 'Chưa có nội dung' }}
-              </div>
-            </div>
-
-            <!-- Learning Points -->
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">Điểm học tập</h3>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">Điểm lưu ý lâm sàng</h3>
               <div class="text-gray-700 bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500 whitespace-pre-line">
-                {{ caseData.notes || 'Chưa có nội dung' }}
+                {{ caseData.learning_outcomes.clinical_pearls || 'Chưa có nội dung' }}
               </div>
             </div>
           </div>
@@ -297,6 +289,32 @@ const getDepartmentLabel = (dept: string) => {
     'internal_medicine': 'Nội khoa'
   }
   return labels[dept] || dept
+}
+
+const formatGender = (gender: string) => {
+  const genderMap: Record<string, string> = {
+    'male': 'Nam',
+    'female': 'Nữ',
+    'other': 'Khác',
+    'not_specified': 'Không xác định'
+  }
+  return genderMap[gender] || gender
+}
+
+const formatVitalSigns = () => {
+  const pe = props.caseData?.physical_examination
+  if (!pe) return 'Chưa nhập'
+  
+  const parts = []
+  if (pe.vital_signs_temp) parts.push(`Nhiệt độ: ${pe.vital_signs_temp}°C`)
+  if (pe.vital_signs_hr) parts.push(`Nhịp tim: ${pe.vital_signs_hr} bpm`)
+  if (pe.vital_signs_bp) parts.push(`Huyết áp: ${pe.vital_signs_bp} mmHg`)
+  if (pe.vital_signs_rr) parts.push(`Nhịp thở: ${pe.vital_signs_rr} /phút`)
+  if (pe.vital_signs_spo2) parts.push(`SpO2: ${pe.vital_signs_spo2}%`)
+  if (pe.vital_signs_weight) parts.push(`Cân nặng: ${pe.vital_signs_weight} kg`)
+  if (pe.vital_signs_height) parts.push(`Chiều cao: ${pe.vital_signs_height} cm`)
+  
+  return parts.length > 0 ? parts.join('\n') : 'Chưa nhập'
 }
 </script>
 
