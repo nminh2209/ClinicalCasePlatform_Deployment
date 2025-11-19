@@ -3,91 +3,129 @@
 <template>
   <div class="landing">
     <header class="hero">
-      <nav class="absolute top-4 right-4">
-        <router-link to="/login" class="btn btn-primary btn-large mx-5">
-          Log in
-        </router-link>
-        <router-link to="/login" class="btn btn-primary-outline btn-large">
-          Sign Up
+      <nav class="nav-bar">
+        <div class="nav-logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="logo-icon">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+          <span class="logo-text">MedCase</span>
+        </div>
+        <router-link to="/login" class="btn btn-login">
+          Đăng Nhập
         </router-link>
       </nav>
 
-      <div class="hero-content">
-        <h1>Clinical Case Management Platform</h1>
-        <p>Streamline medical case documentation and collaboration for healthcare education</p>
-        <div class="hero-actions">
-          <router-link to="/login" class="btn btn-primary btn-large">
-            Get Started
-          </router-link>
-          <button class="btn btn-outline btn-large">
-            Learn More
-          </button>
+      <div class="hero-container">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <span>Được các tổ chức y dược hàng đầu tin tưởng</span>
+          </div>
+          <h1 class="hero-title">Nền tảng Quản lý Ca bệnh Lâm sàng</h1>
+          <p class="hero-description">Đơn giản hóa việc ghi chép hồ sơ ca bệnh và hợp tác trong đào tạo y khoa với nền tảng toàn diện của chúng tôi!</p>
+          <div class="hero-actions">
+            <router-link to="/login" class="btn btn-primary-large">
+              <span>Bắt đầu</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </router-link>
+          </div>
         </div>
-      </div>
-      <div class="hero-image">
-        <div class="medical-illustration">
-          <svg width="400" height="300" viewBox="0 0 400 300" fill="none">
-            <rect x="50" y="50" width="300" height="200" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" />
-            <rect x="70" y="80" width="60" height="40" rx="4" fill="#3b82f6" />
-            <rect x="150" y="80" width="180" height="8" rx="4" fill="#e2e8f0" />
-            <rect x="150" y="100" width="120" height="8" rx="4" fill="#e2e8f0" />
-            <rect x="70" y="140" width="260" height="8" rx="4" fill="#e2e8f0" />
-            <rect x="70" y="160" width="200" height="8" rx="4" fill="#e2e8f0" />
-            <rect x="70" y="200" width="140" height="20" rx="4" fill="#10b981" />
-          </svg>
+        <div class="hero-visual">
+          <div class="floating-card card-1">
+            <div class="card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14,2 14,8 20,8" />
+              </svg>
+            </div>
+            <div class="card-content">
+              <div class="card-title">Số ca bệnh được báo cáo</div>
+              <div class="card-stat">1,284</div>
+            </div>
+          </div>
+          <div class="floating-card card-2">
+            <div class="card-icon success">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+              </svg>
+            </div>
+            <div class="card-content">
+              <div class="card-title">Số người dùng đang hoạt động</div>
+              <div class="card-stat">856</div>
+            </div>
+          </div>
         </div>
       </div>
     </header>
 
     <section class="features">
       <div class="container">
-        <h2>Key Features</h2>
+        <div class="features-header">
+          <span class="section-label">Tính năng nổi bật</span>
+          <h2 class="section-title">Mọi thứ mà bạn cần để quản lý các ca bệnh lâm sàng, trên một nền tảng duy nhất.</h2>
+          <p class="section-description">Những công cụ mạnh mẽ được thiết kế cho giáo dục và hợp tác trong lĩnh vực chăm sóc sức khỏe.</p>
+        </div>
         <div class="feature-grid">
           <div class="feature-card">
-            <div class="feature-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-              </svg>
+            <div class="feature-icon-wrapper">
+              <div class="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                </svg>
+              </div>
             </div>
-            <h3>Case Documentation</h3>
-            <p>Create and manage detailed medical case reports with standardized templates</p>
+            <h3>Ghi chép</h3>
+            <p>Tạo và quản lý các báo cáo ca bệnh chi tiết với các mẫu tiêu chuẩn hóa.</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
+            <div class="feature-icon-wrapper">
+              <div class="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
             </div>
-            <h3>Collaboration</h3>
-            <p>Share cases with colleagues and instructors for feedback and learning</p>
+            <h3>Hợp tác</h3>
+            <p>Chia sẻ các ca bệnh với đồng nghiệp, bạn học, và giảng viên để nhận phản hồi và học hỏi.</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
-              </svg>
+            <div class="feature-icon-wrapper">
+              <div class="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+              </div>
             </div>
-            <h3>Organization</h3>
-            <p>Organize cases in repositories with powerful search and filtering</p>
+            <h3>Sắp xếp</h3>
+            <p>Tổ chức các ca bệnh trong các kho lưu trữ với khả năng tìm kiếm và lọc mạnh mẽ</p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
+            <div class="feature-icon-wrapper">
+              <div class="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              </div>
             </div>
-            <h3>Export & Reports</h3>
-            <p>Export cases to PDF, Word, and PowerPoint for presentations</p>
+            <h3>Xuất Báo Cáo</h3>
+            <p>Xuất các ca bệnh sang PDF và Word để phục vụ thuyết trình.</p>
           </div>
         </div>
       </div>
@@ -372,55 +410,252 @@
 /* Landing Page Styles */
 .landing {
   min-height: 100vh;
+  background: #ffffff;
 }
 
 .hero {
+  position: relative;
   background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
   color: white;
-  padding: 4rem 2rem;
+  padding: 0;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(30, 64, 175, 0.3) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.nav-bar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 4rem;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-logo {
   display: flex;
   align-items: center;
-  min-height: 80vh;
+  gap: 0.75rem;
+}
+
+.logo-icon {
+  color: white;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.btn-login {
+  padding: 0.625rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+}
+
+.btn-login:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.hero-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 6rem 4rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  min-height: calc(100vh - 80px);
 }
 
 .hero-content {
-  flex: 1;
   max-width: 600px;
 }
 
-.hero h1 {
-  font-size: 3.5rem;
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  font-size: 0.875rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.hero-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hero-title {
+  font-size: 3.75rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
   line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
-.hero p {
+.hero-description {
   font-size: 1.25rem;
   margin-bottom: 2.5rem;
   opacity: 0.9;
   line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .hero-actions {
   display: flex;
   gap: 1rem;
-  flex-wrap: wrap;
 }
 
-.hero-image {
-  flex: 1;
-  display: flex;
-  justify-content: center;
+.btn-primary-large {
+  display: inline-flex;
   align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: white;
+  color: #1e40af;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.125rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
-.medical-illustration {
-  opacity: 0.8;
+.btn-primary-large:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.hero-visual {
+  position: relative;
+  height: 500px;
+}
+
+.floating-card {
+  position: absolute;
+  background: white;
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  animation: float 6s ease-in-out infinite;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.card-1 {
+  top: 8%;
+  right: 15%;
+  animation-delay: 0s;
+}
+
+.card-2 {
+  top: 50%;
+  right: 5%;
+  animation-delay: 2s;
+  transform: translateY(-50%);
+}
+
+.card-3 {
+  bottom: 12%;
+  right: 20%;
+  animation-delay: 4s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.card-2 {
+  animation-name: float-center;
+}
+
+@keyframes float-center {
+  0%, 100% {
+    transform: translateY(-50%);
+  }
+  50% {
+    transform: translateY(calc(-50% - 15px));
+  }
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.card-icon.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.card-icon.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.card-title {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.card-stat {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .features {
-  padding: 5rem 0;
+  padding: 6rem 0;
   background: #f8fafc;
 }
 
@@ -430,117 +665,107 @@
   padding: 0 2rem;
 }
 
-.features h2 {
+.features-header {
   text-align: center;
   margin-bottom: 4rem;
-  font-size: 3rem;
+}
+
+.section-label {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 2.5rem;
   font-weight: 700;
   color: #1f2937;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.section-description {
+  font-size: 1.125rem;
+  color: #6b7280;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .feature-card {
   background: white;
-  padding: 2.5rem;
+  padding: 2rem;
   border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
   border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
 }
 
 .feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  border-color: #3b82f6;
+}
+
+.feature-icon-wrapper {
+  margin-bottom: 1.5rem;
 }
 
 .feature-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #3b82f6, #1e40af);
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #1e40af;
 }
 
 .feature-card h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
   color: #1f2937;
 }
 
 .feature-card p {
   color: #6b7280;
   line-height: 1.6;
-}
-
-/* Button Styles */
-.btn {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
-  font-size: 0.875rem;
-}
-
-.btn-large {
-  padding: 1rem 2rem;
-  font-size: 1rem;
-}
-
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: white;
-}
-
-.btn-primary-outline {
-
-  border: 2px solid #1d4ed8;
-  color: white;
-}
-
-.btn-primary-outline:hover {
-  background: #1a4df3;
-  transform: translateY(-2px);
-}
-
-
-
-.btn-primary:hover {
-  background: #1d4ed8;
-  transform: translateY(-2px);
-}
-
-.btn-outline {
-  background: transparent;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.btn-outline:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9375rem;
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    padding: 4rem 2rem;
+  }
+
+  .hero-visual {
+    display: none;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .nav-bar {
+    padding: 1.5rem 2rem;
+  }
+}
+
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: 1fr;
@@ -550,27 +775,39 @@
     grid-template-columns: 1fr;
   }
 
-  .hero {
-    flex-direction: column;
-    text-align: center;
-    gap: 2rem;
+  .hero-title {
+    font-size: 2.5rem;
   }
 
-  .hero h1 {
-    font-size: 2.5rem;
+  .hero-description {
+    font-size: 1.125rem;
   }
 
   .hero-actions {
     flex-direction: column;
-    align-items: center;
+    width: 100%;
   }
 
-  .hero-image {
-    order: -1;
+  .btn-primary-large {
+    width: 100%;
+    justify-content: center;
   }
 
   .feature-grid {
     grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .nav-bar {
+    padding: 1rem 1.5rem;
+  }
+
+  .logo-text {
+    font-size: 1.25rem;
   }
 }
 </style>

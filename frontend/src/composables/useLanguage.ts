@@ -5,6 +5,7 @@ const currentLanguage = ref("vi"); // Default to Vietnamese
 const translations: Record<string, any> = {
   vi: {
     login: {
+      goBack: "Trang chủ",
       title: "Đăng nhập",
       subtitle: "Vui lòng đăng nhập để tiếp tục",
       username: "Tên đăng nhập",
@@ -26,6 +27,7 @@ const translations: Record<string, any> = {
   },
   en: {
     login: {
+      goBack: "Home",
       title: "Login",
       subtitle: "Please sign in to continue",
       username: "Username",

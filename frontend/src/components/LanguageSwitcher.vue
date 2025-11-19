@@ -1,9 +1,23 @@
 <template>
   <div class="language-switcher">
-    <select v-model="currentLanguage" @change="handleLanguageChange" class="language-select">
-      <option value="vi">🇻🇳 Tiếng Việt</option>
-      <option value="en">🇺🇸 English</option>
-    </select>
+    <div class="language-toggle">
+      <button 
+        @click="setLanguage('vi')"
+        :class="['lang-button', { active: currentLanguage === 'vi' }]"
+        type="button"
+      >
+        <span class="flag">🇻🇳</span>
+        <span class="lang-text">VI</span>
+      </button>
+      <button 
+        @click="setLanguage('en')"
+        :class="['lang-button', { active: currentLanguage === 'en' }]"
+        type="button"
+      >
+        <span class="flag">🇺🇸</span>
+        <span class="lang-text">EN</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -11,12 +25,13 @@
 import { ref, watch } from 'vue'
 import { useLanguage } from '@/composables/useLanguage'
 
-const { setLanguage, currentLang } = useLanguage()
+const { setLanguage: setLang, currentLang } = useLanguage()
 
 const currentLanguage = ref(currentLang.value)
 
-const handleLanguageChange = () => {
-  setLanguage(currentLanguage.value)
+const setLanguage = (lang: string) => {
+  currentLanguage.value = lang
+  setLang(lang)
 }
 
 watch(currentLang, (newLang) => {
@@ -29,25 +44,53 @@ watch(currentLang, (newLang) => {
   position: relative;
 }
 
-.language-select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e0e0e0;
+.language-toggle {
+  display: inline-flex;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 0.25rem;
+  gap: 0.25rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.lang-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border: none;
+  background: transparent;
   border-radius: 8px;
-  background: white;
-  font-size: 0.875rem;
-  color: #424242;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 120px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #6b7280;
 }
 
-.language-select:focus {
-  outline: none;
-  border-color: #2196f3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+.lang-button:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: #374151;
 }
 
-.language-select:hover {
-  border-color: #bdbdbd;
+.lang-button.active {
+  background: white;
+  color: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.flag {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.lang-text {
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.lang-button.active .lang-text {
+  color: #3b82f6;
 }
 </style>

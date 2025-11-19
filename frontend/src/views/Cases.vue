@@ -152,7 +152,6 @@
                 <div v-if="showExportMenu === case_.id" class="export-menu">
                   <button @click="exportCase(case_, 'pdf')" class="export-option">PDF</button>
                   <button @click="exportCase(case_, 'word')" class="export-option">Word</button>
-                  <button @click="exportCase(case_, 'powerpoint')" class="export-option">PowerPoint</button>
                 </div>
               </div>
             </div>
@@ -784,8 +783,6 @@ async function exportCase(caseItem: any, format: string) {
     // Prefer TS service exportCase if available, fallback to quickExport
     if (typeof (exportService as any).exportCase === 'function') {
       await (exportService as any).exportCase(caseItem.id.toString(), format, caseItem.title)
-    } else if (typeof (exportService as any).quickExport === 'function') {
-      await (exportService as any).quickExport(caseItem.id, format === 'powerpoint' ? 'ppt' : format)
     } else {
       throw new Error('No export function available')
     }

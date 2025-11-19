@@ -1,9 +1,9 @@
 <template>
-  <div class="p-6 space-y-6">
+  <div class="p-6 space-y-6 max-w-[1600px] mx-auto">
     <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">Quản lý Người Dùng</h1>
-      <p class="text-sm text-gray-500 mt-1">Quản lý tài khoản sinh viên, giảng viên và quản trị viên</p>
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Quản lý Người Dùng</h1>
+      <p class="text-gray-600">Quản lý tài khoản sinh viên, giảng viên và quản trị viên</p>
     </div>
 
     <!-- Loading State -->
@@ -22,19 +22,19 @@
     </div>
 
     <!-- Search and Filter -->
-    <div v-if="!loading" class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+    <div v-if="!loading" class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-2">Tìm kiếm</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
           <input 
             v-model="q" 
             placeholder="Tên hoặc email..." 
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
           />
         </div>
         <div> 
-          <label class="block text-xs font-medium text-gray-700 mb-2">Vai trò</label>
-          <select v-model="role" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Vai trò</label>
+          <select v-model="role" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
             <option value="">Tất cả vai trò</option>
             <option value="student">Sinh viên</option>
             <option value="instructor">Giảng viên</option>
@@ -42,8 +42,8 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 mb-2">Khoa</label>
-          <select v-model="departmentFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Khoa</label>
+          <select v-model="departmentFilter" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
             <option value="">Tất cả khoa</option>
             <option v-for="d in departments" :key="d.id" :value="String(d.id)">{{ d.vietnamese_name }}</option>
           </select>
@@ -51,7 +51,7 @@
         <div class="flex items-end">
           <button 
             @click="resetFilters" 
-            class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm font-medium transition-colors"
+            class="w-full px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-all hover:shadow-sm"
           >
             Xóa bộ lọc
           </button>
@@ -60,9 +60,9 @@
     </div>
 
     <!-- Users Table Card -->
-    <div v-if="!loading" class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-      <div class="p-4 border-b border-gray-200">
-        <h3 class="font-semibold text-gray-800">Danh sách người dùng ({{ filtered.length }} trên trang hiện tại)</h3>
+    <div v-if="!loading" class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Danh sách người dùng <span class="text-gray-500 font-normal">({{ filtered.length }} trên trang hiện tại)</span></h3>
       </div>
 
       <div class="overflow-x-auto">
