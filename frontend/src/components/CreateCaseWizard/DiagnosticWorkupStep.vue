@@ -1,67 +1,58 @@
 <template>
   <div class="space-y-6">
-    <div class="text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">
-        Diagnostic Investigations
-      </h2>
-      <p class="text-gray-600">
-        Laboratory results, imaging studies, and other diagnostic tests
-      </p>
-    </div>
-
     <!-- Laboratory Tests -->
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Laboratory Results
+          {{ t('createCase.laboratoryResults') }}
         </h3>
 
         <div class="space-y-4">
           <div class="space-y-2">
-            <Label for="labResults">Complete Laboratory Results</Label>
+            <Label for="labResults">{{ t('createCase.completeLaboratoryResults') }}</Label>
             <Textarea id="labResults" v-model="localData.detailed_investigations.laboratory_results"
-              placeholder="Enter all laboratory test results including CBC, CMP, liver function, coagulation studies..." rows="4" />
+              :placeholder="t('createCase.completeLabPlaceholder')" rows="4" />
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="space-y-2">
-              <Label for="hemoglobin">Hemoglobin (g/dL)</Label>
+              <Label for="hemoglobin">{{ t('createCase.hemoglobin') }} {{ t('createCase.hemoglobinUnit') }}</Label>
               <Input id="hemoglobin" type="number" step="0.1" v-model.number="localData.detailed_investigations.hemoglobin_level"
                 placeholder="14.0" />
             </div>
 
             <div class="space-y-2">
-              <Label for="wbc">White Blood Cell Count (10^9/L)</Label>
+              <Label for="wbc">{{ t('createCase.whiteBloodCellCount') }} {{ t('createCase.wbcUnit') }}</Label>
               <Input id="wbc" type="number" step="0.1" v-model.number="localData.detailed_investigations.white_cell_count"
                 placeholder="7.5" />
             </div>
 
             <div class="space-y-2">
-              <Label for="platelet">Platelet Count (10^9/L)</Label>
+              <Label for="platelet">{{ t('createCase.plateletCount') }} {{ t('createCase.plateletUnit') }}</Label>
               <Input id="platelet" type="number" step="1" v-model.number="localData.detailed_investigations.platelet_count"
                 placeholder="250" />
             </div>
 
             <div class="space-y-2">
-              <Label for="sodium">Sodium (mmol/L)</Label>
+              <Label for="sodium">{{ t('createCase.sodium') }} {{ t('createCase.sodiumUnit') }}</Label>
               <Input id="sodium" type="number" step="0.1" v-model.number="localData.detailed_investigations.sodium_level"
                 placeholder="140" />
             </div>
 
             <div class="space-y-2">
-              <Label for="potassium">Potassium (mmol/L)</Label>
+              <Label for="potassium">{{ t('createCase.potassium') }} {{ t('createCase.potassiumUnit') }}</Label>
               <Input id="potassium" type="number" step="0.1" v-model.number="localData.detailed_investigations.potassium_level"
                 placeholder="4.0" />
             </div>
 
             <div class="space-y-2">
-              <Label for="creatinine">Creatinine (mg/dL)</Label>
+              <Label for="creatinine">{{ t('createCase.creatinine') }} {{ t('createCase.creatinineUnit') }}</Label>
               <Input id="creatinine" type="number" step="0.1" v-model.number="localData.detailed_investigations.creatinine_level"
                 placeholder="1.0" />
             </div>
 
             <div class="space-y-2">
-              <Label for="glucose">Glucose (mg/dL)</Label>
+              <Label for="glucose">{{ t('createCase.glucose') }} {{ t('createCase.glucoseUnit') }}</Label>
               <Input id="glucose" type="number" step="1" v-model.number="localData.detailed_investigations.glucose_level"
                 placeholder="100" />
             </div>
@@ -74,14 +65,14 @@
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Imaging Studies
+          {{ t('createCase.imagingStudies') }}
         </h3>
 
         <div class="space-y-4">
           <div class="space-y-2">
-            <Label for="imaging">Imaging Findings</Label>
+            <Label for="imaging">{{ t('createCase.imagingFindings') }}</Label>
             <Textarea id="imaging" v-model="localData.detailed_investigations.imaging_studies"
-              placeholder="Describe all imaging findings: X-rays, CT scans, MRI, ultrasound, etc..." rows="4" />
+              :placeholder="t('createCase.imagingFindingsPlaceholder')" rows="4" />
           </div>
         </div>
       </div>
@@ -91,26 +82,26 @@
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Other Diagnostic Tests
+          {{ t('createCase.otherDiagnosticTests') }}
         </h3>
 
         <div class="space-y-4">
           <div class="space-y-2">
-            <Label for="pathology">Pathology Results</Label>
+            <Label for="pathology">{{ t('createCase.pathologyResults') }}</Label>
             <Textarea id="pathology" v-model="localData.detailed_investigations.pathology_results"
-              placeholder="Biopsy results, histopathology findings..." rows="3" />
+              :placeholder="t('createCase.pathologyPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="microbiology">Microbiology Results</Label>
+            <Label for="microbiology">{{ t('createCase.microbiologyResults') }}</Label>
             <Textarea id="microbiology" v-model="localData.detailed_investigations.microbiology_results"
-              placeholder="Culture results, sensitivity testing..." rows="3" />
+              :placeholder="t('createCase.microbiologyPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="otherInvestigations">Additional Investigations</Label>
+            <Label for="otherInvestigations">{{ t('createCase.additionalInvestigations') }}</Label>
             <Textarea id="otherInvestigations" v-model="localData.detailed_investigations.other_investigations"
-              placeholder="ECG findings, echocardiography, endoscopy, other special tests..." rows="3" />
+              :placeholder="t('createCase.additionalInvestigationsPlaceholder')" rows="3" />
           </div>
         </div>
       </div>
@@ -120,6 +111,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
 import Label from '@/components/ui/Label.vue'
@@ -128,6 +120,8 @@ import Textarea from '@/components/ui/Textarea.vue'
 const props = defineProps<{
   caseData: any
 }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   'update:caseData': [any]

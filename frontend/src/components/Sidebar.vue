@@ -12,12 +12,13 @@
   <div v-if="isMobileOpen" @click="closeMobile" class="mobile-overlay md:hidden"></div>
 
   <!-- Sidebar -->
-  <aside class="sidebar" :class="{ 
-    'collapsed': isCollapsed && !isMobileOpen, 
-    'mobile-open': isMobileOpen 
+  <aside class="sidebar" :class="{
+    'collapsed': isCollapsed && !isMobileOpen,
+    'mobile-open': isMobileOpen
   }">
     <!-- Desktop toggle button - centered vertically -->
-    <button @click="toggleCollapse" class="toggle-btn-center hidden md:flex" :title="isCollapsed ? 'Expand' : 'Collapse'">
+    <button @click="toggleCollapse" class="toggle-btn-center hidden md:flex"
+      :title="isCollapsed ? 'Expand' : 'Collapse'">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline :points="isCollapsed ? '9,18 15,12 9,6' : '15,18 9,12 15,6'" />
       </svg>
@@ -26,14 +27,7 @@
     <div class="sidebar-header">
       <div class="logo">
         <div class="logo-icon">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
           </svg>
         </div>
@@ -43,7 +37,8 @@
 
     <nav class="sidebar-nav">
       <!-- Home link (all roles) -->
-      <router-link to="/home" class="nav-item" :class="{ active: $route.path === '/home' }" @click="closeMobileOnNavigate">
+      <router-link to="/home" class="nav-item" :class="{ active: $route.path === '/home' }"
+        @click="closeMobileOnNavigate">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
           <polyline points="9,22 9,12 15,12 15,22" />
@@ -55,21 +50,24 @@
 
       <!-- Student navigation -->
       <template v-if="role === 'student'">
-        <router-link to="/cases" class="nav-item" :class="{ active: $route.path.includes('/cases') }" @click="closeMobileOnNavigate">
+        <router-link to="/cases" class="nav-item" :class="{ active: $route.path.includes('/cases') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14,2 14,8 20,8" />
           </svg>
           <span v-show="!isCollapsed || isMobileOpen">Hồ sơ Bệnh án</span>
         </router-link>
-        <router-link to="/patients" class="nav-item" :class="{ active: $route.path.includes('/patients') }" @click="closeMobileOnNavigate">
+        <router-link to="/patients" class="nav-item" :class="{ active: $route.path.includes('/patients') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
           <span v-show="!isCollapsed || isMobileOpen">Bệnh nhân</span>
         </router-link>
-        <router-link to="/public-feed" class="nav-item" :class="{ active: $route.path.includes('/public-feed') }" @click="closeMobileOnNavigate">
+        <router-link to="/public-feed" class="nav-item" :class="{ active: $route.path.includes('/public-feed') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <line x1="2" y1="12" x2="22" y2="12" />
@@ -77,7 +75,8 @@
           </svg>
           <span v-show="!isCollapsed || isMobileOpen">Bệnh Án Công Khai</span>
         </router-link>
-        <router-link to="/shared-cases" class="nav-item" :class="{ active: $route.path.includes('/shared-cases') }" @click="closeMobileOnNavigate">
+        <router-link to="/shared-cases" class="nav-item" :class="{ active: $route.path.includes('/shared-cases') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
           </svg>
@@ -93,7 +92,8 @@
       <!-- Instructor navigation -->
       <template v-else-if="role === 'instructor'">
         <!-- NEED TO ADD A STUDENT PAGE -->
-        <router-link to="/grading" class="nav-item" :class="{ active: $route.path.includes('/grading') }" @click="closeMobileOnNavigate">
+        <router-link to="/grading" class="nav-item" :class="{ active: $route.path.includes('/grading') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 11l3 3L22 4" />
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
@@ -101,7 +101,8 @@
           <span v-show="!isCollapsed || isMobileOpen">Chấm điểm</span>
         </router-link>
 
-             <router-link to="/cases" class="nav-item" :class="{ active: $route.path.includes('/cases') }" @click="closeMobileOnNavigate">
+        <router-link to="/cases" class="nav-item" :class="{ active: $route.path.includes('/cases') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14,2 14,8 20,8" />
@@ -110,7 +111,8 @@
         </router-link>
 
         <!-- NEED TO ADD A STUDENT PAGE -->
-        <router-link to="/students" class="nav-item" :class="{ active: $route.path.includes('/students') }" @click="closeMobileOnNavigate">
+        <router-link to="/students" class="nav-item" :class="{ active: $route.path.includes('/students') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
@@ -118,7 +120,8 @@
           <span v-show="!isCollapsed || isMobileOpen">Sinh viên</span>
         </router-link>
 
-        <router-link to="/public-feed" class="nav-item" :class="{ active: $route.path.includes('/public-feed') }" @click="closeMobileOnNavigate">
+        <router-link to="/public-feed" class="nav-item" :class="{ active: $route.path.includes('/public-feed') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <line x1="2" y1="12" x2="22" y2="12" />
@@ -127,7 +130,8 @@
           <span v-show="!isCollapsed || isMobileOpen">Bệnh Án Công Khai</span>
         </router-link>
 
-        <router-link to="/shared-cases" class="nav-item" :class="{ active: $route.path.includes('/shared-cases') }" @click="closeMobileOnNavigate">
+        <router-link to="/shared-cases" class="nav-item" :class="{ active: $route.path.includes('/shared-cases') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
           </svg>
@@ -139,10 +143,11 @@
 
 
 
-      
+
       <!-- Admin navigation -->
       <template v-else-if="role === 'admin'">
-        <router-link to="/users" class="nav-item" :class="{ active: $route.path.includes('/users') }" @click="closeMobileOnNavigate">
+        <router-link to="/users" class="nav-item" :class="{ active: $route.path.includes('/users') }"
+          @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="8" r="4" />
             <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
@@ -150,37 +155,11 @@
           <span v-show="!isCollapsed || isMobileOpen">Người Dùng</span>
         </router-link>
       </template>
-
-      <!-- Common links (all roles except students) -->
-      <router-link v-if="role !== 'student'" to="/repositories" class="nav-item" :class="{ active: $route.path.includes('/repositories') }" @click="closeMobileOnNavigate">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-        </svg>
-        <span v-show="!isCollapsed || isMobileOpen">Kho lưu trữ</span>
-      </router-link>
-
-      <router-link to="/settings" class="nav-item" :class="{ active: $route.path.includes('/settings') }" @click="closeMobileOnNavigate">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3" />
-          <path
-            d="m12 1 2.09 6.26L22 9l-6.26 2.09L14 19l-2.09-6.26L4 11l6.26-2.09L12 1z"
-          />
-        </svg>
-        <span v-show="!isCollapsed || isMobileOpen">Cài đặt</span>
-      </router-link>
     </nav>
 
     <div class="sidebar-footer">
       <button @click="logout" class="nav-item logout-btn">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
           <polyline points="16,17 21,12 16,7" />
           <line x1="21" y1="12" x2="9" y2="12" />
@@ -264,6 +243,7 @@ const logout = () => {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }

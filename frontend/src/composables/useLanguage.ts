@@ -22,6 +22,7 @@ const translations: Record<string, any> = {
         failedLogin:
           "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.",
       },
+      goBack: "Quay lại Trang Chủ",
     },
   },
   en: {
@@ -42,6 +43,7 @@ const translations: Record<string, any> = {
         wrongPassword: "Incorrect password",
         failedLogin: "Login failed. Please check your login information.",
       },
+      goBack: "Back to Home",
     },
   },
 };

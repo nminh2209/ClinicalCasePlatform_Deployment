@@ -2,35 +2,35 @@
   <div class="space-y-6">
     <Card>
       <div class="p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">Case Information</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">{{ t('createCase.caseInformation') }}</h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2 md:col-span-2">
-            <Label for="title">Case Title *</Label>
-            <Input id="title" v-model="localData.title" placeholder="Enter case title"
-              :error="errors.title" />
+            <Label for="title">{{ t('createCase.caseTitle') }} *</Label>
+            <Input id="title" v-model="localData.title" :placeholder="t('createCase.enterCaseTitle')"
+              :error="getTranslatedError('title')" />
           </div>
 
           <div class="space-y-2 md:col-span-2">
-            <Label for="patientName">Patient Name *</Label>
-            <Input id="patientName" v-model="localData.patient_name" placeholder="Enter patient name (can be anonymized)"
-              :error="errors.patient_name" />
+            <Label for="patientName">{{ t('createCase.patientName') }} *</Label>
+            <Input id="patientName" v-model="localData.patient_name" :placeholder="t('createCase.patientName') + ' ' + t('createCase.canBeAnonymized')"
+              :error="getTranslatedError('patientName')" />
           </div>
 
           <div class="space-y-2">
-            <Label for="specialty">Specialty *</Label>
-            <Input id="specialty" v-model="localData.specialty" placeholder="e.g., Cardiology, Neurology"
-              :error="errors.specialty" />
+            <Label for="specialty">{{ t('createCase.specialty') }} *</Label>
+            <Input id="specialty" v-model="localData.specialty" :placeholder="t('createCase.specialtyExample')"
+              :error="getTranslatedError('specialty')" />
           </div>
 
           <div class="space-y-2">
-            <Label for="complexity">Complexity Level</Label>
+            <Label for="complexity">{{ t('createCase.complexity') }}</Label>
             <select id="complexity" v-model="localData.complexity_level"
               class="w-full px-3 py-2 border border-gray-300 rounded-md">
-              <option value="basic">Basic</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-              <option value="expert">Expert</option>
+              <option value="basic">{{ t('createCase.complexityBasic') }}</option>
+              <option value="intermediate">{{ t('createCase.complexityIntermediate') }}</option>
+              <option value="advanced">{{ t('createCase.complexityAdvanced') }}</option>
+              <option value="expert">{{ t('createCase.complexityExpert') }}</option>
             </select>
           </div>
         </div>
@@ -39,45 +39,45 @@
 
     <Card>
       <div class="p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">Patient Demographics</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">{{ t('createCase.patientDemographics') }}</h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2">
-            <Label for="age">Age *</Label>
-            <Input id="age" type="number" v-model.number="localData.patient_age" placeholder="Patient age"
-              :error="errors.patient_age" min="0" max="150" />
+            <Label for="age">{{ t('createCase.age') }} *</Label>
+            <Input id="age" type="number" v-model.number="localData.patient_age" :placeholder="t('createCase.patientAge')"
+              :error="getTranslatedError('patient_age')" min="0" max="150" />
           </div>
 
           <div class="space-y-2">
-            <Label for="gender">Gender *</Label>
+            <Label for="gender">{{ t('createCase.gender') }} *</Label>
             <select id="gender" v-model="localData.patient_gender"
               class="w-full px-3 py-2 border border-gray-300 rounded-md"
-              :class="{ 'border-red-500': errors.patient_gender }">
-              <option value="">Select gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
+              :class="{ 'border-red-500': getTranslatedError('patient_gender') }">
+              <option value="">{{ t('createCase.selectGender') }}</option>
+              <option value="male">{{ t('createCase.male') }}</option>
+              <option value="female">{{ t('createCase.female') }}</option>
+              <option value="other">{{ t('createCase.other') }}</option>
             </select>
-            <p v-if="errors.patient_gender" class="text-sm text-red-600">{{ errors.patient_gender }}</p>
+            <p v-if="getTranslatedError('patient_gender')" class="text-sm text-red-600">{{ getTranslatedError('patient_gender') }}</p>
           </div>
 
           <div class="space-y-2">
-            <Label for="mrn">Medical Record Number</Label>
-            <Input id="mrn" v-model="localData.medical_record_number" placeholder="MRN (anonymized)" />
+            <Label for="mrn">{{ t('createCase.medicalRecordNumber') }}</Label>
+            <Input id="mrn" v-model="localData.medical_record_number" :placeholder="t('createCase.enterMRN')" />
           </div>
 
           <div class="space-y-2">
-            <Label for="ethnicity">Ethnicity</Label>
-            <Input id="ethnicity" v-model="localData.patient_ethnicity" placeholder="Patient ethnicity" />
+            <Label for="ethnicity">{{ t('createCase.ethnicity') }}</Label>
+            <Input id="ethnicity" v-model="localData.patient_ethnicity" :placeholder="t('createCase.enterEthnicity')" />
           </div>
 
           <div class="space-y-2">
-            <Label for="occupation">Occupation</Label>
-            <Input id="occupation" v-model="localData.patient_occupation" placeholder="Patient occupation" />
+            <Label for="occupation">{{ t('createCase.occupation') }}</Label>
+            <Input id="occupation" v-model="localData.patient_occupation" :placeholder="t('createCase.enterOccupation')" />
           </div>
 
           <div class="space-y-2">
-            <Label for="admission">Admission Date</Label>
+            <Label for="admission">{{ t('createCase.admissionDate') }}</Label>
             <Input id="admission" type="date" v-model="localData.admission_date" />
           </div>
         </div>
@@ -86,43 +86,43 @@
 
     <Card>
       <div class="p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">Clinical Presentation</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">{{ t('createCase.clinicalPresentation') }}</h3>
 
         <div class="space-y-6">
           <div class="space-y-2">
-            <Label for="chief_complaint">Chief Complaint *</Label>
+            <Label for="chief_complaint">{{ t('createCase.chief_complaint') }} *</Label>
             <Textarea id="chief_complaint" v-model="localData.clinical_history.chief_complaint"
-              placeholder="Main reason for patient presentation" :error="errors.chief_complaint" rows="3" />
+              :placeholder="t('createCase.describe_chief_complaint')" :error="getTranslatedError('chief_complaint')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="chief_complaintBrief">Brief Chief Complaint</Label>
+            <Label for="chief_complaintBrief">{{ t('createCase.briefChiefComplaint') }}</Label>
             <Input id="chief_complaintBrief" v-model="localData.chief_complaint_brief"
-              placeholder="One-line summary" />
+              :placeholder="t('createCase.enterBriefComplaint')" />
           </div>
 
           <div class="space-y-2">
-            <Label for="historyPresent">History of Present Illness</Label>
+            <Label for="historyPresent">{{ t('createCase.historyOfPresentIllness') }}</Label>
             <Textarea id="historyPresent" v-model="localData.clinical_history.history_present_illness"
-              placeholder="Detailed history of current illness" rows="6" />
+              :placeholder="t('createCase.detailedHistory')" rows="6" />
           </div>
 
           <div class="space-y-2">
-            <Label for="pastMedical">Past Medical History</Label>
+            <Label for="pastMedical">{{ t('createCase.pastMedicalHistory') }}</Label>
             <Textarea id="pastMedical" v-model="localData.clinical_history.past_medical_history"
-              placeholder="Previous medical conditions" rows="4" />
+              :placeholder="t('createCase.describePMH')" rows="4" />
           </div>
 
           <div class="space-y-2">
-            <Label for="medications">Current Medications</Label>
+            <Label for="medications">{{ t('createCase.currentMedications') }}</Label>
             <Textarea id="medications" v-model="localData.clinical_history.medications"
-              placeholder="List current medications" rows="3" />
+              :placeholder="t('createCase.listMedications')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="allergies">Allergies</Label>
+            <Label for="allergies">{{ t('createCase.allergies') }}</Label>
             <Textarea id="allergies" v-model="localData.clinical_history.allergies"
-              placeholder="Known allergies" rows="2" />
+              :placeholder="t('createCase.enterAllergies')" rows="2" />
           </div>
         </div>
       </div>
@@ -132,10 +132,13 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
 import Label from '@/components/ui/Label.vue'
 import Textarea from '@/components/ui/Textarea.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   caseData: any
@@ -152,6 +155,26 @@ const localData = computed({
 })
 
 const errors = ref<Record<string, string>>({})
+
+const getTranslatedError = (field: string): string | undefined => {
+  if (!errors.value[field]) return undefined
+  
+  // Map field names to i18n keys for error messages
+  const errorKeyMap: Record<string, string> = {
+    title: 'createCase.caseTitleRequired',
+    patient_name: 'createCase.patientNameRequired',
+    specialty: 'createCase.specialtyRequired',
+    patient_age: 'createCase.validAgeRequired',
+    patient_gender: 'createCase.genderRequired',
+    chief_complaint: 'createCase.chief_complaintRequired',
+  }
+  
+  const keyForError = errorKeyMap[field]
+  if (keyForError) {
+    return t(keyForError)
+  }
+  return errors.value[field]
+}
 
 const validateStep = () => {
   errors.value = {}

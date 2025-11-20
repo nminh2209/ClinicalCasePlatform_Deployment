@@ -1,19 +1,10 @@
 <template>
   <div class="space-y-6">
-    <div class="text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">
-        Medical Attachments
-      </h2>
-      <p class="text-gray-600">
-        Upload X-rays, lab reports, and other medical images or documents
-      </p>
-    </div>
-
     <!-- File Upload Area -->
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Upload Files
+          {{ t('createCase.uploadFiles') }}
         </h3>
 
         <div
@@ -24,14 +15,14 @@
             <UploadIcon class="w-12 h-12 text-gray-400 mx-auto" />
             <div>
               <p class="text-lg font-medium text-gray-900">
-                Drag and drop files here
+                {{ t('createCase.dragDropFiles') }}
               </p>
               <p class="text-gray-500">
-                or click to browse
+                {{ t('createCase.orClickToBrowse') }}
               </p>
             </div>
             <Button variant="outline" type="button">
-              Select Files
+              {{ t('createCase.selectFiles') }}
             </Button>
             <input ref="fileInput" type="file" multiple accept="image/*,.pdf,.doc,.docx" class="hidden"
               @change="handleFileSelect" />
@@ -39,8 +30,8 @@
         </div>
 
         <div class="mt-4 text-sm text-gray-500">
-          <p>Supported formats: JPG, PNG, PDF, DOC, DOCX</p>
-          <p>Maximum file size: 10MB per file</p>
+          <p>{{ t('createCase.supportedFormats')}}: JPG, PNG, PDF, DOC, DOCX</p>
+          <p>{{ t('createCase.maxFileSize')}}: 10MB/file</p>
         </div>
       </div>
     </Card>
@@ -49,7 +40,7 @@
     <Card v-if="localData.attachments && localData.attachments.length > 0">
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Uploaded Files ({{ localData.attachments.length }})
+          {{ t('createCase.uploadedFiles') }} ({{ localData.attachments.length }})
         </h3>
 
         <div class="space-y-6">
@@ -89,48 +80,48 @@
                 <!-- Attachment Type -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Attachment Type
+                    {{ t('createCase.attachmentType') }}
                   </label>
                   <select v-model="file.attachment_type" 
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select type...</option>
-                    <option value="x_ray">📷 X-Ray</option>
-                    <option value="lab_report">🧪 Lab Report</option>
-                    <option value="ct_scan">🔬 CT Scan</option>
-                    <option value="mri_scan">🧠 MRI Scan</option>
-                    <option value="ultrasound">📡 Ultrasound</option>
-                    <option value="injury_photo">📸 Injury Photo</option>
-                    <option value="surgical_photo">⚕️ Surgical Photo</option>
-                    <option value="pathology_slide">🔬 Pathology Slide</option>
-                    <option value="prescription">💊 Prescription</option>
-                    <option value="discharge_summary">📋 Discharge Summary</option>
-                    <option value="vital_signs">💓 Vital Signs Chart</option>
-                    <option value="ekg_ecg">❤️ EKG/ECG</option>
-                    <option value="endoscopy">🔍 Endoscopy</option>
-                    <option value="biopsy_report">🧬 Biopsy Report</option>
-                    <option value="medical_certificate">📜 Medical Certificate</option>
-                    <option value="other">📄 Other</option>
+                    <option value="">{{ t('createCase.selectType') }}</option>
+                    <option value="x_ray">📷 {{ t('createCase.xRay') }}</option>
+                    <option value="lab_report">🧪 {{ t('createCase.labReport') }}</option>
+                    <option value="ct_scan">🔬 {{ t('createCase.ctScan') }}</option>
+                    <option value="mri_scan">🧠 {{ t('createCase.mriScan') }}</option>
+                    <option value="ultrasound">📡 {{ t('createCase.ultrasoundType') }}</option>
+                    <option value="injury_photo">📸 {{ t('createCase.injuryPhoto') }}</option>
+                    <option value="surgical_photo">⚕️ {{ t('createCase.surgicalPhoto') }}</option>
+                    <option value="pathology_slide">🔬 {{ t('createCase.pathologySlide') }}</option>
+                    <option value="prescription">💊 {{ t('createCase.prescriptionType') }}</option>
+                    <option value="discharge_summary">📋 {{ t('createCase.dischargeSummary') }}</option>
+                    <option value="vital_signs">💓 {{ t('createCase.vitalSignsType') }}</option>
+                    <option value="ekg_ecg">❤️ {{ t('createCase.ekgEcg') }}</option>
+                    <option value="endoscopy">🔍 {{ t('createCase.endoscopyType') }}</option>
+                    <option value="biopsy_report">🧬 {{ t('createCase.biopsyReport') }}</option>
+                    <option value="medical_certificate">📜 {{ t('createCase.medicalCertificate') }}</option>
+                    <option value="other">📄 {{ t('createCase.otherType') }}</option>
                   </select>
                 </div>
 
                 <!-- Title -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Title
+                    {{ t('createCase.title') }}
                   </label>
                   <input v-model="file.title" type="text" 
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter title..." />
+                    :placeholder="t('createCase.enterTitle')" />
                 </div>
 
                 <!-- Description (Full Width) -->
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Description
+                    {{ t('createCase.description') }}
                   </label>
                   <textarea v-model="file.description" rows="2"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Describe the attachment..."></textarea>
+                    :placeholder="t('createCase.enterDescription')"></textarea>
                 </div>
 
                 <!-- Is Confidential -->
@@ -139,10 +130,10 @@
                     <input v-model="file.is_confidential" type="checkbox" 
                       class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                     <span class="text-sm font-medium text-gray-700">
-                      Mark as confidential
+                      {{ t('createCase.isConfidential') }}
                     </span>
                     <span class="text-xs text-gray-500">
-                      (restricted access to authorized users only)
+                      ({{ t('createCase.confidentialDescription') }})
                     </span>
                   </label>
                 </div>
@@ -168,7 +159,7 @@
             class="max-w-full h-auto object-contain mx-auto" />
           <div v-else class="text-center text-gray-500 py-12">
             <DocumentIcon class="w-16 h-16 mx-auto mb-4" />
-            <p>Preview not available for this file type</p>
+            <p>{{ t('createCase.previewNotAvailable') }}</p>
           </div>
         </div>
       </div>
@@ -178,42 +169,42 @@
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Case Summary
+          {{ t('createCase.caseSummary') }}
         </h3>
 
         <div class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 class="font-medium text-gray-900 mb-2">Patient Information</h4>
+              <h4 class="font-medium text-gray-900 mb-2">{{ t('createCase.patientInfo') }}</h4>
               <dl class="space-y-1 text-sm">
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Age:</dt>
-                  <dd class="font-medium">{{ localData.patient_age || 'Not specified' }} years</dd>
+                  <dt class="text-gray-600">{{ t('createCase.age') }}:</dt>
+                  <dd class="font-medium">{{ localData.patient_age || t('createCase.notSpecified') }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Gender:</dt>
-                  <dd class="font-medium">{{ localData.patient_gender || 'Not specified' }}</dd>
+                  <dt class="text-gray-600">{{ t('createCase.gender') }}:</dt>
+                  <dd class="font-medium">{{ localData.patient_gender || t('createCase.notSpecified') }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">MRN:</dt>
-                  <dd class="font-medium">{{ localData.medical_record_number || 'Not assigned' }}</dd>
+                  <dt class="text-gray-600">{{ t('createCase.mrn') }}:</dt>
+                  <dd class="font-medium">{{ localData.medical_record_number || t('createCase.notAssigned') }}</dd>
                 </div>
               </dl>
             </div>
 
             <div>
-              <h4 class="font-medium text-gray-900 mb-2">Case Details</h4>
+              <h4 class="font-medium text-gray-900 mb-2">{{ t('createCase.caseDetails') }}</h4>
               <dl class="space-y-1 text-sm">
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Title:</dt>
-                  <dd class="font-medium">{{ localData.title || 'Untitled Case' }}</dd>
+                  <dt class="text-gray-600">{{ t('createCase.title') }}:</dt>
+                  <dd class="font-medium">{{ localData.title || t('createCase.untitledCase') }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Specialty:</dt>
-                  <dd class="font-medium">{{ localData.specialty || 'Not specified' }}</dd>
+                  <dt class="text-gray-600">{{ t('createCase.specialty') }}:</dt>
+                  <dd class="font-medium">{{ localData.specialty || t('createCase.notSpecified') }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Attachments:</dt>
+                  <dt class="text-gray-600">{{ t('createCase.attachments') }}:</dt>
                   <dd class="font-medium">{{ localData.attachments?.length || 0 }}</dd>
                 </div>
               </dl>
@@ -227,6 +218,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
 import { UploadIcon, DocumentIcon, EyeIcon, TrashIcon, XIcon } from '@/components/icons'
@@ -236,6 +228,8 @@ const fileInput = ref<HTMLInputElement>()
 const props = defineProps<{
   caseData: any
 }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   'update:caseData': [any]
@@ -268,14 +262,14 @@ const addFiles = (files: File[]) => {
   const validFiles = files.filter(file => {
     // Check file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      alert(`File "${file.name}" is too large. Maximum size is 10MB.`)
+      alert(`${file.name} ${t('createCase.fileTooLarge')}`)
       return false
     }
 
     // Check file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
     if (!allowedTypes.includes(file.type)) {
-      alert(`File "${file.name}" has unsupported format. Please upload JPG, PNG, PDF, DOC, or DOCX files.`)
+      alert(`${file.name} ${t('createCase.unsupportedFileType')}`)
       return false
     }
 

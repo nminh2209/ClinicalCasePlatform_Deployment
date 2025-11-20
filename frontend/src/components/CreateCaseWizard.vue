@@ -8,12 +8,12 @@
               <div>
                 <CardTitle></CardTitle>
                 <CardDescription>
-                  Build a complete patient case for clinical practice
+                  {{ t('wizard.buildCase') }}
                 </CardDescription>
               </div>
               <Button variant="ghost" @click="$emit('close')">
                 <ArrowLeft class=" h-4 w-4 mr-2" />
-                Cancel
+                {{ t('wizard.cancel') }}
               </Button>
             </div>
 
@@ -27,7 +27,7 @@
                       : currentStep > index
                         ? 'bg-green-500 text-white border-green-500 hover:shadow-md'
                         : 'bg-white text-gray-400 border-gray-300 hover:border-primary hover:text-primary'
-                      }`" :title="`Go to: ${step.title}`">
+                      }`" :title="t('wizard.goTo', { step: step.title })">
                       <component :is="currentStep > index ? CheckCircle : step.icon" class="h-5 w-5" />
                     </button>
                     <p :class="`text-xs mt-2 text-center hidden md:block min-h-[2rem] ${currentStep === index ? 'font-medium text-gray-900' : 'text-gray-500'
@@ -43,9 +43,8 @@
           </CardHeader>
 
           <CardContent class="p-6">
-            <!-- Current Step Title -->
-            <div class="mb-6">
-              <h2 class="text-gray-800 mb-1">{{ steps[currentStep]?.title }}</h2>
+            <div class="mb-6 text-center">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ steps[currentStep]?.title }}</h2>
               <p class="text-muted-foreground">{{ steps[currentStep]?.description }}</p>
             </div>
 
@@ -60,25 +59,25 @@
               <div class="flex gap-2">
                 <Button variant="outline" @click="handleSaveDraft">
                   <Save class="h-4 w-4 mr-2" />
-                  Save Draft
+                  {{ t('wizard.saveDraft') }}
                 </Button>
               </div>
 
               <div class="flex gap-2">
                 <Button v-if="currentStep > 0" variant="outline" @click="handleBack">
                   <ArrowLeft class="h-4 w-4 mr-2" />
-                  Back
+                  {{ t('wizard.back') }}
                 </Button>
 
                 <Button v-if="currentStep < steps.length - 1" @click="handleNext"
                   class="bg-primary text-white hover:bg-blue-600" :disabled="stepValidations[currentStep] === false">
-                  Next
+                  {{ t('wizard.next') }}
                   <ArrowRight class="h-4 w-4 ml-2" />
                 </Button>
                 <Button v-else @click="handleComplete" class="text-white bg-green-600 hover:bg-green-700"
                   :disabled="stepValidations[currentStep] === false">
                   <CheckCircle class="h-4 w-4 mr-2" />
-                  Create Case
+                  {{ t('wizard.createCase') }}
                 </Button>
               </div>
             </div>
@@ -91,6 +90,7 @@
 
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
 import Card from '@/components/ui/Card.vue'
 import CardContent from '@/components/ui/CardContent.vue'
@@ -123,6 +123,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'complete'])
 
 const { toast } = useToast()
+const { t } = useI18n()
 
 const currentStep = ref(0) // Start at 0 for template selection
 const selectedTemplate = ref(null)
@@ -231,48 +232,48 @@ const caseData = ref<Record<string, any>>({
   attachments: []
 })
 
-const steps = ref([
+const steps = computed(() => [
   {
     id: 0,
-    title: "Template Selection",
+    title: t('wizard.templateSelection'),
     icon: Sparkles,
-    description: "Choose a case template to get started"
+    description: t('wizard.templateSelectionDesc')
   },
   {
     id: 1,
-    title: "Basic Information",
+    title: t('wizard.basicInfo'),
     icon: User,
-    description: "Patient demographics and chief complaint"
+    description: t('wizard.basicInfoDesc')
   },
   {
     id: 2,
-    title: "Vital Signs",
+    title: t('wizard.vitalSigns'),
     icon: Activity,
-    description: "Record vital signs and measurements"
+    description: t('wizard.vitalSignsDesc')
   },
   {
     id: 3,
-    title: "Physical Examination",
+    title: t('wizard.physicalExam'),
     icon: Stethoscope,
-    description: "Document physical examination findings"
+    description: t('wizard.physicalExamDesc')
   },
   {
     id: 4,
-    title: "Diagnostic Workup",
+    title: t('wizard.diagnosticWorkup'),
     icon: FlaskConical,
-    description: "Laboratory tests and imaging studies"
+    description: t('wizard.diagnosticWorkupDesc')
   },
   {
     id: 5,
-    title: "Assessment & Plan",
+    title: t('wizard.assessmentPlan'),
     icon: FileText,
-    description: "Diagnosis, treatment plan, and learning objectives"
+    description: t('wizard.assessmentPlanDesc')
   },
   {
     id: 6,
-    title: "Attachments",
+    title: t('wizard.attachmentsStep'),
     icon: Paperclip,
-    description: "Upload images and supporting documents"
+    description: t('wizard.attachmentsDesc')
   }
 ])
 
@@ -306,7 +307,7 @@ const handleNext = () => {
   // Check if current step is valid
   const isValid = stepValidations.value[currentStep.value] !== false
   if (!isValid) {
-    toast.error("Please complete all required fields before proceeding")
+    toast.error(t('wizard.completionRequired'))
     return
   }
 
@@ -376,7 +377,7 @@ const handleSaveDraft = async () => {
       response = await api.post('/cases/', payload)
     }
 
-    toast.success("Case saved as draft successfully!")
+    toast.success(t('wizard.caseSavedDraft'))
 
     // Navigate to the new case
     setTimeout(() => {
@@ -384,7 +385,7 @@ const handleSaveDraft = async () => {
     }, 500)
   } catch (error: any) {
     console.error('Error saving draft:', error)
-    const errorMessage = error.response?.data?.message || error.response?.data?.detail || 'Failed to save draft. Please try again.'
+    const errorMessage = error.response?.data?.message || error.response?.data?.detail || t('wizard.failedToDraft')
     toast.error(errorMessage)
   }
 }
@@ -393,7 +394,7 @@ const handleComplete = async () => {
   // Check if final step is valid
   const isValid = stepValidations.value[currentStep.value] !== false
   if (!isValid) {
-    toast.error("Please complete all required fields before creating the case")
+    toast.error(t('wizard.completeRequired'))
     return
   }
 
@@ -474,7 +475,7 @@ const handleComplete = async () => {
       response = await api.post('/cases/', payload)
     }
 
-    toast.success("Medical case created successfully!")
+    toast.success(t('wizard.caseCreated'))
 
     // Navigate to the new case
     setTimeout(() => {
@@ -486,7 +487,7 @@ const handleComplete = async () => {
     console.error('Error status:', error.response?.status)
 
     // Display detailed error information
-    let errorMessage = 'Failed to create case. Please try again.'
+    let errorMessage = t('wizard.failedToCreate')
 
     if (error.response?.data) {
       // Log the full error object to see all validation errors

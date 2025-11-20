@@ -1,38 +1,20 @@
 <template>
   <div class="space-y-6">
-    <div class="text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">
-        Physical Examination
-      </h2>
-      <p class="text-gray-600">
-        Detailed physical examination findings by body system
-      </p>
-    </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- General Appearance -->
       <Card>
         <div class="p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">
-            General Appearance
+            {{ t('createCase.mentalStatus') }}
           </h3>
 
-          <div class="space-y-4">
-            <div class="space-y-2">
-              <Label for="generalAppearance">General Appearance</Label>
-              <Textarea id="generalAppearance" v-model="localData.physical_examination.general_appearance"
-                placeholder="Describe patient's overall appearance, grooming, positioning, distress level..." rows="3" />
-            </div>
-
-            <div class="space-y-2">
-              <Label>Consciousness Level</Label>
-              <div class="grid grid-cols-2 gap-2">
-                <label v-for="status in consciousnessOptions" :key="status.value" class="flex items-center">
-                  <input type="radio" :value="status.value" v-model="localData.physical_examination.consciousness_level"
-                    class="text-blue-600 focus:ring-blue-500" />
-                  <span class="ml-2 text-sm">{{ status.label }}</span>
-                </label>
-              </div>
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <label v-for="status in consciousnessOptions" :key="status.value" class="flex items-center">
+                <input type="radio" :value="status.value" v-model="localData.physical_examination.consciousness_level"
+                  class="text-blue-600 focus:ring-blue-500" />
+                <span class="ml-2 text-sm"> {{ t(`createCase.${status.value}`) }}</span>
+              </label>
             </div>
           </div>
         </div>
@@ -42,29 +24,29 @@
       <Card>
         <div class="p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">
-            Vital Signs Summary
+            {{ t('createCase.vitalSignsSummary') }}
           </h3>
 
           <div class="space-y-3">
             <div class="flex justify-between">
-              <span class="text-gray-600">Temperature:</span>
-              <span class="font-medium">{{ localData.physical_examination?.vital_signs_temp || 'Not recorded' }}°C</span>
+              <span class="text-gray-600">{{ t('createCase.temperature') }}:</span>
+              <span class="font-medium">{{ localData.physical_examination?.vital_signs_temp || t('createCase.notRecorded') }} (°C)</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-600">Heart Rate:</span>
-              <span class="font-medium">{{ localData.physical_examination?.vital_signs_hr || 'Not recorded' }} bpm</span>
+              <span class="text-gray-600">{{ t('createCase.heartRate') }}:</span>
+              <span class="font-medium">{{ localData.physical_examination?.vital_signs_hr || t('createCase.notRecorded') }} (bpm)</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-600">Blood Pressure:</span>
-              <span class="font-medium">{{ localData.physical_examination?.vital_signs_bp || 'Not recorded' }}</span>
+              <span class="text-gray-600">{{ t('createCase.bloodPressure') }}:</span>
+              <span class="font-medium">{{ localData.physical_examination?.vital_signs_bp || t('createCase.notRecorded') }} (mmHg)</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-600">Respiratory Rate:</span>
-              <span class="font-medium">{{ localData.physical_examination?.vital_signs_rr || 'Not recorded' }}/min</span>
+              <span class="text-gray-600">{{ t('createCase.respiratoryRate') }}:</span>
+              <span class="font-medium">{{ localData.physical_examination?.vital_signs_rr || t('createCase.notRecorded') }} {{ t('createCase.respiratoryRateUnit') }} </span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-600">Oxygen Saturation:</span>
-              <span class="font-medium">{{ localData.physical_examination?.vital_signs_spo2 || 'Not recorded' }}%</span>
+              <span class="text-gray-600">{{ t('createCase.oxygenSaturation') }}:</span>
+              <span class="font-medium">{{ localData.physical_examination?.vital_signs_spo2 || t('createCase.notRecorded') }} %</span>
             </div>
           </div>
         </div>
@@ -75,50 +57,50 @@
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-6">
-          Physical Examination by System
+          {{ t('createCase.physicalExaminationBySystem') }}
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2">
-            <Label for="headNeck">Head and Neck</Label>
+            <Label for="headNeck">{{ t('createCase.headAndNeck') }}</Label>
             <Textarea id="headNeck" v-model="localData.physical_examination.head_neck" 
-              placeholder="HEENT: pupils, ears, nose, throat, neck examination..." rows="3" />
+              :placeholder="t('createCase.heentPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="cardiovascular">Cardiovascular</Label>
+            <Label for="cardiovascular">{{ t('createCase.cardiovascular') }}</Label>
             <Textarea id="cardiovascular" v-model="localData.physical_examination.cardiovascular" 
-              placeholder="Heart sounds, murmurs, rhythm, peripheral pulses..." rows="3" />
+              :placeholder="t('createCase.cardiovascularPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="respiratory">Respiratory</Label>
+            <Label for="respiratory">{{ t('createCase.respiratory') }}</Label>
             <Textarea id="respiratory" v-model="localData.physical_examination.respiratory" 
-              placeholder="Breath sounds, chest expansion, percussion findings..." rows="3" />
+              :placeholder="t('createCase.respiratoryPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="abdominal">Abdominal</Label>
+            <Label for="abdominal">{{ t('createCase.abdominal') }}</Label>
             <Textarea id="abdominal" v-model="localData.physical_examination.abdominal" 
-              placeholder="Inspection, auscultation, palpation, percussion findings..." rows="3" />
+              :placeholder="t('createCase.abdominalPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="neurological">Neurological</Label>
+            <Label for="neurological">{{ t('createCase.neurological') }}</Label>
             <Textarea id="neurological" v-model="localData.physical_examination.neurological" 
-              placeholder="Cranial nerves, motor, sensory, reflexes, coordination..." rows="3" />
+              :placeholder="t('createCase.neurologicalPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="musculoskeletal">Musculoskeletal</Label>
+            <Label for="musculoskeletal">{{ t('createCase.musculoskeletal') }}</Label>
             <Textarea id="musculoskeletal" v-model="localData.physical_examination.musculoskeletal" 
-              placeholder="Joint examination, range of motion, deformities, tenderness..." rows="3" />
+              :placeholder="t('createCase.musculoskeletalPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="skin">Skin</Label>
+            <Label for="skin">{{ t('createCase.skin') }}</Label>
             <Textarea id="skin" v-model="localData.physical_examination.skin" 
-              placeholder="Color, turgor, lesions, rashes, wounds..." rows="3" />
+              :placeholder="t('createCase.skinPlaceholder')" rows="3" />
           </div>
         </div>
       </div>
@@ -128,12 +110,12 @@
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Additional Examination Notes
+          {{ t('createCase.additionalExaminationNotes') }}
         </h3>
 
         <div class="space-y-2">
           <Textarea id="examNotes" v-model="localData.physical_examination.other_findings" 
-            placeholder="Any additional examination findings, special tests, or pertinent negatives..." rows="4" />
+            :placeholder="t('createCase.additionalFindingsPlaceholder')" rows="4" />
         </div>
       </div>
     </Card>
@@ -142,6 +124,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Label from '@/components/ui/Label.vue'
 import Textarea from '@/components/ui/Textarea.vue'
@@ -149,6 +132,8 @@ import Textarea from '@/components/ui/Textarea.vue'
 const props = defineProps<{
   caseData: any
 }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   'update:caseData': [any]

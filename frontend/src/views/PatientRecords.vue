@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800">Patient Records</h1>
-        <p class="text-sm text-gray-500">View and manage all patient medical records</p>
+        <h1 class="text-2xl font-bold text-gray-800">Hồ sơ Bệnh nhân</h1>
+        <p class="text-sm text-gray-500">Xem và quản lý tất cả hồ sơ bệnh nhân bạn đã tạo.</p>
       </div>
     </div>
 
@@ -14,12 +14,12 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="md:col-span-2 relative">
             <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <Input v-model="searchQuery" type="text" placeholder="Search by patient name, MRN, specialty..."
+            <Input v-model="searchQuery" type="text" placeholder="Tìm kiếm theo tên bệnh nhân, MRN, chuyên khoa..."
               class="pl-10" />
           </div>
           <select v-model="specialtyFilter"
             class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="all">All Specialties</option>
+            <option value="all">Tất cả chuyên khoa</option>
             <option v-for="spec in availableSpecialties" :key="spec" :value="spec">{{ spec }}</option>
           </select>
         </div>
@@ -34,24 +34,24 @@
     <!-- Patients Table -->
     <Card v-else class="bg-white">
       <CardHeader>
-        <CardTitle>Patient Records ({{ filteredPatients.length }})</CardTitle>
+        <CardTitle>Hồ sơ Bệnh nhân ({{ filteredPatients.length }})</CardTitle>
       </CardHeader>
       <CardContent>
         <div v-if="filteredPatients.length === 0" class="text-center py-12">
-          <p class="text-gray-500">No patient records found</p>
+          <p class="text-gray-500">Không tìm thấy hồ sơ bệnh nhân nào</p>
         </div>
         <div v-else class="overflow-x-auto">
           <table class="w-full">
             <thead>
               <tr class="border-b">
-                <th class="text-left p-3 font-medium text-gray-700">MRN</th>
-                <th class="text-left p-3 font-medium text-gray-700">Patient Name</th>
-                <th class="text-left p-3 font-medium text-gray-700">Age</th>
-                <th class="text-left p-3 font-medium text-gray-700">Gender</th>
-                <th class="text-left p-3 font-medium text-gray-700">Specialty</th>
-                <th class="text-left p-3 font-medium text-gray-700">Admission Date</th>
-                <th class="text-left p-3 font-medium text-gray-700">Status</th>
-                <th class="text-left p-3 font-medium text-gray-700">Action</th>
+                <th class="text-left p-3 font-medium text-gray-700">Mã Hồ sơ Y Tế</th>
+                <th class="text-left p-3 font-medium text-gray-700">Tên bệnh nhân</th>
+                <th class="text-left p-3 font-medium text-gray-700">Tuổi</th>
+                <th class="text-left p-3 font-medium text-gray-700">Giới tính</th>
+                <th class="text-left p-3 font-medium text-gray-700">Chuyên khoa</th>
+                <th class="text-left p-3 font-medium text-gray-700">Ngày nhập viện</th>
+                <th class="text-left p-3 font-medium text-gray-700">Trạng thái</th>
+                <th class="text-left p-3 font-medium text-gray-700">Hành động</th>
               </tr>
             </thead>
             <tbody>
@@ -72,7 +72,7 @@
                   <Button variant="ghost" size="sm" @click="handleViewPatient(patient.id)"
                     class="text-blue-600 hover:text-blue-700">
                     <Eye class="w-4 h-4 mr-1" />
-                    View
+                    Xem Chi Tiết
                   </Button>
                 </td>
               </tr>
@@ -151,20 +151,20 @@ function formatDate(dateStr: string | null) {
 
 function formatGender(gender: string) {
   const genderMap: Record<string, string> = {
-    'male': 'Male',
-    'female': 'Female',
-    'other': 'Other',
-    'not_specified': 'Not Specified'
+    'male': 'Nam',
+    'female': 'Nữ',
+    'other': 'Khác',
+    'not_specified': 'Chưa xác định'
   }
   return genderMap[gender] || gender
 }
 
 function formatStatus(status: string) {
   const statusMap: Record<string, string> = {
-    'draft': 'Draft',
-    'submitted': 'Submitted',
-    'reviewed': 'Reviewed',
-    'approved': 'Approved'
+    'draft': 'Bản nháp',
+    'submitted': 'Đã nộp',
+    'reviewed': 'Đã xem xét',
+    'approved': 'Đã phê duyệt'
   }
   return statusMap[status] || status
 }

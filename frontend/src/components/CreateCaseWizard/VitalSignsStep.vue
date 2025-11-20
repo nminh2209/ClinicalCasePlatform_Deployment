@@ -1,85 +1,76 @@
 <template>
   <div class="space-y-6">
-    <div class="text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">
-        Vital Signs & Physical Measurements
-      </h2>
-      <p class="text-gray-600">
-        Record the patient's vital signs and basic physical measurements
-      </p>
-    </div>
-
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-6">
-          Vital Signs
+          {{ t('createCase.vitalSigns') }}
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <!-- Temperature -->
           <div class="space-y-2">
-            <Label for="temperature">Temperature (°C)</Label>
+            <Label for="temperature">{{ t('createCase.temperature') }} {{ t('createCase.temperatureUnit') }}</Label>
             <Input id="temperature" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_temp"
               placeholder="37.0" min="30" max="45" />
           </div>
 
           <!-- Heart Rate -->
           <div class="space-y-2">
-            <Label for="heartRate">Heart Rate (bpm)</Label>
+            <Label for="heartRate">{{ t('createCase.heartRate') }} {{ t('createCase.heartRateUnit') }}</Label>
             <Input id="heartRate" type="number" v-model.number="localData.physical_examination.vital_signs_hr" placeholder="72" min="30"
               max="200" />
           </div>
 
           <!-- Blood Pressure -->
           <div class="space-y-2">
-            <Label for="bloodPressure">Blood Pressure (mmHg)</Label>
+            <Label for="bloodPressure">{{ t('createCase.bloodPressure') }} {{ t('createCase.bloodPressureUnit') }}</Label>
             <div class="flex space-x-2">
               <Input type="number" v-model.number="localData.physical_examination.vital_signs_bp" placeholder="120/80" />
             </div>
-            <p class="text-xs text-gray-500">Format: systolic/diastolic (e.g., 120/80)</p>
+            <p class="text-xs text-gray-500">{{ t('createCase.bloodPressureFormat') }}</p>
           </div>
 
           <!-- Respiratory Rate -->
           <div class="space-y-2">
-            <Label for="respiratoryRate">Respiratory Rate (breaths/min)</Label>
+            <Label for="respiratoryRate">{{ t('createCase.respiratoryRate') }} {{ t('createCase.respiratoryRateUnit') }}</Label>
             <Input id="respiratoryRate" type="number" v-model.number="localData.physical_examination.vital_signs_rr" placeholder="16"
               min="8" max="60" />
           </div>
 
           <!-- Oxygen Saturation -->
           <div class="space-y-2">
-            <Label for="oxygenSaturation">Oxygen Saturation (%)</Label>
+            <Label for="oxygenSaturation">{{ t('createCase.oxygenSaturation') }} {{ t('createCase.oxygenSaturationUnit') }}</Label>
             <Input id="oxygenSaturation" type="number" v-model.number="localData.physical_examination.vital_signs_spo2" placeholder="98"
               min="70" max="100" />
           </div>
 
           <!-- Weight -->
           <div class="space-y-2">
-            <Label for="weight">Weight (kg)</Label>
+            <Label for="weight">{{ t('createCase.weight') }} {{ t('createCase.weightUnit') }}</Label>
             <Input id="weight" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_weight" placeholder="70" min="10"
               max="300" />
           </div>
 
           <!-- Height -->
           <div class="space-y-2">
-            <Label for="height">Height (cm)</Label>
+            <Label for="height">{{ t('createCase.height') }} {{ t('createCase.heightUnit') }}</Label>
             <Input id="height" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_height" placeholder="170" min="50"
               max="250" />
           </div>
 
           <!-- BMI -->
           <div class="space-y-2">
-            <Label for="bmi">BMI (kg/m²)</Label>
+            <Label for="bmi">{{ t('createCase.bmi') }} {{ t('createCase.bmiUnit') }}</Label>
             <Input id="bmi" type="number" step="0.1" :value="calculatedBMI" readonly class="bg-gray-50"
-              placeholder="Auto-calculated" />
+              :placeholder="t('createCase.autoCalculated')" />
           </div>
         </div>
 
         <div class="mt-6">
           <div class="space-y-2">
-            <Label for="vitalSignsNotes">General Appearance & Vital Signs Notes</Label>
+            <Label for="vitalSignsNotes">{{ t('createCase.generalAppearanceNotes') }}</Label>
             <Textarea id="vitalSignsNotes" v-model="localData.physical_examination.vital_signs"
-              placeholder="Describe general appearance, vital signs stability, any abnormalities..." rows="3" />
+              :placeholder="t('createCase.generalAppearanceNotesPlaceholder')" rows="3" />
           </div>
         </div>
       </div>
@@ -89,7 +80,7 @@
       <div class="p-4">
         <div class="flex items-center space-x-2">
           <span class="text-sm font-medium text-blue-900">
-            BMI Category: {{ bmiCategory }}
+            {{ t('createCase.bmiCategory') }}: {{ getTranslatedBMICategory() }}
           </span>
         </div>
       </div>
@@ -99,10 +90,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
 import Label from '@/components/ui/Label.vue'
 import Textarea from '@/components/ui/Textarea.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   caseData: any
@@ -134,9 +128,15 @@ const bmiCategory = computed(() => {
   const bmi = calculatedBMI.value
   if (!bmi) return ''
 
-  if (bmi < 18.5) return 'Underweight'
-  if (bmi < 25) return 'Normal Weight'
-  if (bmi < 30) return 'Overweight'
-  return 'Obese'
+  if (bmi < 18.5) return 'underweight'
+  if (bmi < 25) return 'normalWeight'
+  if (bmi < 30) return 'overweight'
+  return 'obese'
 })
+
+const getTranslatedBMICategory = (): string => {
+  const category = bmiCategory.value
+  if (!category) return ''
+  return t(`createCase.${category}`)
+}
 </script>

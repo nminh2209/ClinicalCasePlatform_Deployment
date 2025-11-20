@@ -11,7 +11,7 @@
         </svg>
       </div>
       
-      <h1 class="error-code">ERROR 404</h1>
+      <h1 class="error-code">404</h1>
       <h2 class="error-title">Không Tìm Thấy Trang</h2>
       <p class="error-description">
         Trang mà bạn đang tìm kiếm hiện không tồn tại hoặc đã bị chuyển qua địa chỉ khác.
