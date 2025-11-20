@@ -17,13 +17,6 @@
 
       <div class="hero-container">
         <div class="hero-content">
-          <div class="hero-badge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-            <span>Được các tổ chức y dược hàng đầu tin tưởng</span>
-          </div>
           <h1 class="hero-title">Nền tảng Quản lý Ca bệnh Lâm sàng</h1>
           <p class="hero-description">Đơn giản hóa việc ghi chép hồ sơ ca bệnh và hợp tác trong đào tạo y khoa với nền tảng toàn diện của chúng tôi!</p>
           <div class="hero-actions">
@@ -496,24 +489,6 @@
 
 .hero-content {
   max-width: 600px;
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50px;
-  font-size: 0.875rem;
-  margin-bottom: 2rem;
-  backdrop-filter: blur(10px);
-}
-
-.hero-badge svg {
-  width: 16px;
-  height: 16px;
 }
 
 .hero-title {

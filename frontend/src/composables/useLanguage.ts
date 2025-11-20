@@ -24,6 +24,20 @@ const translations: Record<string, any> = {
           "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.",
       },
     },
+    templateSelectionStep: {
+      specialties: {
+        "Internal Medicine": "Nội tổng hợp",
+        "Surgery": "Ngoại tổng hợp",
+        "Cardiology": "Tim mạch can thiệp",
+        "Gastroenterology": "Tiêu hóa",
+        "Respiratory": "Hô hấp",
+        "Neurology": "Thần kinh",
+        "Pediatrics": "Nhi",
+        "Obstetrics & Gynecology": "Sản phụ",
+        "Emergency": "Cấp cứu",
+        "Intensive Care Unit": "Hồi sức tích cực",
+      },
+    }
   },
   en: {
     login: {
@@ -45,6 +59,20 @@ const translations: Record<string, any> = {
         failedLogin: "Login failed. Please check your login information.",
       },
     },
+    templateSelectionStep: {
+      specialties: {
+        "Internal Medicine": "Internal Medicine",
+        "Surgery": "Surgery",
+        "Cardiology": "Interventional Cardiology",
+        "Gastroenterology": "Gastroenterology",
+        "Respiratory": "Respiratory",
+        "Neurology": "Neurology",
+        "Pediatrics": "Pediatrics",
+        "Obstetrics & Gynecology": "Obstetrics & Gynecology",
+        "Emergency": "Emergency",
+        "Intensive Care Unit": "Intensive Care Unit",
+      },
+    }
   },
 };
 

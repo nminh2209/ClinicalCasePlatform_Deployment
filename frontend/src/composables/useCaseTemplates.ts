@@ -11,6 +11,7 @@ export interface CaseTemplate {
   specialty?: string;
   created_by_name?: string;
   department_name?: string;
+  department_vietnamese_name?: string;
   is_standard?: boolean;
   is_active?: boolean;
   created_at?: string;
@@ -29,29 +30,19 @@ export function useCaseTemplates() {
     loading.value = true;
     error.value = null;
 
-    console.log("🔄 Fetching case templates from /api/templates/...");
-
     try {
       const response = await api.get("/templates/");
-        
+
       // Backend returns paginated data with 'results' array
       caseTemplates.value = response.data.results || response.data;
       console.log(`✅ Successfully loaded ${caseTemplates.value.length} templates:`, caseTemplates.value);
     } catch (err: any) {
       error.value = err.message || "Failed to fetch case templates";
-      console.error("❌ Error fetching case templates:");
-      console.error("  - Error:", err);
-      console.error("  - Status:", err.response?.status);
-      console.error("  - URL:", err.config?.url);
-      console.error("  - Full URL:", err.config?.baseURL + err.config?.url);
-      console.error("  - Response Data:", err.response?.data);
-      
+
       if (err.response?.status === 404) {
-        console.error("⚠️ 404 Error: The endpoint /api/templates/ does not exist on the backend");
-        console.error("   Check backend URL routing in clinical_case_platform/urls.py");
+        console.error("404 Error: This endpoint does not exist");
       } else if (err.code === 'ERR_NETWORK') {
-        console.error("⚠️ Network Error: Backend server may not be running");
-        console.error("   Make sure Django is running on http://localhost:8000");
+        console.error("Network Error: Server may not be running");
       }
       
       caseTemplates.value = []; // Clear on error

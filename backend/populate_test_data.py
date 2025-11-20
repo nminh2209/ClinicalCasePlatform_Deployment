@@ -507,21 +507,21 @@ def create_test_data(clear_existing: bool = False, per_dept_cases: int = 5):
             "description": "Mẫu chuẩn cho các ca bệnh Tim mạch",
             "created_by": instructors[0],
             "department": tim_mach_dept,
-            "specialty": "Tim mạch can thiệp",
+            "specialty": "Cardiology",
         },
         {
             "name": "Mẫu bệnh án Nội khoa",
             "description": "Mẫu chuẩn cho các ca bệnh Nội khoa",
             "created_by": instructors[1],
             "department": noi_dept,
-            "specialty": "Nội tổng hợp",
+            "specialty": "Internal Medicine",
         },
         {
             "name": "Mẫu bệnh án Ngoại khoa",
             "description": "Mẫu chuẩn cho các ca bệnh Ngoại khoa",
             "created_by": instructors[2],
             "department": ngoai_dept,
-            "specialty": "Ngoại tổng hợp",
+            "specialty": "Surgery",
         },
     ]
 

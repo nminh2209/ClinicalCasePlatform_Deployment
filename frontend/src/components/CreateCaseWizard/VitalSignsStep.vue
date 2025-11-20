@@ -2,84 +2,85 @@
   <div class="space-y-6">
     <div class="text-center">
       <h2 class="text-2xl font-bold text-gray-900 mb-2">
-        Vital Signs & Physical Measurements
+        {{ $t('createCase.vitalSigns') }}
       </h2>
       <p class="text-gray-600">
-        Record the patient's vital signs and basic physical measurements
+        {{ $t('createCase.vitalSignsDescription') }}
       </p>
     </div>
 
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-6">
-          Vital Signs
+          {{ $t('createCase.recordVitalSigns') }}
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- Temperature -->
           <div class="space-y-2">
-            <Label for="temperature">Temperature (°C)</Label>
-            <Input id="temperature" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_temp"
-              placeholder="37.0" min="30" max="45" />
+            <Label for="temperature">{{ $t('createCase.temperature') }} (°F)</Label>
+            <Input id="temperature" type="number" step="0.1" v-model.number="vitalSigns.temperature"
+              :placeholder="'98.6'" min="90" max="110" />
           </div>
 
-          <!-- Heart Rate -->
           <div class="space-y-2">
-            <Label for="heartRate">Heart Rate (bpm)</Label>
-            <Input id="heartRate" type="number" v-model.number="localData.physical_examination.vital_signs_hr" placeholder="72" min="30"
+            <Label for="heartRate">{{ $t('createCase.heartRate') }} (bpm)</Label>
+            <Input id="heartRate" type="number" v-model.number="vitalSigns.heartRate" :placeholder="'72'" min="30"
               max="200" />
           </div>
 
-          <!-- Blood Pressure -->
           <div class="space-y-2">
-            <Label for="bloodPressure">Blood Pressure (mmHg)</Label>
+            <Label for="bloodPressureSystolic">{{ $t('createCase.bloodPressure') }}</Label>
             <div class="flex space-x-2">
-              <Input type="number" v-model.number="localData.physical_examination.vital_signs_bp" placeholder="120/80" />
+              <Input type="number" v-model.number="vitalSigns.bloodPressureSystolic" :placeholder="'120'" min="70"
+                max="250" class="flex-1" />
+              <span class="flex items-center text-gray-500">/</span>
+              <Input type="number" v-model.number="vitalSigns.bloodPressureDiastolic" :placeholder="'80'" min="40"
+                max="150" class="flex-1" />
             </div>
-            <p class="text-xs text-gray-500">Format: systolic/diastolic (e.g., 120/80)</p>
           </div>
 
-          <!-- Respiratory Rate -->
           <div class="space-y-2">
-            <Label for="respiratoryRate">Respiratory Rate (breaths/min)</Label>
-            <Input id="respiratoryRate" type="number" v-model.number="localData.physical_examination.vital_signs_rr" placeholder="16"
+            <Label for="respiratoryRate">{{ $t('createCase.respiratoryRate') }} (breaths/min)</Label>
+            <Input id="respiratoryRate" type="number" v-model.number="vitalSigns.respiratoryRate" :placeholder="'16'"
               min="8" max="60" />
           </div>
 
-          <!-- Oxygen Saturation -->
           <div class="space-y-2">
-            <Label for="oxygenSaturation">Oxygen Saturation (%)</Label>
-            <Input id="oxygenSaturation" type="number" v-model.number="localData.physical_examination.vital_signs_spo2" placeholder="98"
+            <Label for="oxygenSaturation">{{ $t('createCase.oxygenSaturation') }} (%)</Label>
+            <Input id="oxygenSaturation" type="number" v-model.number="vitalSigns.oxygenSaturation" :placeholder="'98'"
               min="70" max="100" />
           </div>
 
-          <!-- Weight -->
           <div class="space-y-2">
-            <Label for="weight">Weight (kg)</Label>
-            <Input id="weight" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_weight" placeholder="70" min="10"
-              max="300" />
+            <Label for="weight">{{ $t('createCase.weight') }} (kg)</Label>
+            <Input id="weight" type="number" step="0.1" v-model.number="vitalSigns.weight" :placeholder="'68'" min="22"
+              max="227" />
           </div>
 
-          <!-- Height -->
           <div class="space-y-2">
-            <Label for="height">Height (cm)</Label>
-            <Input id="height" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_height" placeholder="170" min="50"
-              max="250" />
+            <Label for="height">{{ $t('createCase.height') }} (cm)</Label>
+            <Input id="height" type="number" step="0.1" v-model.number="vitalSigns.height" :placeholder="'170'" min="90"
+              max="220" />
           </div>
 
-          <!-- BMI -->
           <div class="space-y-2">
-            <Label for="bmi">BMI (kg/m²)</Label>
+            <Label for="bmi">{{ $t('createCase.bmi') }}</Label>
             <Input id="bmi" type="number" step="0.1" :value="calculatedBMI" readonly class="bg-gray-50"
-              placeholder="Auto-calculated" />
+              :placeholder="'Được tính tự động'" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="painScale">{{ $t('createCase.painScale') }} (0-10)</Label>
+            <Input id="painScale" type="number" v-model.number="vitalSigns.painScale" :placeholder="'0'" min="0"
+              max="10" />
           </div>
         </div>
 
         <div class="mt-6">
           <div class="space-y-2">
-            <Label for="vitalSignsNotes">General Appearance & Vital Signs Notes</Label>
-            <Textarea id="vitalSignsNotes" v-model="localData.physical_examination.vital_signs"
-              placeholder="Describe general appearance, vital signs stability, any abnormalities..." rows="3" />
+            <Label for="vitalSignsNotes">{{ $t('createCase.additionalNotes') }}</Label>
+            <Textarea id="vitalSignsNotes" v-model="vitalSigns.notes"
+              :placeholder="$t('createCase.vitalSignsNotesPlaceholder')" rows="3" />
           </div>
         </div>
       </div>
@@ -88,8 +89,9 @@
     <Card v-if="calculatedBMI" class="bg-blue-50 border-blue-200">
       <div class="p-4">
         <div class="flex items-center space-x-2">
+          <InfoIcon class="w-5 h-5 text-blue-600" />
           <span class="text-sm font-medium text-blue-900">
-            BMI Category: {{ bmiCategory }}
+            Phân loại BMI: {{ bmiCategory }}
           </span>
         </div>
       </div>
@@ -98,31 +100,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
 import Label from '@/components/ui/Label.vue'
 import Textarea from '@/components/ui/Textarea.vue'
+import { InfoIcon } from '@/components/icons'
 
-const props = defineProps<{
-  caseData: any
-}>()
+const { t } = useI18n()
 
-const emit = defineEmits<{
-  'update:caseData': [any]
-}>()
+const props = defineProps({
+  caseData: {
+    type: Object,
+    required: true
+  }
+})
 
-const localData = computed({
-  get: () => props.caseData,
-  set: (value) => emit('update:caseData', value)
+const emit = defineEmits(['update:caseData'])
+
+const vitalSigns = computed({
+  get: () => props.caseData.vitalSigns || {},
+  set: (value) => emit('update:caseData', {
+    ...props.caseData,
+    vitalSigns: value
+  })
 })
 
 const calculatedBMI = computed(() => {
-  const weight = localData.value.physical_examination?.vital_signs_weight
-  const height = localData.value.physical_examination?.vital_signs_height
+  const weight = vitalSigns.value.weight
+  const height = vitalSigns.value.height
 
   if (weight && height && height > 0) {
-    // BMI = weight (kg) / (height (m))^2
+    // BMI = weight / (height in meters)^2
     const heightInMeters = height / 100
     const bmi = weight / (heightInMeters * heightInMeters)
     return Math.round(bmi * 10) / 10
@@ -134,9 +144,16 @@ const bmiCategory = computed(() => {
   const bmi = calculatedBMI.value
   if (!bmi) return ''
 
-  if (bmi < 18.5) return 'Underweight'
-  if (bmi < 25) return 'Normal Weight'
-  if (bmi < 30) return 'Overweight'
-  return 'Obese'
+  if (bmi < 18.5) return t('createCase.underweight')
+  if (bmi < 25) return t('createCase.normalWeight')
+  if (bmi < 30) return t('createCase.overweight')
+  return t('createCase.obese')
+})
+
+// Update BMI in vital signs when calculated
+watch(calculatedBMI, (newBMI) => {
+  if (newBMI && vitalSigns.value) {
+    vitalSigns.value.bmi = newBMI
+  }
 })
 </script>
