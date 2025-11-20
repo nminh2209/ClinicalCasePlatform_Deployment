@@ -1,60 +1,37 @@
 <template>
   <div class="space-y-6">
-    <div class="text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">
-        {{ $t('createCase.basicInformation') }}
-      </h2>
-      <p class="text-gray-600">
-        {{ $t('createCase.basicInfoDescription') }}
-      </p>
-    </div>
-
     <Card>
       <div class="p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">
-          {{ $t('createCase.patientDemographics') }}
-        </h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">Case Information</h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="space-y-2">
-            <Label for="firstName">{{ $t('createCase.firstName') }} *</Label>
-            <Input id="firstName" v-model="patientData.firstName" :placeholder="$t('createCase.enterFirstName')"
-              :error="errors.firstName" />
+          <div class="space-y-2 md:col-span-2">
+            <Label for="title">Case Title *</Label>
+            <Input id="title" v-model="localData.title" placeholder="Enter case title"
+              :error="errors.title" />
+          </div>
+
+          <div class="space-y-2 md:col-span-2">
+            <Label for="patientName">Patient Name *</Label>
+            <Input id="patientName" v-model="localData.patient_name" placeholder="Enter patient name (can be anonymized)"
+              :error="errors.patient_name" />
           </div>
 
           <div class="space-y-2">
-            <Label for="lastName">{{ $t('createCase.lastName') }} *</Label>
-            <Input id="lastName" v-model="patientData.lastName" :placeholder="$t('createCase.enterLastName')"
-              :error="errors.lastName" />
+            <Label for="specialty">Specialty *</Label>
+            <Input id="specialty" v-model="localData.specialty" placeholder="e.g., Cardiology, Neurology"
+              :error="errors.specialty" />
           </div>
 
           <div class="space-y-2">
-            <Label for="age">{{ $t('createCase.age') }} *</Label>
-            <Input id="age" type="number" v-model.number="patientData.age" :placeholder="$t('createCase.enterAge')"
-              :error="errors.age" min="0" max="150" />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="gender">{{ $t('createCase.gender') }} *</Label>
-            <select id="gender" v-model="patientData.gender"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              :class="{ 'border-red-500': errors.gender }">
-              <option value="">{{ $t('createCase.selectGender') }}</option>
-              <option value="male">{{ $t('createCase.male') }}</option>
-              <option value="female">{{ $t('createCase.female') }}</option>
-              <option value="other">{{ $t('createCase.other') }}</option>
+            <Label for="complexity">Complexity Level</Label>
+            <select id="complexity" v-model="localData.complexity_level"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md">
+              <option value="basic">Basic</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+              <option value="expert">Expert</option>
             </select>
-            <p v-if="errors.gender" class="text-sm text-red-600">{{ errors.gender }}</p>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="mrn">{{ $t('createCase.medicalRecordNumber') }}</Label>
-            <Input id="mrn" v-model="patientData.mrn" :placeholder="$t('createCase.enterMRN')" />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="dateOfBirth">{{ $t('createCase.dateOfBirth') }}</Label>
-            <Input id="dateOfBirth" type="date" v-model="patientData.dateOfBirth" />
           </div>
         </div>
       </div>
@@ -62,27 +39,90 @@
 
     <Card>
       <div class="p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">
-          {{ $t('createCase.clinicalPresentation') }}
-        </h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">Patient Demographics</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <Label for="age">Age *</Label>
+            <Input id="age" type="number" v-model.number="localData.patient_age" placeholder="Patient age"
+              :error="errors.patient_age" min="0" max="150" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="gender">Gender *</Label>
+            <select id="gender" v-model="localData.patient_gender"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md"
+              :class="{ 'border-red-500': errors.patient_gender }">
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+            <p v-if="errors.patient_gender" class="text-sm text-red-600">{{ errors.patient_gender }}</p>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="mrn">Medical Record Number</Label>
+            <Input id="mrn" v-model="localData.medical_record_number" placeholder="MRN (anonymized)" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="ethnicity">Ethnicity</Label>
+            <Input id="ethnicity" v-model="localData.patient_ethnicity" placeholder="Patient ethnicity" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="occupation">Occupation</Label>
+            <Input id="occupation" v-model="localData.patient_occupation" placeholder="Patient occupation" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="admission">Admission Date</Label>
+            <Input id="admission" type="date" v-model="localData.admission_date" />
+          </div>
+        </div>
+      </div>
+    </Card>
+
+    <Card>
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">Clinical Presentation</h3>
 
         <div class="space-y-6">
           <div class="space-y-2">
-            <Label for="chief_complaint">{{ $t('createCase.chief_complaint') }} *</Label>
-            <Textarea id="chief_complaint" v-model="caseData.chief_complaint"
-              :placeholder="$t('createCase.describe_chief_complaint')" :error="errors.chief_complaint" rows="4" />
+            <Label for="chief_complaint">Chief Complaint *</Label>
+            <Textarea id="chief_complaint" v-model="localData.clinical_history.chief_complaint"
+              placeholder="Main reason for patient presentation" :error="errors.chief_complaint" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="historyOfPresentIllness">{{ $t('createCase.historyOfPresentIllness') }}</Label>
-            <Textarea id="historyOfPresentIllness" v-model="caseData.historyOfPresentIllness"
-              :placeholder="$t('createCase.describeHPI')" rows="6" />
+            <Label for="chief_complaintBrief">Brief Chief Complaint</Label>
+            <Input id="chief_complaintBrief" v-model="localData.chief_complaint_brief"
+              placeholder="One-line summary" />
           </div>
 
           <div class="space-y-2">
-            <Label for="pastMedicalHistory">{{ $t('createCase.pastMedicalHistory') }}</Label>
-            <Textarea id="pastMedicalHistory" v-model="caseData.pastMedicalHistory"
-              :placeholder="$t('createCase.describePMH')" rows="4" />
+            <Label for="historyPresent">History of Present Illness</Label>
+            <Textarea id="historyPresent" v-model="localData.clinical_history.history_present_illness"
+              placeholder="Detailed history of current illness" rows="6" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="pastMedical">Past Medical History</Label>
+            <Textarea id="pastMedical" v-model="localData.clinical_history.past_medical_history"
+              placeholder="Previous medical conditions" rows="4" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="medications">Current Medications</Label>
+            <Textarea id="medications" v-model="localData.clinical_history.medications"
+              placeholder="List current medications" rows="3" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="allergies">Allergies</Label>
+            <Textarea id="allergies" v-model="localData.clinical_history.allergies"
+              placeholder="Known allergies" rows="2" />
           </div>
         </div>
       </div>
@@ -92,89 +132,61 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
 import Label from '@/components/ui/Label.vue'
 import Textarea from '@/components/ui/Textarea.vue'
 
-const { t } = useI18n()
-
-interface Patient {
-  firstName?: string
-  lastName?: string
-  age?: number
-  gender?: string
-  mrn?: string
-  dateOfBirth?: string
-}
-
-interface CaseData {
-  patient?: Patient
-  chief_complaint?: string
-  historyOfPresentIllness?: string
-  pastMedicalHistory?: string
-}
-
 const props = defineProps<{
-  caseData: CaseData
+  caseData: any
 }>()
 
-interface Errors {
-  firstName?: string
-  lastName?: string
-  age?: string
-  gender?: string
-  chief_complaint?: string
-}
-
 const emit = defineEmits<{
-  'update:caseData': [CaseData]
+  'update:caseData': [any]
   'validation-changed': [boolean]
 }>()
 
-const patientData = computed({
-  get: () => props.caseData.patient || {},
-  set: (value) => emit('update:caseData', {
-    ...props.caseData,
-    patient: value
-  })
+const localData = computed({
+  get: () => props.caseData,
+  set: (value) => emit('update:caseData', value)
 })
 
-const errors = ref<Errors>({})
+const errors = ref<Record<string, string>>({})
 
 const validateStep = () => {
   errors.value = {}
 
-  if (!patientData.value.firstName?.trim()) {
-    errors.value.firstName = t('createCase.firstNameRequired')
+  if (!localData.value.title?.trim()) {
+    errors.value.title = 'Case title is required'
   }
 
-  if (!patientData.value.lastName?.trim()) {
-    errors.value.lastName = t('createCase.lastNameRequired')
+  if (!localData.value.patient_name?.trim()) {
+    errors.value.patient_name = 'Patient name is required'
   }
 
-  if (!patientData.value.age || patientData.value.age < 0 || patientData.value.age > 150) {
-    errors.value.age = t('createCase.validAgeRequired')
+  if (!localData.value.specialty?.trim()) {
+    errors.value.specialty = 'Specialty is required'
   }
 
-  if (!patientData.value.gender) {
-    errors.value.gender = t('createCase.genderRequired')
+  if (!localData.value.patient_age || localData.value.patient_age < 0 || localData.value.patient_age > 150) {
+    errors.value.patient_age = 'Valid age is required'
   }
 
-  if (!props.caseData.chief_complaint?.trim()) {
-    errors.value.chief_complaint = t('createCase.chief_complaintRequired')
+  if (!localData.value.patient_gender) {
+    errors.value.patient_gender = 'Gender is required'
+  }
+
+  if (!localData.value.clinical_history?.chief_complaint?.trim()) {
+    errors.value.chief_complaint = 'Chief complaint is required'
   }
 
   return Object.keys(errors.value).length === 0
 }
 
-// Watch for changes and emit validation status
-watch([patientData, () => props.caseData.chief_complaint], () => {
+watch(localData, () => {
   emit('validation-changed', validateStep())
 }, { deep: true })
 
-// Expose validation function
 defineExpose({
   validateStep
 })

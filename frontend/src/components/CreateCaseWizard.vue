@@ -6,14 +6,14 @@
           <CardHeader class="border-b mb-2">
             <div class="flex items-center justify-between">
               <div>
-                <CardTitle>Tạo ca bệnh thực hành</CardTitle>
+                <CardTitle>Create Practice Case</CardTitle>
                 <CardDescription>
-                  Xây dựng một ca bệnh hoàn chỉnh cho thực hành lâm sàng.
+                  Build a complete patient case for clinical practice
                 </CardDescription>
               </div>
               <Button variant="ghost" @click="$emit('close')">
                 <ArrowLeft class=" h-4 w-4 mr-2" />
-                Huỷ
+                Cancel
               </Button>
             </div>
 
@@ -60,25 +60,25 @@
               <div class="flex gap-2">
                 <Button variant="outline" @click="handleSaveDraft">
                   <Save class="h-4 w-4 mr-2" />
-                  Lưu bản nháp
+                  Save Draft
                 </Button>
               </div>
 
               <div class="flex gap-2">
                 <Button v-if="currentStep > 0" variant="outline" @click="handleBack">
                   <ArrowLeft class="h-4 w-4 mr-2" />
-                  Quay lại
+                  Back
                 </Button>
 
-                <Button v-if="currentStep < steps.length - 1" @click="handleNext"
-                  class="bg-primary text-white hover:bg-blue-600" :disabled="stepValidations[currentStep] === false">
-                  Tiếp tục
+                <Button v-if="currentStep < steps.length - 1" @click="handleNext" class="bg-primary text-white hover:bg-blue-600"
+                  :disabled="stepValidations[currentStep] === false">
+                  Next
                   <ArrowRight class="h-4 w-4 ml-2" />
                 </Button>
                 <Button v-else @click="handleComplete" class="text-white bg-green-600 hover:bg-green-700"
                   :disabled="stepValidations[currentStep] === false">
                   <CheckCircle class="h-4 w-4 mr-2" />
-                  Tạo ca bệnh
+                  Create Case
                 </Button>
               </div>
             </div>
@@ -111,6 +111,7 @@ import {
   Sparkles
 } from '@/components/icons'
 import { Stethoscope } from 'lucide-vue-next'
+import api from '@/services/api'
 
 const props = defineProps({
   studentDepartment: {
@@ -129,116 +130,149 @@ const currentStepRef = ref(null)
 const stepValidations = ref<Record<number, boolean>>({})
 
 const caseData = ref<Record<string, any>>({
-  // Template selection
-  template: null,
+  // Case Basic Fields (from Case model)
+  title: '',
+  patient_name: '',
+  repository: null,
+  specialty: '',
+  complexity_level: 'intermediate',
+  patient_age: null,
+  patient_gender: '',
+  medical_record_number: '',
+  admission_date: null,
+  discharge_date: null,
+  case_summary: '',
+  chief_complaint_brief: '',
+  keywords: '',
+  patient_ethnicity: '',
+  patient_occupation: '',
+  estimated_study_hours: null,
+  requires_follow_up: false,
+  follow_up_date: null,
 
-  // Patient information
-  patient: {
-    firstName: '',
-    lastName: '',
-    age: null,
-    gender: '',
-    mrn: '',
-    dateOfBirth: ''
+  // ClinicalHistory (OneToOne)
+  clinical_history: {
+    chief_complaint: '',
+    history_present_illness: '',
+    past_medical_history: '',
+    family_history: '',
+    social_history: '',
+    medications: '',
+    allergies: '',
+    immunizations: '',
+    surgical_history: '',
+    review_of_systems: ''
   },
 
-  // Clinical presentation
-  chief_complaint: '',
-  historyOfPresentIllness: '',
-  pastMedicalHistory: '',
-
-  // Vital signs
-  vitalSigns: {
-    temperature: null,
-    heartRate: null,
-    bloodPressureSystolic: null,
-    bloodPressureDiastolic: null,
-    respiratoryRate: null,
-    oxygenSaturation: null,
-    weight: null,
-    height: null,
-    bmi: null,
-    painScale: null,
-    notes: ''
+  // PhysicalExamination (OneToOne)
+  physical_examination: {
+    general_appearance: '',
+    consciousness_level: 'alert',
+    vital_signs: '',
+    vital_signs_bp: '',
+    vital_signs_hr: null,
+    vital_signs_rr: null,
+    vital_signs_temp: null,
+    vital_signs_spo2: null,
+    head_neck: '',
+    cardiovascular: '',
+    respiratory: '',
+    abdominal: '',
+    neurological: '',
+    musculoskeletal: '',
+    skin: '',
+    other_systems: ''
   },
 
-  // Physical examination
-  physicalExam: {
-    generalAppearance: '',
-    mentalStatus: '',
-    notes: ''
+  // Investigations (OneToOne as investigations_detail)
+  detailed_investigations: {
+    laboratory_results: '',
+    hemoglobin_level: null,
+    white_cell_count: null,
+    glucose_level: null,
+    creatinine_level: null,
+    imaging_studies: '',
+    ecg_findings: '',
+    ecg_rhythm: '',
+    ecg_rate: null,
+    pathology_results: '',
+    arterial_blood_gas: '',
+    ph_level: null,
+    special_tests: '',
+    microbiology: '',
+    biochemistry: '',
+    hematology: ''
   },
 
-  // Diagnostic workup
-  diagnosticWorkup: {
-    labTests: [],
-    labResults: {},
-    imagingStudies: [],
-    imagingFindings: {},
-    otherTests: [],
-    otherTestResults: {},
-    otherLabTests: '',
-    otherImaging: '',
-    additionalTests: ''
+  // DiagnosisManagement (OneToOne)
+  diagnosis_management: {
+    primary_diagnosis: '',
+    differential_diagnosis: '',
+    icd10_codes: '',
+    treatment_plan: '',
+    medications_prescribed: '',
+    procedures_performed: '',
+    follow_up_plan: '',
+    prognosis: '',
+    complications: ''
   },
 
-  // Assessment and plan
-  assessment: {
-    primaryDiagnosis: '',
-    differentialDiagnosis: '',
-    clinicalReasoning: '',
-    medications: [],
-    procedures: '',
-    followUp: '',
-    learningObjectives: []
+  // LearningOutcomes (OneToOne)
+  learning_outcomes: {
+    learning_objectives: '',
+    key_concepts: '',
+    clinical_pearls: '',
+    references: '',
+    discussion_points: '',
+    assessment_criteria: ''
   },
 
-  // Attachments
+  // Medical attachments (will be uploaded separately)
   attachments: []
 })
 
 const steps = ref([
   {
     id: 0,
-    title: "Chọn mẫu",
+    title: "Template Selection",
     icon: Sparkles,
-    description: "Chọn mẫu ca bệnh để bắt đầu"
+    description: "Choose a case template to get started"
   },
   {
     id: 1,
-    title: "Thông tin cơ bản",
+    title: "Basic Information",
     icon: User,
-    description: "Thông tin bệnh nhân và lý do nhập viện"
+    description: "Patient demographics and chief complaint"
   },
   {
     id: 2,
-    title: "Dấu hiệu sinh tồn",
+    title: "Vital Signs",
     icon: Activity,
-    description: "Ghi lại các dấu hiệu sinh tồn và các phép đo"
+    description: "Record vital signs and measurements"
   },
   {
     id: 3,
-    title: "Khám lâm sàng",
+    title: "Physical Examination",
     icon: Stethoscope,
-    description: "Ghi lại các kết quả khám lâm sàng"
+    description: "Document physical examination findings"
   },
   {
     id: 4,
-    title: "Chẩn đoán cận lâm sàng",
+    title: "Diagnostic Workup",
     icon: FlaskConical,
-    description: "Xét nghiệm và hình ảnh chẩn đoán"
+    description: "Laboratory tests and imaging studies"
   },
   {
     id: 5,
-    title: "Đánh giá & Kế hoạch",
+    title: "Assessment & Plan",
     icon: FileText,
-    description: "Chẩn đoán, kế hoạch điều trị và mục tiêu học tập"
+    description: "Diagnosis, treatment plan, and learning objectives"
   },
   {
     id: 6,
-    title: "Tệp đính kèm",
+    title: "Attachments",
     icon: Paperclip,
-    description: "Tải lên hình ảnh và tài liệu hỗ trợ"
+    description: "Upload images and supporting documents"
   }
 ])
 
@@ -292,12 +326,70 @@ const handleStepClick = (stepIndex: number) => {
   currentStep.value = stepIndex
 }
 
-const handleSaveDraft = () => {
-  toast.success("Case saved as draft!")
-  emit('close')
+const handleSaveDraft = async () => {
+  try {
+    // Prepare the case data payload with draft status
+    const payload = {
+      title: caseData.value.title,
+      patient_name: caseData.value.patient_name || caseData.value.title,
+      repository: caseData.value.repository || 1,
+      specialty: caseData.value.specialty,
+      complexity_level: caseData.value.complexity_level,
+      patient_age: caseData.value.patient_age,
+      patient_gender: caseData.value.patient_gender,
+      patient_ethnicity: caseData.value.patient_ethnicity,
+      patient_occupation: caseData.value.patient_occupation,
+      medical_record_number: caseData.value.medical_record_number,
+      admission_date: caseData.value.admission_date,
+      chief_complaint_brief: caseData.value.chief_complaint_brief,
+      keywords: caseData.value.keywords,
+      case_status: 'draft', // Explicitly set as draft
+      
+      // Nested models
+      clinical_history: caseData.value.clinical_history,
+      physical_examination: caseData.value.physical_examination,
+      detailed_investigations: caseData.value.detailed_investigations,
+      diagnosis_management: caseData.value.diagnosis_management,
+      learning_outcomes: caseData.value.learning_outcomes
+    }
+
+    // Check if there are attachments
+    const hasAttachments = caseData.value.attachments && caseData.value.attachments.length > 0
+
+    let response
+    if (hasAttachments) {
+      // Use FormData for multipart upload
+      const formData = new FormData()
+      formData.append('data', JSON.stringify(payload))
+
+      caseData.value.attachments.forEach((file: File, index: number) => {
+        formData.append(`attachment_${index}`, file)
+      })
+
+      response = await api.post('/cases/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+    } else {
+      // Use regular JSON for cases without attachments
+      response = await api.post('/cases/', payload)
+    }
+
+    toast.success("Case saved as draft successfully!")
+
+    // Navigate to the new case
+    setTimeout(() => {
+      emit('complete', { caseId: response.data.id, caseData: response.data })
+    }, 500)
+  } catch (error: any) {
+    console.error('Error saving draft:', error)
+    const errorMessage = error.response?.data?.message || error.response?.data?.detail || 'Failed to save draft. Please try again.'
+    toast.error(errorMessage)
+  }
 }
 
-const handleComplete = () => {
+const handleComplete = async () => {
   // Check if final step is valid
   const isValid = stepValidations.value[currentStep.value] !== false
   if (!isValid) {
@@ -305,16 +397,119 @@ const handleComplete = () => {
     return
   }
 
-  // Generate case ID
-  const newCaseId = `case-${Date.now()}`
+  try {
+    // Helper function to remove empty fields from nested objects
+    const cleanObject = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return obj
+      
+      const cleaned: any = {}
+      for (const [key, value] of Object.entries(obj)) {
+        // Keep non-empty values and numbers (including 0)
+        if (value !== '' && value !== null && value !== undefined) {
+          cleaned[key] = value
+        }
+      }
+      return Object.keys(cleaned).length > 0 ? cleaned : undefined
+    }
 
-  // In a real app, save to backend here
-  toast.success("Medical case created successfully!")
+    // Prepare the case data payload
+    const payload: any = {
+      title: caseData.value.title,
+      patient_name: caseData.value.patient_name || caseData.value.title, // Use title as fallback
+      repository: caseData.value.repository || 1, // Default repository ID - should be configurable
+      specialty: caseData.value.specialty,
+      complexity_level: caseData.value.complexity_level,
+      patient_age: caseData.value.patient_age || 25, // Default age if not provided
+    }
 
-  // Navigate to the new case
-  setTimeout(() => {
-    emit('complete', { caseId: newCaseId, caseData: caseData.value })
-  }, 500)
+    // Add optional basic fields only if they have values
+    if (caseData.value.patient_gender) payload.patient_gender = caseData.value.patient_gender
+    if (caseData.value.patient_ethnicity) payload.patient_ethnicity = caseData.value.patient_ethnicity
+    if (caseData.value.patient_occupation) payload.patient_occupation = caseData.value.patient_occupation
+    if (caseData.value.medical_record_number) payload.medical_record_number = caseData.value.medical_record_number
+    if (caseData.value.admission_date) payload.admission_date = caseData.value.admission_date
+    if (caseData.value.chief_complaint_brief) payload.chief_complaint_brief = caseData.value.chief_complaint_brief
+    if (caseData.value.keywords) payload.keywords = caseData.value.keywords
+
+    // Add nested models only if they have data
+    const cleanedClinicalHistory = cleanObject(caseData.value.clinical_history)
+    if (cleanedClinicalHistory) payload.clinical_history = cleanedClinicalHistory
+
+    const cleanedPhysicalExam = cleanObject(caseData.value.physical_examination)
+    if (cleanedPhysicalExam) payload.physical_examination = cleanedPhysicalExam
+
+    const cleanedInvestigations = cleanObject(caseData.value.detailed_investigations)
+    if (cleanedInvestigations) payload.detailed_investigations = cleanedInvestigations
+
+    const cleanedDiagnosis = cleanObject(caseData.value.diagnosis_management)
+    if (cleanedDiagnosis) payload.diagnosis_management = cleanedDiagnosis
+
+    const cleanedLearning = cleanObject(caseData.value.learning_outcomes)
+    if (cleanedLearning) payload.learning_outcomes = cleanedLearning
+
+    console.log('=== CASE CREATION PAYLOAD ===')
+    console.log('Full payload:', JSON.stringify(payload, null, 2))
+    console.log('=== END PAYLOAD ===')
+
+    // Check if there are attachments
+    const hasAttachments = caseData.value.attachments && caseData.value.attachments.length > 0
+
+    let response
+    if (hasAttachments) {
+      // Use FormData for multipart upload
+      const formData = new FormData()
+      formData.append('data', JSON.stringify(payload))
+
+      caseData.value.attachments.forEach((file: File, index: number) => {
+        formData.append(`attachment_${index}`, file)
+      })
+
+      response = await api.post('/cases/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+    } else {
+      // Use regular JSON for cases without attachments
+      response = await api.post('/cases/', payload)
+    }
+
+    toast.success("Medical case created successfully!")
+
+    // Navigate to the new case
+    setTimeout(() => {
+      emit('complete', { caseId: response.data.id, caseData: response.data })
+    }, 500)
+  } catch (error: any) {
+    console.error('Error creating case:', error)
+    console.error('Error response:', error.response?.data)
+    console.error('Error status:', error.response?.status)
+    
+    // Display detailed error information
+    let errorMessage = 'Failed to create case. Please try again.'
+    
+    if (error.response?.data) {
+      // Log the full error object to see all validation errors
+      console.error('Full error object:', JSON.stringify(error.response.data, null, 2))
+      
+      // If there's a specific error message
+      if (error.response.data.message || error.response.data.detail) {
+        errorMessage = error.response.data.message || error.response.data.detail
+      } else {
+        // If there are field-specific errors, show them
+        const errors = error.response.data
+        const errorFields = Object.keys(errors)
+        if (errorFields.length > 0) {
+          const firstField = errorFields[0]
+          const firstError = Array.isArray(errors[firstField]) ? errors[firstField][0] : errors[firstField]
+          errorMessage = `${firstField}: ${firstError}`
+          console.error('Validation errors:', errors)
+        }
+      }
+    }
+    
+    toast.error(errorMessage)
+  }
 }
 
 const handleTemplateSelect = (template: any) => {

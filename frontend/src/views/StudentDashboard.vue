@@ -1,11 +1,11 @@
 <!-- STUDENT DASHBOARD -->
 <template>
-  <div class="p-6 space-y-6 max-w-[1600px] mx-auto">
+  <div class="p-6 space-y-6">
     <!-- Page Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-3 mb-2">
-          <h1 class="text-gray-900 text-3xl font-bold">Trang Sinh viên</h1>
+          <h1 class="text-gray-800 text-2xl font-bold">Trang Sinh viên</h1>
           <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
             <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
@@ -24,16 +24,16 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- Assigned Cases Card -->
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <div class="p-6">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-3">Bệnh án được giao</p>
-              <p class="text-4xl font-bold text-gray-900 mb-1">{{ stats.assignedCases }}</p>
-              <p class="text-xs text-gray-500">Bài tập đang thực hiện</p>
+              <p class="text-sm font-medium text-gray-500">Bệnh án được giao</p>
+              <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.assignedCases }}</p>
+              <p class="text-xs text-gray-500 mt-1">Bài tập đang thực hiện</p>
             </div>
-            <div class="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-              <svg class="h-7 w-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-blue-50 rounded-lg">
+              <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
               </svg>
             </div>

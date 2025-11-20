@@ -1,72 +1,72 @@
 <template>
-  <div class="p-6 space-y-6 max-w-[1600px] mx-auto">
+  <div class="p-6 space-y-6">
     <!-- Page Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ t('admin.title') }}</h1>
-      <p class="text-gray-600 text-lg">{{ t('admin.overview') }}</p>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">{{ t('admin.title') }}</h1>
+      <p class="text-gray-600">{{ t('admin.overview') }}</p>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- Total Users -->
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <div class="p-6">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-3">{{ t('admin.totalUsers') }}</p>
-              <p class="text-4xl font-bold text-gray-900 mb-1">{{ stats.totalStudents + stats.totalTeachers }}</p>
-              <p class="text-xs text-gray-500">Sinh viên + Giảng viên</p>
+              <p class="text-sm font-medium text-gray-500">{{ t('admin.totalUsers') }}</p>
+              <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalStudents + stats.totalTeachers }}</p>
+              <p class="text-xs text-gray-500 mt-1">Sinh viên + Giảng viên</p>
             </div>
-            <div class="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-              <Users class="h-7 w-7 text-blue-600" />
+            <div class="p-3 bg-blue-50 rounded-lg">
+              <Users class="h-6 w-6 text-blue-600" />
             </div>
           </div>
         </div>
       </div>
 
       <!-- Active Students -->
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <div class="p-6">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-3">{{ t('admin.activeStudents') }}</p>
-              <p class="text-4xl font-bold text-gray-900 mb-1">{{ stats.totalStudents }}</p>
-              <p class="text-xs text-gray-500">Sinh viên đang học</p>
+              <p class="text-sm font-medium text-gray-500">{{ t('admin.activeStudents') }}</p>
+              <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalStudents }}</p>
+              <p class="text-xs text-gray-500 mt-1">Sinh viên đang học</p>
             </div>
-            <div class="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-              <GraduationCap class="h-7 w-7 text-green-600" />
+            <div class="p-3 bg-green-50 rounded-lg">
+              <GraduationCap class="h-6 w-6 text-green-600" />
             </div>
           </div>
         </div>
       </div>
 
       <!-- Teachers -->
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <div class="p-6">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-3">{{ t('admin.teachers') }}</p>
-              <p class="text-4xl font-bold text-gray-900 mb-1">{{ stats.totalTeachers }}</p>
-              <p class="text-xs text-gray-500">Giảng viên hoạt động</p>
+              <p class="text-sm font-medium text-gray-500">{{ t('admin.teachers') }}</p>
+              <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalTeachers }}</p>
+              <p class="text-xs text-gray-500 mt-1">Giảng viên hoạt động</p>
             </div>
-            <div class="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-              <Users class="h-7 w-7 text-purple-600" />
+            <div class="p-3 bg-purple-50 rounded-lg">
+              <Users class="h-6 w-6 text-purple-600" />
             </div>
           </div>
         </div>
       </div>
 
       <!-- Submissions -->
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <div class="p-6">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-3">Bài nộp</p>
-              <p class="text-4xl font-bold text-gray-900 mb-1">{{ stats.totalSubmissions }}</p>
-              <p class="text-xs text-gray-500">Tổng số bài</p>
+              <p class="text-sm font-medium text-gray-500">Bài nộp</p>
+              <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalSubmissions }}</p>
+              <p class="text-xs text-gray-500 mt-1">Tổng số bài</p>
             </div>
-            <div class="p-3 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
-              <Activity class="h-7 w-7 text-yellow-600" />
+            <div class="p-3 bg-yellow-50 rounded-lg">
+              <Activity class="h-6 w-6 text-yellow-600" />
             </div>
           </div>
         </div>
@@ -75,18 +75,18 @@
 
     <!-- Charts Section -->
     <Tabs default-value="analytics" class="w-full">
-      <TabsList class="grid w-full grid-cols-3 bg-white rounded-xl p-1 shadow-sm border border-gray-200">
-        <TabsTrigger value="analytics" class="px-4 py-3 flex items-center justify-center gap-2 rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-all">
-          <TrendingUp class="h-4 w-4" />
-          <span class="text-sm font-medium">{{ t('admin.statistics') }}</span>
+      <TabsList class="grid w-full grid-cols-3">
+        <TabsTrigger value="analytics">
+          <TrendingUp class="h-4 w-4 mr-2" />
+          {{ t('admin.statistics') }}
         </TabsTrigger>
-        <TabsTrigger value="departments" class="px-4 py-3 flex items-center justify-center gap-2 rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-all">
-          <BarChart3 class="h-4 w-4" />
-          <span class="text-sm font-medium">Khoa</span>
+        <TabsTrigger value="departments">
+          <BarChart3 class="h-4 w-4 mr-2" />
+          Khoa
         </TabsTrigger>
-        <TabsTrigger value="activity" class="px-4 py-3 flex items-center justify-center gap-2 rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-all">
-          <Activity class="h-4 w-4" />
-          <span class="text-sm font-medium">Hoạt động</span>
+        <TabsTrigger value="activity">
+          <Activity class="h-4 w-4 mr-2" />
+          Hoạt động
         </TabsTrigger>
       </TabsList>
 
@@ -94,10 +94,10 @@
       <TabsContent value="analytics" class="space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- User Growth Chart -->
-          <Card class="bg-white border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+          <Card class="bg-white">
             <CardHeader>
-              <CardTitle class="text-xl">{{ t('admin.userGrowth') }}</CardTitle>
-              <CardDescription class="text-gray-600">Tăng trưởng sinh viên và giảng viên theo tháng</CardDescription>
+              <CardTitle>{{ t('admin.userGrowth') }}</CardTitle>
+              <CardDescription>Tăng trưởng sinh viên và giảng viên theo tháng</CardDescription>
             </CardHeader>
             <CardContent>
               <div class="w-full h-72 bg-gray-50 rounded-lg p-4 flex flex-col justify-between">

@@ -41,7 +41,7 @@
                   </div>
                   <div>
                     <h3 class="font-semibold text-gray-900">{{ template.name }}</h3>
-                    <p class="text-sm text-gray-500">{{ t(`templateSelectionStep.specialties.${template.specialty}`) }}</p>
+                    <p class="text-sm text-gray-500">{{ template.specialty }}</p>
                   </div>
                 </div>
                 <div v-if="selectedTemplate?.id === template.id"
@@ -53,17 +53,17 @@
               <p class="text-gray-600 text-sm mb-4">{{ template.description || 'No description available' }}</p>
 
               <div class="flex flex-wrap gap-2 mb-3">
-                <Badge v-if="template.department_vietnamese_name" variant="secondary" class="text-xs">
-                  {{ template.department_vietnamese_name }}
+                <Badge v-if="template.department_name" variant="secondary" class="text-xs">
+                  {{ template.department_name }}
                 </Badge>
                 <Badge v-if="template.specialty" variant="outline" class="text-xs">
-                  {{ t(`templateSelectionStep.specialties.${template.specialty}`) }}
+                  {{ template.specialty }}
                 </Badge>
               </div>
 
               <div class="mt-4 pt-4 border-t border-gray-200">
                 <div class="text-sm text-gray-500">
-                  <span>Tạo bởi: {{ template.created_by_name }}</span>
+                  <span>{{ t('createCase.createdBy') || 'Created by' }}: {{ template.created_by_name }}</span>
                 </div>
               </div>
             </div>
@@ -112,7 +112,7 @@
                   </li>
                 </ul>
                 <div v-if="!selectedTemplate.fields_schema?.sections?.length" class="text-sm text-gray-500">
-                  Trống.
+                  No sections defined
                 </div>
               </div>
 
@@ -136,13 +136,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, type Ref } from 'vue'
-import { useLanguage } from '@/composables/useLanguage'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
 import { Activity as ActivityIcon, CheckIcon, CheckCircleIcon } from '@/components/icons'
 import { type CaseTemplate, useCaseTemplates } from '@/composables/useCaseTemplates'
 
-const { t } = useLanguage()
+const { t } = useI18n()
 
 const { caseTemplates, loading, error, fetchCaseTemplates } = useCaseTemplates()
 

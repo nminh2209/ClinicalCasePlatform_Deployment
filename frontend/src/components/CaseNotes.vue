@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <Button variant="ghost" size="icon" @click="$emit('navigate', 'dashboard')" class="hover:bg-gray-200 border border-gray-300">
+        <Button variant="ghost" size="icon" @click="$emit('navigate', 'dashboard')">
           <ArrowLeft class="h-5 w-5" />
         </Button>
         <div>
@@ -15,14 +15,19 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <Button variant="outline" @click="handleSave" :disabled="!hasUnsavedChanges">
+        <Button variant="outline" @click="handleSave" :disabled="!hasUnsavedChanges || !canEdit">
           <Save class="h-4 w-4 mr-2" />
           Lưu nháp
         </Button>
-        <Button @click="handleSubmit" class="bg-blue-600 hover:bg-blue-700 text-grey">
+        <Button @click="handleSubmit" class="bg-blue-600 hover:bg-blue-700 text-grey" :disabled="!canEdit">
           <Send class="h-4 w-4 mr-2" />
           Nộp để xem xét
         </Button>
+      </div>
+      <!-- Permission Notice -->
+      <div v-if="!canEdit" class="mt-2 text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-md border border-amber-200">
+        <span v-if="!isOwner">⚠️ Bạn không phải là chủ sở hữu của ca bệnh này. Chỉ được xem.</span>
+        <span v-else-if="!isDraft">ℹ️ Ca bệnh đã được nộp. Không thể chỉnh sửa.</span>
       </div>
     </div>
 
@@ -38,11 +43,11 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="text-sm text-gray-500">Tiêu đề</label>
-                <Input v-model="caseData.title" placeholder="Nhập tiêu đề hồ sơ..." />
+                <Input v-model="caseData.title" placeholder="Nhập tiêu đề hồ sơ..." :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Chuyên khoa</label>
-                <select v-model="caseData.specialty" class="w-full p-2 border rounded-md">
+                <select v-model="caseData.specialty" class="w-full p-2 border rounded-md" :disabled="!canEdit">
                   <option value="">Chọn chuyên khoa</option>
                   <option value="Hồi sức tích cực">Hồi sức tích cực</option>
                   <option value="Tim mạch">Tim mạch</option>
@@ -69,15 +74,15 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="text-sm text-gray-500">Tên bệnh nhân</label>
-                <Input v-model="caseData.patient_name" placeholder="Nhập tên bệnh nhân..." />
+                <Input v-model="caseData.patient_name" placeholder="Nhập tên bệnh nhân..." :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Tuổi</label>
-                <Input v-model.number="caseData.patient_age" type="number" placeholder="Tuổi..." />
+                <Input v-model.number="caseData.patient_age" type="number" placeholder="Tuổi..." :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Giới tính</label>
-                <select v-model="caseData.patient_gender" class="w-full p-2 border rounded-md">
+                <select v-model="caseData.patient_gender" class="w-full p-2 border rounded-md" :disabled="!canEdit">
                   <option value="">Chọn giới tính</option>
                   <option value="male">Nam</option>
                   <option value="female">Nữ</option>
@@ -86,7 +91,7 @@
               </div>
               <div>
                 <label class="text-sm text-gray-500">Số hồ sơ bệnh án</label>
-                <Input v-model="caseData.medical_record_number" placeholder="Số hồ sơ..." />
+                <Input v-model="caseData.medical_record_number" placeholder="Số hồ sơ..." :disabled="!canEdit" />
               </div>
             </div>
           </CardContent>
@@ -100,19 +105,19 @@
           <CardContent class="space-y-4">
             <div>
               <label class="text-sm text-gray-500">Lý do khám chính</label>
-              <Textarea v-model="caseData.clinical_history.chief_complaint" placeholder="Lý do khám chính..." />
+              <Textarea v-model="caseData.clinical_history.chief_complaint" placeholder="Lý do khám chính..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Bệnh sử hiện tại</label>
-              <Textarea v-model="caseData.clinical_history.history_present_illness" placeholder="Bệnh sử hiện tại..." />
+              <Textarea v-model="caseData.clinical_history.history_present_illness" placeholder="Bệnh sử hiện tại..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Tiền sử bệnh tật</label>
-              <Textarea v-model="caseData.clinical_history.past_medical_history" placeholder="Tiền sử bệnh tật..." />
+              <Textarea v-model="caseData.clinical_history.past_medical_history" placeholder="Tiền sử bệnh tật..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Thuốc đang sử dụng</label>
-              <Textarea v-model="caseData.clinical_history.medications" placeholder="Thuốc đang dùng..." />
+              <Textarea v-model="caseData.clinical_history.medications" placeholder="Thuốc đang dùng..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -125,19 +130,19 @@
           <CardContent class="space-y-4">
             <div>
               <label class="text-sm text-gray-500">Tình trạng chung</label>
-              <Textarea v-model="caseData.physical_examination.general_appearance" placeholder="Tình trạng chung..." />
+              <Textarea v-model="caseData.physical_examination.general_appearance" placeholder="Tình trạng chung..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Sinh hiệu</label>
-              <Textarea v-model="caseData.physical_examination.vital_signs" placeholder="Sinh hiệu..." />
+              <Textarea v-model="caseData.physical_examination.vital_signs" placeholder="Sinh hiệu..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Tim mạch</label>
-              <Textarea v-model="caseData.physical_examination.cardiovascular" placeholder="Khám tim mạch..." />
+              <Textarea v-model="caseData.physical_examination.cardiovascular" placeholder="Khám tim mạch..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Hô hấp</label>
-              <Textarea v-model="caseData.physical_examination.respiratory" placeholder="Khám hô hấp..." />
+              <Textarea v-model="caseData.physical_examination.respiratory" placeholder="Khám hô hấp..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -150,15 +155,15 @@
           <CardContent class="space-y-4">
             <div>
               <label class="text-sm text-gray-500">Xét nghiệm</label>
-              <Textarea v-model="caseData.investigations.laboratory_results" placeholder="Kết quả xét nghiệm..." />
+              <Textarea v-model="caseData.investigations.laboratory_results" placeholder="Kết quả xét nghiệm..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Chẩn đoán hình ảnh</label>
-              <Textarea v-model="caseData.investigations.imaging_studies" placeholder="Kết quả chẩn đoán hình ảnh..." />
+              <Textarea v-model="caseData.investigations.imaging_studies" placeholder="Kết quả chẩn đoán hình ảnh..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Điện tâm đồ</label>
-              <Textarea v-model="caseData.investigations.ecg_findings" placeholder="Kết quả điện tâm đồ..." />
+              <Textarea v-model="caseData.investigations.ecg_findings" placeholder="Kết quả điện tâm đồ..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -171,11 +176,11 @@
           <CardContent class="space-y-4">
             <div>
               <label class="text-sm text-gray-500">Chẩn đoán chính</label>
-              <Textarea v-model="caseData.diagnosis_management.primary_diagnosis" placeholder="Chẩn đoán chính..." />
+              <Textarea v-model="caseData.diagnosis_management.primary_diagnosis" placeholder="Chẩn đoán chính..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Kế hoạch điều trị</label>
-              <Textarea v-model="caseData.diagnosis_management.treatment_plan" placeholder="Kế hoạch điều trị..." />
+              <Textarea v-model="caseData.diagnosis_management.treatment_plan" placeholder="Kế hoạch điều trị..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -422,6 +427,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import CardContent from '@/components/ui/CardContent.vue'
@@ -465,6 +471,24 @@ const hasUnsavedChanges = ref(false)
 const showPreview = ref(false)
 const activeTab = ref('assessment')
 const { toast } = useToast()
+const authStore = useAuthStore()
+
+// Loaded case metadata
+const caseOwnerId = ref<number | null>(null)
+const caseStatus = ref<string>('draft')
+
+// Permission checks
+const isOwner = computed(() => {
+  return authStore.user && caseOwnerId.value && authStore.user.id === caseOwnerId.value
+})
+
+const isDraft = computed(() => {
+  return caseStatus.value === 'draft'
+})
+
+const canEdit = computed(() => {
+  return isOwner.value && isDraft.value
+})
 
 // File upload state
 const fileInput = ref<HTMLInputElement>()
@@ -613,6 +637,19 @@ const handleSave = async () => {
   try {
     console.log('Starting save...', caseData.value)
     
+    // Helper function to clean nested objects
+    const cleanObject = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return obj
+      
+      const cleaned: any = {}
+      for (const [key, value] of Object.entries(obj)) {
+        if (value !== '' && value !== null && value !== undefined) {
+          cleaned[key] = value
+        }
+      }
+      return Object.keys(cleaned).length > 0 ? cleaned : undefined
+    }
+    
     // 1. Update main case data with properly formatted nested objects
     const caseUpdateData: any = {
       title: caseData.value.title,
@@ -621,51 +658,58 @@ const handleSave = async () => {
       patient_age: caseData.value.patient_age,
       patient_gender: caseData.value.patient_gender,
       medical_record_number: caseData.value.medical_record_number,
-      // Keep status as draft when saving
       case_status: 'draft',
-      // Include nested medical data - backend expects these exact field names
-      clinical_history: {
-        chief_complaint: caseData.value.clinical_history?.chief_complaint || '',
-        history_present_illness: caseData.value.clinical_history?.history_present_illness || '',
-        past_medical_history: caseData.value.clinical_history?.past_medical_history || '',
-        family_history: caseData.value.clinical_history?.family_history || '',
-        social_history: caseData.value.clinical_history?.social_history || '',
-        allergies: caseData.value.clinical_history?.allergies || '',
-        medications: caseData.value.clinical_history?.medications || '',
-        review_systems: caseData.value.clinical_history?.review_systems || ''
-      },
-      physical_examination: {
-        general_appearance: caseData.value.physical_examination?.general_appearance || '',
-        vital_signs: caseData.value.physical_examination?.vital_signs || '',
-        head_neck: caseData.value.physical_examination?.head_neck || '',
-        cardiovascular: caseData.value.physical_examination?.cardiovascular || '',
-        respiratory: caseData.value.physical_examination?.respiratory || '',
-        abdominal: caseData.value.physical_examination?.abdominal || '',
-        neurological: caseData.value.physical_examination?.neurological || '',
-        musculoskeletal: caseData.value.physical_examination?.musculoskeletal || '',
-        skin: caseData.value.physical_examination?.skin || '',
-        other_systems: caseData.value.physical_examination?.other_findings || ''
-      },
-      detailed_investigations: {
-        laboratory_results: caseData.value.investigations?.laboratory_results || '',
-        imaging_studies: caseData.value.investigations?.imaging_studies || '',
-        ecg_findings: caseData.value.investigations?.ecg_findings || '',
-        special_tests: caseData.value.investigations?.special_tests || '',
-        biochemistry: caseData.value.investigations?.biochemistry || '',
-        hematology: caseData.value.investigations?.hematology || '',
-        microbiology: caseData.value.investigations?.microbiology || ''
-      },
-      diagnosis_management: {
-        primary_diagnosis: caseData.value.diagnosis_management?.primary_diagnosis || '',
-        differential_diagnosis: caseData.value.diagnosis_management?.differential_diagnosis || '',
-        treatment_plan: caseData.value.diagnosis_management?.treatment_plan || '',
-        medications_prescribed: caseData.value.diagnosis_management?.medications_prescribed || '',
-        procedures_performed: caseData.value.diagnosis_management?.procedures_performed || '',
-        follow_up_plan: caseData.value.diagnosis_management?.follow_up_plan || '',
-        prognosis: caseData.value.diagnosis_management?.prognosis || '',
-        complications: caseData.value.diagnosis_management?.complications || ''
-      }
     }
+    
+    // Build nested objects and only include if they have data
+    const clinicalHistory = cleanObject({
+      chief_complaint: caseData.value.clinical_history?.chief_complaint,
+      history_present_illness: caseData.value.clinical_history?.history_present_illness,
+      past_medical_history: caseData.value.clinical_history?.past_medical_history,
+      family_history: caseData.value.clinical_history?.family_history,
+      social_history: caseData.value.clinical_history?.social_history,
+      allergies: caseData.value.clinical_history?.allergies,
+      medications: caseData.value.clinical_history?.medications,
+      review_systems: caseData.value.clinical_history?.review_systems
+    })
+    if (clinicalHistory) caseUpdateData.clinical_history = clinicalHistory
+    
+    const physicalExam = cleanObject({
+      general_appearance: caseData.value.physical_examination?.general_appearance,
+      vital_signs: caseData.value.physical_examination?.vital_signs,
+      head_neck: caseData.value.physical_examination?.head_neck,
+      cardiovascular: caseData.value.physical_examination?.cardiovascular,
+      respiratory: caseData.value.physical_examination?.respiratory,
+      abdominal: caseData.value.physical_examination?.abdominal,
+      neurological: caseData.value.physical_examination?.neurological,
+      musculoskeletal: caseData.value.physical_examination?.musculoskeletal,
+      skin: caseData.value.physical_examination?.skin,
+      other_systems: caseData.value.physical_examination?.other_findings
+    })
+    if (physicalExam) caseUpdateData.physical_examination = physicalExam
+    
+    const investigations = cleanObject({
+      laboratory_results: caseData.value.investigations?.laboratory_results,
+      imaging_studies: caseData.value.investigations?.imaging_studies,
+      ecg_findings: caseData.value.investigations?.ecg_findings,
+      special_tests: caseData.value.investigations?.special_tests,
+      biochemistry: caseData.value.investigations?.biochemistry,
+      hematology: caseData.value.investigations?.hematology,
+      microbiology: caseData.value.investigations?.microbiology
+    })
+    if (investigations) caseUpdateData.detailed_investigations = investigations
+    
+    const diagnosisManagement = cleanObject({
+      primary_diagnosis: caseData.value.diagnosis_management?.primary_diagnosis,
+      differential_diagnosis: caseData.value.diagnosis_management?.differential_diagnosis,
+      treatment_plan: caseData.value.diagnosis_management?.treatment_plan,
+      medications_prescribed: caseData.value.diagnosis_management?.medications_prescribed,
+      procedures_performed: caseData.value.diagnosis_management?.procedures_performed,
+      follow_up_plan: caseData.value.diagnosis_management?.follow_up_plan,
+      prognosis: caseData.value.diagnosis_management?.prognosis,
+      complications: caseData.value.diagnosis_management?.complications
+    })
+    if (diagnosisManagement) caseUpdateData.diagnosis_management = diagnosisManagement
     
     // Only include repository and template if they exist and are valid IDs
     if (caseData.value.repository) {
@@ -720,6 +764,8 @@ const handleSave = async () => {
   } catch (error: any) {
     console.error('Error saving case:', error)
     console.error('Error response:', error.response?.data)
+    console.error('Error status:', error.response?.status)
+    console.error('Full error object:', JSON.stringify(error.response?.data, null, 2))
     
     // Show specific error messages
     if (error.response?.data) {
@@ -822,7 +868,20 @@ onMounted(async () => {
   try {
     // Load case data from API
     const caseDetails = await casesService.getCase(props.caseId)
-    console.log('Loaded case details:', caseDetails)
+    
+    // Store owner and status for permission checks
+    // Backend uses 'student' field instead of 'created_by'
+    if (caseDetails.student) {
+      caseOwnerId.value = typeof caseDetails.student === 'object' 
+        ? caseDetails.student.id 
+        : caseDetails.student
+    } else if (caseDetails.created_by) {
+      caseOwnerId.value = typeof caseDetails.created_by === 'object' 
+        ? caseDetails.created_by.id 
+        : caseDetails.created_by
+    }
+    
+    caseStatus.value = caseDetails.case_status || caseDetails.status || 'draft'
     
     // Ensure all nested objects are initialized
     caseData.value = {

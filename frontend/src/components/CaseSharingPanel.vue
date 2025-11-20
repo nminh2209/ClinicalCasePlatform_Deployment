@@ -21,12 +21,12 @@
     <div class="flex justify-between items-center mb-6">
       <div class="flex space-x-2">
         <Button @click="openShareModal('individual')" class="flex items-center space-x-2">
-          <UserIcon class="w-4 h-4 text-white" />
-          <span class="text-white">{{ currentLang === 'vi' ? 'Chia sẻ ca bệnh' : 'Share Case' }}</span>
+          <UserIcon class="w-4 h-4" />
+          <span>{{ currentLang === 'vi' ? 'Chia sẻ ca bệnh' : 'Share Case' }}</span>
         </Button>
-
+        
         <Button @click="openGuestModal" variant="outline" class="flex items-center space-x-2">
-          <MailIcon class="w-4 h-4 text-black" />
+          <MailIcon class="w-4 h-4" />
           <span>{{ currentLang === 'vi' ? 'Truy cập khách' : 'Guest Access' }}</span>
         </Button>
       </div>
@@ -154,7 +154,7 @@
             <p class="mb-4">
               {{ currentLang === 'vi' ? 'Bắt đầu chia sẻ ca bệnh này với đồng nghiệp của bạn' : 'Start sharing this case with your colleagues' }}
             </p>
-            <Button @click="openShareModal('individual')" class="text-white">
+            <Button @click="openShareModal('individual')">
               {{ currentLang === 'vi' ? 'Chia sẻ ngay' : 'Share Now' }}
             </Button>
           </div>
@@ -377,7 +377,6 @@ import SharePermissionModal from './SharePermissionModal.vue'
 import UserIcon from '@/components/icons/User.vue'
 import BuildingIcon from '@/components/icons/BuildingIcon.vue'
 import GlobeIcon from '@/components/icons/GlobeIcon.vue'
-import MailIcon from '@/components/icons/MailIcon.vue'
 
 interface Permission {
   id: number

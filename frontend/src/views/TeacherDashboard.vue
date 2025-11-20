@@ -1,10 +1,10 @@
 <template>
-  <div class="p-6 space-y-6 max-w-[1600px] mx-auto">
+  <div class="p-6 space-y-6">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 class="text-gray-900 mb-2 text-3xl font-bold">Bảng giảng viên</h1>
-        <p class="text-gray-600 text-lg">
+        <h1 class="text-gray-800 mb-2 text-2xl font-bold">Bảng giảng viên</h1>
+        <p class="text-gray-600">
           {{ userDepartmentVietnamese || "Tất cả khoa" }} — Quản lý bài nộp và tiến độ sinh viên
         </p>
       </div>
@@ -22,12 +22,12 @@
     <!-- Statistic Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- Total Students Card -->
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
         <div class="p-6">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-3">Tổng sinh viên</p>
-              <p class="text-4xl font-bold text-gray-900 mb-1">{{ stats.totalStudents }}</p>
+              <p class="text-sm font-medium text-gray-500">Tổng sinh viên</p>
+              <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalStudents }}</p>
               <p class="text-xs text-gray-500 mt-1">
                 {{ userDepartmentVietnamese ? `Trong ${userDepartmentVietnamese}` : "Tất cả khoa" }}
               </p>

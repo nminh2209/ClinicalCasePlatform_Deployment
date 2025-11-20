@@ -51,6 +51,8 @@
         <span v-show="!isCollapsed || isMobileOpen">Trang chính</span>
       </router-link>
 
+
+
       <!-- Student navigation -->
       <template v-if="role === 'student'">
         <router-link to="/cases" class="nav-item" :class="{ active: $route.path.includes('/cases') }" @click="closeMobileOnNavigate">
@@ -83,18 +85,23 @@
         </router-link>
       </template>
 
+
+
+
+
+
       <!-- Instructor navigation -->
       <template v-else-if="role === 'instructor'">
         <!-- NEED TO ADD A STUDENT PAGE -->
-        <!-- <router-link to="/grading" class="nav-item" :class="{ active: $route.path.includes('/grading') }" @click="closeMobileOnNavigate">
+        <router-link to="/grading" class="nav-item" :class="{ active: $route.path.includes('/grading') }" @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 11l3 3L22 4" />
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
           <span v-show="!isCollapsed || isMobileOpen">Chấm điểm</span>
-        </router-link> -->
+        </router-link>
 
-        <router-link to="/cases" class="nav-item" :class="{ active: $route.path.includes('/cases') }" @click="closeMobileOnNavigate">
+             <router-link to="/cases" class="nav-item" :class="{ active: $route.path.includes('/cases') }" @click="closeMobileOnNavigate">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14,2 14,8 20,8" />
@@ -128,6 +135,11 @@
         </router-link>
       </template>
 
+
+
+
+
+      
       <!-- Admin navigation -->
       <template v-else-if="role === 'admin'">
         <router-link to="/users" class="nav-item" :class="{ active: $route.path.includes('/users') }" @click="closeMobileOnNavigate">
@@ -140,7 +152,7 @@
       </template>
 
       <!-- Common links (all roles except students) -->
-      <!-- <router-link v-if="role !== 'student'" to="/repositories" class="nav-item" :class="{ active: $route.path.includes('/repositories') }" @click="closeMobileOnNavigate">
+      <router-link v-if="role !== 'student'" to="/repositories" class="nav-item" :class="{ active: $route.path.includes('/repositories') }" @click="closeMobileOnNavigate">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
@@ -156,7 +168,7 @@
           />
         </svg>
         <span v-show="!isCollapsed || isMobileOpen">Cài đặt</span>
-      </router-link> -->
+      </router-link>
     </nav>
 
     <div class="sidebar-footer">
