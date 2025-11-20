@@ -6,7 +6,7 @@
           <CardHeader class="border-b mb-2">
             <div class="flex items-center justify-between">
               <div>
-                <CardTitle>Create Practice Case</CardTitle>
+                <CardTitle></CardTitle>
                 <CardDescription>
                   Build a complete patient case for clinical practice
                 </CardDescription>
@@ -70,8 +70,8 @@
                   Back
                 </Button>
 
-                <Button v-if="currentStep < steps.length - 1" @click="handleNext" class="bg-primary text-white hover:bg-blue-600"
-                  :disabled="stepValidations[currentStep] === false">
+                <Button v-if="currentStep < steps.length - 1" @click="handleNext"
+                  class="bg-primary text-white hover:bg-blue-600" :disabled="stepValidations[currentStep] === false">
                   Next
                   <ArrowRight class="h-4 w-4 ml-2" />
                 </Button>
@@ -344,7 +344,7 @@ const handleSaveDraft = async () => {
       chief_complaint_brief: caseData.value.chief_complaint_brief,
       keywords: caseData.value.keywords,
       case_status: 'draft', // Explicitly set as draft
-      
+
       // Nested models
       clinical_history: caseData.value.clinical_history,
       physical_examination: caseData.value.physical_examination,
@@ -401,7 +401,7 @@ const handleComplete = async () => {
     // Helper function to remove empty fields from nested objects
     const cleanObject = (obj: any) => {
       if (!obj || typeof obj !== 'object') return obj
-      
+
       const cleaned: any = {}
       for (const [key, value] of Object.entries(obj)) {
         // Keep non-empty values and numbers (including 0)
@@ -484,14 +484,14 @@ const handleComplete = async () => {
     console.error('Error creating case:', error)
     console.error('Error response:', error.response?.data)
     console.error('Error status:', error.response?.status)
-    
+
     // Display detailed error information
     let errorMessage = 'Failed to create case. Please try again.'
-    
+
     if (error.response?.data) {
       // Log the full error object to see all validation errors
       console.error('Full error object:', JSON.stringify(error.response.data, null, 2))
-      
+
       // If there's a specific error message
       if (error.response.data.message || error.response.data.detail) {
         errorMessage = error.response.data.message || error.response.data.detail
@@ -501,13 +501,15 @@ const handleComplete = async () => {
         const errorFields = Object.keys(errors)
         if (errorFields.length > 0) {
           const firstField = errorFields[0]
-          const firstError = Array.isArray(errors[firstField]) ? errors[firstField][0] : errors[firstField]
-          errorMessage = `${firstField}: ${firstError}`
-          console.error('Validation errors:', errors)
+          if (firstField) {
+            const firstError = Array.isArray(errors[firstField]) ? errors[firstField][0] : errors[firstField]
+            errorMessage = `${firstField}: ${firstError}`
+            console.error('Validation errors:', errors)
+          }
         }
       }
     }
-    
+
     toast.error(errorMessage)
   }
 }
