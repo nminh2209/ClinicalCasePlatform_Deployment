@@ -7,7 +7,7 @@ from django.db import connection
 from cases.models import (
     Case, ClinicalHistory, PhysicalExamination, 
     Investigations, DiagnosisManagement, LearningOutcomes,
-    MedicalAttachment, StudentNotes, CasePermission
+    StudentNotes, CasePermission
 )
 from comments.models import Comment
 from feedback.models import Feedback
@@ -35,7 +35,6 @@ class Command(BaseCommand):
 
         # Delete in reverse order of dependencies
         StudentNotes.objects.all().delete()
-        MedicalAttachment.objects.all().delete()
         CasePermission.objects.all().delete()
         Comment.objects.all().delete()
         Feedback.objects.all().delete()
