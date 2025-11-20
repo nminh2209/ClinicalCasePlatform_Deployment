@@ -12,6 +12,7 @@ from cases.models import (
 from comments.models import Comment
 from feedback.models import Feedback
 from grades.models import Grade
+from templates.models import CaseTemplate
 
 
 class Command(BaseCommand):
@@ -26,12 +27,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not options['skip_confirm']:
-            confirm = input('This will DELETE ALL data except users, repositories, and templates. Continue? (yes/no): ')
+            confirm = input('This will DELETE ALL data except users and repositories. Continue? (yes/no): ')
             if confirm.lower() != 'yes':
                 self.stdout.write(self.style.WARNING('Operation cancelled.'))
                 return
 
-        self.stdout.write(self.style.WARNING('Deleting all case-related data...'))
+        self.stdout.write(self.style.WARNING('Deleting all case-related data and templates...'))
 
         # Delete in reverse order of dependencies
         StudentNotes.objects.all().delete()
@@ -49,8 +50,11 @@ class Command(BaseCommand):
         
         # Delete cases
         Case.objects.all().delete()
+        
+        # Delete templates
+        CaseTemplate.objects.all().delete()
 
-        self.stdout.write(self.style.SUCCESS('Data deleted successfully!'))
+        self.stdout.write(self.style.SUCCESS('Data and templates deleted successfully!'))
 
         # Repopulate with test data by running the script
         self.stdout.write(self.style.WARNING('Populating fresh test data...'))
