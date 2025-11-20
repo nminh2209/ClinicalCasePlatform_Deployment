@@ -90,14 +90,14 @@
 
         <div class="space-y-6">
           <div class="space-y-2">
-            <Label for="chiefComplaint">Chief Complaint *</Label>
-            <Textarea id="chiefComplaint" v-model="localData.clinical_history.chief_complaint"
-              placeholder="Main reason for patient presentation" :error="errors.chiefComplaint" rows="3" />
+            <Label for="chief_complaint">Chief Complaint *</Label>
+            <Textarea id="chief_complaint" v-model="localData.clinical_history.chief_complaint"
+              placeholder="Main reason for patient presentation" :error="errors.chief_complaint" rows="3" />
           </div>
 
           <div class="space-y-2">
-            <Label for="chiefComplaintBrief">Brief Chief Complaint</Label>
-            <Input id="chiefComplaintBrief" v-model="localData.chief_complaint_brief"
+            <Label for="chief_complaintBrief">Brief Chief Complaint</Label>
+            <Input id="chief_complaintBrief" v-model="localData.chief_complaint_brief"
               placeholder="One-line summary" />
           </div>
 
@@ -177,7 +177,7 @@ const validateStep = () => {
   }
 
   if (!localData.value.clinical_history?.chief_complaint?.trim()) {
-    errors.value.chiefComplaint = 'Chief complaint is required'
+    errors.value.chief_complaint = 'Chief complaint is required'
   }
 
   return Object.keys(errors.value).length === 0

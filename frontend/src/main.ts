@@ -156,8 +156,8 @@ const messages = {
       enterMRN: "Enter MRN",
       dateOfBirth: "Date of Birth",
       clinicalPresentation: "Clinical Presentation",
-      chiefComplaint: "Chief Complaint",
-      describeChiefComplaint: "Describe the patient's chief complaint",
+      chief_complaint: "Chief Complaint",
+      describe_chief_complaint: "Describe the patient's chief complaint",
       historyOfPresentIllness: "History of Present Illness",
       describeHPI: "Describe the history of present illness",
       pastMedicalHistory: "Past Medical History",
@@ -166,7 +166,7 @@ const messages = {
       lastNameRequired: "Last name is required",
       validAgeRequired: "Valid age is required (0-150)",
       genderRequired: "Gender is required",
-      chiefComplaintRequired: "Chief complaint is required",
+      chief_complaintRequired: "Chief complaint is required",
 
       // Vital Signs
       vitalSigns: "Vital Signs",
@@ -397,8 +397,8 @@ const messages = {
       enterMRN: "Nhập MRN",
       dateOfBirth: "Ngày Sinh",
       clinicalPresentation: "Biểu Hiện Lâm Sàng",
-      chiefComplaint: "Triệu Chứng Chính",
-      describeChiefComplaint: "Mô tả triệu chứng chính của bệnh nhân",
+      chief_complaint: "Triệu Chứng Chính",
+      describe_chief_complaint: "Mô tả triệu chứng chính của bệnh nhân",
       historyOfPresentIllness: "Tiền Sử Bệnh Hiện Tại",
       describeHPI: "Mô tả tiền sử bệnh hiện tại",
       pastMedicalHistory: "Tiền Sử Bệnh Trước Đây",
@@ -407,7 +407,7 @@ const messages = {
       lastNameRequired: "Họ là bắt buộc",
       validAgeRequired: "Tuổi hợp lệ là bắt buộc (0-150)",
       genderRequired: "Giới tính là bắt buộc",
-      chiefComplaintRequired: "Triệu chứng chính là bắt buộc",
+      chief_complaintRequired: "Triệu chứng chính là bắt buộc",
 
       // Vital Signs
       vitalSigns: "Dấu Hiệu Sinh Tồn",

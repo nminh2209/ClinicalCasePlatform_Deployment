@@ -834,7 +834,7 @@ const previewData = computed(() => ({
   medicalRecordNumber: caseData.value?.medical_record_number || 'Chưa nhập',
 
   // Clinical History
-  chiefComplaint: caseData.value?.clinical_history?.chief_complaint || 'Chưa nhập',
+  chief_complaint: caseData.value?.clinical_history?.chief_complaint || 'Chưa nhập',
   historyOfPresentIllness: caseData.value?.clinical_history?.history_present_illness || 'Chưa nhập',
   pastMedicalHistory: caseData.value?.clinical_history?.past_medical_history || 'Chưa nhập',
   medications: caseData.value?.clinical_history?.medications || 'Chưa nhập',
