@@ -52,8 +52,34 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Data deleted successfully!'))
 
-        # Repopulate with test data
+        # Repopulate with test data by running the script
         self.stdout.write(self.style.WARNING('Populating fresh test data...'))
-        call_command('populate_test_data')
+        
+        import subprocess
+        import os
+        import sys
+        
+        # Get the path to populate_test_data.py (in backend directory)
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        script_path = os.path.join(backend_dir, 'populate_test_data.py')
+        
+        if os.path.exists(script_path):
+            try:
+                # Run the populate script using the same Python interpreter
+                result = subprocess.run([sys.executable, script_path], 
+                                      cwd=backend_dir,
+                                      capture_output=True, 
+                                      text=True)
+                
+                if result.returncode == 0:
+                    self.stdout.write(self.style.SUCCESS('Test data populated successfully!'))
+                    if result.stdout:
+                        self.stdout.write(result.stdout)
+                else:
+                    self.stdout.write(self.style.ERROR(f'Error populating test data: {result.stderr}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Failed to run populate script: {str(e)}'))
+        else:
+            self.stdout.write(self.style.WARNING(f'populate_test_data.py not found at {script_path}'))
 
         self.stdout.write(self.style.SUCCESS('Database reset complete!'))
