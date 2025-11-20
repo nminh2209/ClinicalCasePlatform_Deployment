@@ -2,10 +2,10 @@
   <div class="space-y-6">
     <div class="text-center">
       <h2 class="text-2xl font-bold text-gray-900 mb-2">
-        Medical Attachments
+        {{ $t('createCase.attachments') }}
       </h2>
       <p class="text-gray-600">
-        Upload X-rays, lab reports, and other medical images or documents
+        {{ $t('createCase.attachmentsDescription') }}
       </p>
     </div>
 
@@ -13,25 +13,25 @@
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Upload Files
+          {{ $t('createCase.uploadFiles') }}
         </h3>
 
         <div
-          class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+          class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
           :class="{ 'border-blue-400 bg-blue-50': isDragOver }" @dragover.prevent="isDragOver = true"
-          @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop" @click="fileInput?.click()">
+          @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop">
           <div class="space-y-4">
             <UploadIcon class="w-12 h-12 text-gray-400 mx-auto" />
             <div>
               <p class="text-lg font-medium text-gray-900">
-                Drag and drop files here
+                {{ $t('createCase.dragDropFiles') }}
               </p>
               <p class="text-gray-500">
-                or click to browse
+                {{ $t('createCase.orClickToBrowse') }}
               </p>
             </div>
-            <Button variant="outline" type="button">
-              Select Files
+            <Button variant="outline" @click="fileInput?.click()">
+              {{ $t('createCase.selectFiles') }}
             </Button>
             <input ref="fileInput" type="file" multiple accept="image/*,.pdf,.doc,.docx" class="hidden"
               @change="handleFileSelect" />
@@ -39,21 +39,21 @@
         </div>
 
         <div class="mt-4 text-sm text-gray-500">
-          <p>Supported formats: JPG, PNG, PDF, DOC, DOCX</p>
-          <p>Maximum file size: 10MB per file</p>
+          <p>{{ $t('createCase.supportedFormats') }}: JPG, PNG, PDF, DOC, DOCX</p>
+          <p>{{ $t('createCase.maxFileSize') }}: 10MB {{ $t('createCase.perFile') }}</p>
         </div>
       </div>
     </Card>
 
     <!-- Uploaded Files -->
-    <Card v-if="localData.attachments && localData.attachments.length > 0">
+    <Card v-if="attachments.length > 0">
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Uploaded Files ({{ localData.attachments.length }})
+          {{ $t('createCase.uploadedFiles') }}
         </h3>
 
         <div class="space-y-6">
-          <div v-for="(file, index) in localData.attachments" :key="index"
+          <div v-for="(file, index) in attachments" :key="index"
             class="border border-gray-200 rounded-lg p-4">
             <div class="flex items-start justify-between mb-4">
               <div class="flex items-center space-x-4 flex-1">
@@ -89,48 +89,88 @@
                 <!-- Attachment Type -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Attachment Type
+                    {{ $t('createCase.attachmentType') }}
                   </label>
                   <select v-model="file.attachment_type" 
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select type...</option>
-                    <option value="x_ray">📷 X-Ray</option>
-                    <option value="lab_report">🧪 Lab Report</option>
-                    <option value="ct_scan">🔬 CT Scan</option>
-                    <option value="mri_scan">🧠 MRI Scan</option>
-                    <option value="ultrasound">📡 Ultrasound</option>
-                    <option value="injury_photo">📸 Injury Photo</option>
-                    <option value="surgical_photo">⚕️ Surgical Photo</option>
-                    <option value="pathology_slide">🔬 Pathology Slide</option>
-                    <option value="prescription">💊 Prescription</option>
-                    <option value="discharge_summary">📋 Discharge Summary</option>
-                    <option value="vital_signs">💓 Vital Signs Chart</option>
-                    <option value="ekg_ecg">❤️ EKG/ECG</option>
-                    <option value="endoscopy">🔍 Endoscopy</option>
-                    <option value="biopsy_report">🧬 Biopsy Report</option>
-                    <option value="medical_certificate">📜 Medical Certificate</option>
-                    <option value="other">📄 Other</option>
+                    <option value="">{{ $t('createCase.selectType') }}</option>
+                    <option value="x_ray">📷 {{ $t('createCase.xRay') }}</option>
+                    <option value="lab_report">🧪 {{ $t('createCase.labReport') }}</option>
+                    <option value="ct_scan">🔬 {{ $t('createCase.ctScan') }}</option>
+                    <option value="mri_scan">🧠 {{ $t('createCase.mriScan') }}</option>
+                    <option value="ultrasound">📡 {{ $t('createCase.ultrasoundType') }}</option>
+                    <option value="injury_photo">📸 {{ $t('createCase.injuryPhoto') }}</option>
+                    <option value="surgical_photo">⚕️ {{ $t('createCase.surgicalPhoto') }}</option>
+                    <option value="pathology_slide">🔬 {{ $t('createCase.pathologySlide') }}</option>
+                    <option value="prescription">💊 {{ $t('createCase.prescriptionType') }}</option>
+                    <option value="discharge_summary">📋 {{ $t('createCase.dischargeSummary') }}</option>
+                    <option value="vital_signs">💓 {{ $t('createCase.vitalSignsType') }}</option>
+                    <option value="ekg_ecg">❤️ {{ $t('createCase.ekgEcg') }}</option>
+                    <option value="endoscopy">🔍 {{ $t('createCase.endoscopyType') }}</option>
+                    <option value="biopsy_report">🧬 {{ $t('createCase.biopsyReport') }}</option>
+                    <option value="medical_certificate">📜 {{ $t('createCase.medicalCertificate') }}</option>
+                    <option value="other">📄 {{ $t('createCase.otherType') }}</option>
                   </select>
                 </div>
 
                 <!-- Title -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Title
+                    {{ $t('createCase.title') }}
                   </label>
                   <input v-model="file.title" type="text" 
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter title..." />
+                    :placeholder="$t('createCase.enterTitle')" />
+                </div>
+
+                <!-- Department -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ $t('createCase.department') }}
+                  </label>
+                  <select v-model="file.department" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">{{ $t('createCase.selectDepartment') }}</option>
+                    <option value="cardiology">{{ $t('createCase.cardiology') }}</option>
+                    <option value="neurology">{{ $t('createCase.neurology') }}</option>
+                    <option value="orthopedics">{{ $t('createCase.orthopedics') }}</option>
+                    <option value="pediatrics">{{ $t('createCase.pediatrics') }}</option>
+                    <option value="radiology">{{ $t('createCase.radiology') }}</option>
+                    <option value="pathology">{{ $t('createCase.pathology') }}</option>
+                    <option value="emergency">{{ $t('createCase.emergency') }}</option>
+                    <option value="surgery">{{ $t('createCase.surgery') }}</option>
+                    <option value="internal_medicine">{{ $t('createCase.internalMedicine') }}</option>
+                    <option value="other">{{ $t('createCase.otherType') }}</option>
+                  </select>
+                </div>
+
+                <!-- Date Taken -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ $t('createCase.dateTaken') }}
+                  </label>
+                  <input v-model="file.date_taken" type="date" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
 
                 <!-- Description (Full Width) -->
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Description
+                    {{ $t('createCase.description') }}
                   </label>
                   <textarea v-model="file.description" rows="2"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Describe the attachment..."></textarea>
+                    :placeholder="$t('createCase.enterDescription')"></textarea>
+                </div>
+
+                <!-- Physician Notes (Full Width) -->
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ $t('createCase.physicianNotes') }}
+                  </label>
+                  <textarea v-model="file.physician_notes" rows="2"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    :placeholder="$t('createCase.enterPhysicianNotes')"></textarea>
                 </div>
 
                 <!-- Is Confidential -->
@@ -139,10 +179,10 @@
                     <input v-model="file.is_confidential" type="checkbox" 
                       class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                     <span class="text-sm font-medium text-gray-700">
-                      Mark as confidential
+                      {{ $t('createCase.isConfidential') }}
                     </span>
                     <span class="text-xs text-gray-500">
-                      (restricted access to authorized users only)
+                      ({{ $t('createCase.confidentialDescription') }})
                     </span>
                   </label>
                 </div>
@@ -156,19 +196,19 @@
     <!-- File Preview Modal -->
     <div v-if="previewFileData" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       @click="closePreview">
-      <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] w-full mx-4 overflow-hidden" @click.stop>
+      <div class="bg-white rounded-lg max-w-4xl max-h-4xl w-full mx-4 overflow-hidden">
         <div class="flex items-center justify-between p-4 border-b">
           <h3 class="text-lg font-semibold">{{ previewFileData.name }}</h3>
           <Button variant="outline" @click="closePreview">
             <XIcon class="w-4 h-4" />
           </Button>
         </div>
-        <div class="p-4 overflow-auto max-h-[calc(90vh-80px)]">
+        <div class="p-4">
           <img v-if="isImageFile(previewFileData)" :src="previewFileData.url" :alt="previewFileData.name"
-            class="max-w-full h-auto object-contain mx-auto" />
-          <div v-else class="text-center text-gray-500 py-12">
+            class="max-w-full max-h-96 object-contain" />
+          <div v-else class="text-center text-gray-500">
             <DocumentIcon class="w-16 h-16 mx-auto mb-4" />
-            <p>Preview not available for this file type</p>
+            <p>{{ $t('createCase.previewNotAvailable') }}</p>
           </div>
         </div>
       </div>
@@ -178,43 +218,43 @@
     <Card>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Case Summary
+          {{ $t('createCase.caseSummary') }}
         </h3>
 
         <div class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 class="font-medium text-gray-900 mb-2">Patient Information</h4>
+              <h4 class="font-medium text-gray-900 mb-2">{{ $t('createCase.patientInfo') }}</h4>
               <dl class="space-y-1 text-sm">
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Age:</dt>
-                  <dd class="font-medium">{{ localData.patient_age || 'Not specified' }} years</dd>
+                  <dt class="text-gray-600">{{ $t('createCase.name') }}:</dt>
+                  <dd class="font-medium">{{ caseData.patient?.firstName }} {{ caseData.patient?.lastName }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Gender:</dt>
-                  <dd class="font-medium">{{ localData.patient_gender || 'Not specified' }}</dd>
+                  <dt class="text-gray-600">{{ $t('createCase.age') }}:</dt>
+                  <dd class="font-medium">{{ caseData.patient?.age }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">MRN:</dt>
-                  <dd class="font-medium">{{ localData.medical_record_number || 'Not assigned' }}</dd>
+                  <dt class="text-gray-600">{{ $t('createCase.gender') }}:</dt>
+                  <dd class="font-medium">{{ caseData.patient?.gender }}</dd>
                 </div>
               </dl>
             </div>
 
             <div>
-              <h4 class="font-medium text-gray-900 mb-2">Case Details</h4>
+              <h4 class="font-medium text-gray-900 mb-2">{{ $t('createCase.caseDetails') }}</h4>
               <dl class="space-y-1 text-sm">
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Title:</dt>
-                  <dd class="font-medium">{{ localData.title || 'Untitled Case' }}</dd>
+                  <dt class="text-gray-600">{{ $t('createCase.template') }}:</dt>
+                  <dd class="font-medium">{{ caseData.template?.name }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Specialty:</dt>
-                  <dd class="font-medium">{{ localData.specialty || 'Not specified' }}</dd>
+                  <dt class="text-gray-600">{{ $t('createCase.attachments') }}:</dt>
+                  <dd class="font-medium">{{ attachments.length }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-gray-600">Attachments:</dt>
-                  <dd class="font-medium">{{ localData.attachments?.length || 0 }}</dd>
+                  <dt class="text-gray-600">{{ $t('createCase.learningObjectives') }}:</dt>
+                  <dd class="font-medium">{{ caseData.assessment?.learningObjectives?.length || 0 }}</dd>
                 </div>
               </dl>
             </div>
@@ -227,23 +267,29 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
-import { UploadIcon, DocumentIcon, EyeIcon, TrashIcon, XIcon } from '@/components/icons'
+import { UploadIcon, FileIcon, DocumentIcon, EyeIcon, TrashIcon, XIcon } from '@/components/icons'
 
+const { t } = useI18n()
 const fileInput = ref<HTMLInputElement>()
 
-const props = defineProps<{
-  caseData: any
-}>()
+const props = defineProps({
+  caseData: {
+    type: Object,
+    required: true
+  }
+})
 
-const emit = defineEmits<{
-  'update:caseData': [any]
-}>()
+const emit = defineEmits(['update:caseData'])
 
-const localData = computed({
-  get: () => props.caseData,
-  set: (value) => emit('update:caseData', value)
+const attachments = computed({
+  get: () => props.caseData.attachments || [],
+  set: (value) => emit('update:caseData', {
+    ...props.caseData,
+    attachments: value
+  })
 })
 
 const isDragOver = ref(false)
@@ -268,14 +314,14 @@ const addFiles = (files: File[]) => {
   const validFiles = files.filter(file => {
     // Check file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      alert(`File "${file.name}" is too large. Maximum size is 10MB.`)
+      alert(t('createCase.fileTooLarge', { fileName: file.name }))
       return false
     }
 
     // Check file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
     if (!allowedTypes.includes(file.type)) {
-      alert(`File "${file.name}" has unsupported format. Please upload JPG, PNG, PDF, DOC, or DOCX files.`)
+      alert(t('createCase.unsupportedFileType', { fileName: file.name }))
       return false
     }
 
@@ -291,30 +337,22 @@ const addFiles = (files: File[]) => {
     file: file,
     attachment_type: '',
     title: file.name.split('.')[0] || '',
+    department: '',
     description: '',
+    date_taken: '',
+    physician_notes: '',
     is_confidential: false
   }))
 
-  // Update attachments array
-  const currentAttachments = localData.value.attachments || []
-  localData.value = {
-    ...localData.value,
-    attachments: [...currentAttachments, ...fileObjects]
-  }
+  attachments.value = [...attachments.value, ...fileObjects]
 }
 
 const removeFile = (index: number) => {
-  const attachments = localData.value.attachments || []
-  const fileToRemove = attachments[index]
+  const fileToRemove = attachments.value[index]
   if (fileToRemove.url) {
     URL.revokeObjectURL(fileToRemove.url)
   }
-  const updatedAttachments = [...attachments]
-  updatedAttachments.splice(index, 1)
-  localData.value = {
-    ...localData.value,
-    attachments: updatedAttachments
-  }
+  attachments.value.splice(index, 1)
 }
 
 const isImageFile = (file: File) => {

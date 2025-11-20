@@ -143,7 +143,7 @@ const caseData = ref<Record<string, any>>({
   },
 
   // Clinical presentation
-  chiefComplaint: '',
+  chief_complaint: '',
   historyOfPresentIllness: '',
   pastMedicalHistory: '',
 
