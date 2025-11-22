@@ -5,24 +5,40 @@
     <header class="hero">
       <nav class="nav-bar">
         <div class="nav-logo">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="logo-icon">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="logo-icon"
+          >
             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
           </svg>
           <span class="logo-text">MedCase</span>
         </div>
-        <router-link to="/login" class="btn btn-login">
-          Đăng Nhập
-        </router-link>
+        <router-link to="/login" class="btn btn-login"> Đăng Nhập </router-link>
       </nav>
 
       <div class="hero-container">
         <div class="hero-content">
           <h1 class="hero-title">Nền tảng Quản lý Ca bệnh Lâm sàng</h1>
-          <p class="hero-description">Đơn giản hóa việc ghi chép hồ sơ ca bệnh và hợp tác trong đào tạo y khoa với nền tảng toàn diện của chúng tôi!</p>
+          <p class="hero-description">
+            Đơn giản hóa việc ghi chép hồ sơ ca bệnh và hợp tác trong đào tạo y
+            khoa với nền tảng toàn diện của chúng tôi!
+          </p>
           <div class="hero-actions">
             <router-link to="/login" class="btn btn-primary-large">
               <span>Bắt đầu</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
@@ -32,8 +48,17 @@
         <div class="hero-visual">
           <div class="floating-card card-1">
             <div class="card-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
                 <polyline points="14,2 14,8 20,8" />
               </svg>
             </div>
@@ -44,7 +69,14 @@
           </div>
           <div class="floating-card card-2">
             <div class="card-icon success">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
               </svg>
@@ -62,26 +94,51 @@
       <div class="container">
         <div class="features-header">
           <span class="section-label">Tính năng nổi bật</span>
-          <h2 class="section-title">Mọi thứ mà bạn cần để quản lý các ca bệnh lâm sàng, trên một nền tảng duy nhất.</h2>
-          <p class="section-description">Những công cụ mạnh mẽ được thiết kế cho giáo dục và hợp tác trong lĩnh vực chăm sóc sức khỏe.</p>
+          <h2 class="section-title">
+            Mọi thứ mà bạn cần để quản lý các ca bệnh lâm sàng, trên một nền
+            tảng duy nhất.
+          </h2>
+          <p class="section-description">
+            Những công cụ mạnh mẽ được thiết kế cho giáo dục và hợp tác trong
+            lĩnh vực chăm sóc sức khỏe.
+          </p>
         </div>
         <div class="feature-grid">
           <div class="feature-card">
             <div class="feature-icon-wrapper">
               <div class="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  />
                   <polyline points="14,2 14,8 20,8" />
                 </svg>
               </div>
             </div>
             <h3>Ghi chép</h3>
-            <p>Tạo và quản lý các báo cáo ca bệnh chi tiết với các mẫu tiêu chuẩn hóa.</p>
+            <p>
+              Tạo và quản lý các báo cáo ca bệnh chi tiết với các mẫu tiêu chuẩn
+              hóa.
+            </p>
           </div>
           <div class="feature-card">
             <div class="feature-icon-wrapper">
               <div class="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -90,12 +147,22 @@
               </div>
             </div>
             <h3>Hợp tác</h3>
-            <p>Chia sẻ các ca bệnh với đồng nghiệp, bạn học, và giảng viên để nhận phản hồi và học hỏi.</p>
+            <p>
+              Chia sẻ các ca bệnh với đồng nghiệp, bạn học, và giảng viên để
+              nhận phản hồi và học hỏi.
+            </p>
           </div>
           <div class="feature-card">
             <div class="feature-icon-wrapper">
               <div class="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <rect x="3" y="3" width="7" height="7" />
                   <rect x="14" y="3" width="7" height="7" />
                   <rect x="14" y="14" width="7" height="7" />
@@ -104,13 +171,25 @@
               </div>
             </div>
             <h3>Sắp xếp</h3>
-            <p>Tổ chức các ca bệnh trong các kho lưu trữ với khả năng tìm kiếm và lọc mạnh mẽ</p>
+            <p>
+              Tổ chức các ca bệnh trong các kho lưu trữ với khả năng tìm kiếm và
+              lọc mạnh mẽ
+            </p>
           </div>
           <div class="feature-card">
             <div class="feature-icon-wrapper">
               <div class="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  />
                   <polyline points="14,2 14,8 20,8" />
                   <line x1="16" y1="13" x2="8" y2="13" />
                   <line x1="16" y1="17" x2="8" y2="17" />
@@ -125,7 +204,6 @@
     </section>
   </div>
 </template>
-
 
 <style scoped>
 /* Dashboard Styles */
@@ -162,7 +240,9 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .stat-card:hover {
@@ -416,15 +496,23 @@
 }
 
 .hero::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(30, 64, 175, 0.3) 0%, transparent 50%);
+  background:
+    radial-gradient(
+      circle at 20% 50%,
+      rgba(59, 130, 246, 0.3) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(30, 64, 175, 0.3) 0%,
+      transparent 50%
+    );
   pointer-events: none;
 }
 
@@ -571,7 +659,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -584,7 +673,8 @@
 }
 
 @keyframes float-center {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(-50%);
   }
   50% {

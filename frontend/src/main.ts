@@ -8,16 +8,15 @@ import {
 } from "vue-router";
 import { createI18n } from "vue-i18n";
 import App from "./App.vue";
-import '../styles/globals.css';
+import "../styles/globals.css";
 
 // Extend RouteMeta to include custom requiresRoles
-declare module 'vue-router' {
+declare module "vue-router" {
   interface RouteMeta {
     requiresAuth?: boolean;
     requiresRoles?: string[];
   }
 }
-
 
 // Import views
 import Home from "./views/Home.vue";
@@ -34,8 +33,7 @@ import Users from "./views/Users.vue";
 import SharedCases from "./views/SharedCases.vue";
 import PublicFeed from "./views/PublicFeed.vue";
 
-
-import { useToast } from '@/composables/useToast'
+import { useToast } from "@/composables/useToast";
 
 const { toast } = useToast();
 
@@ -47,7 +45,11 @@ const routes: RouteRecordRaw[] = [
   { path: "/home", component: Home, meta: { requiresAuth: true } },
 
   // Student & Instructor routes (admin restricted)
-  { path: "/cases", component: Cases, meta: { requiresAuth: true, requiresRoles: ["student", "instructor"] } },
+  {
+    path: "/cases",
+    component: Cases,
+    meta: { requiresAuth: true, requiresRoles: ["student", "instructor"] },
+  },
   {
     path: "/students",
     component: ViewStudentList,
@@ -131,12 +133,14 @@ const messages = {
       goTo: "Go to: {step}",
 
       // Messages
-      completionRequired: "Please complete all required fields before proceeding",
+      completionRequired:
+        "Please complete all required fields before proceeding",
       caseSavedDraft: "Case saved as draft successfully!",
       caseCreated: "Medical case created successfully!",
       failedToDraft: "Failed to save draft. Please try again.",
       failedToCreate: "Failed to create case. Please try again.",
-      completeRequired: "Please complete all required fields before creating the case",
+      completeRequired:
+        "Please complete all required fields before creating the case",
       buildCase: "Build a complete patient case for clinical practice",
 
       // Step Titles & Descriptions
@@ -158,7 +162,8 @@ const messages = {
     createCase: {
       // Template Selection
       selectTemplate: "Select Case Template",
-      templateDescription: "Choose a template to start building your clinical case",
+      templateDescription:
+        "Choose a template to start building your clinical case",
       difficulty: "Difficulty",
       estimatedTime: "Est. Time",
       templatePreview: "Template Preview",
@@ -237,7 +242,8 @@ const messages = {
       vitalSignsDescription: "Record patient vital signs and measurements",
       recordVitalSigns: "Record Vital Signs",
       vitalSignsPhysicalMeasurements: "Vital Signs & Physical Measurements",
-      recordPatientVitalSigns: "Record the patient's vital signs and basic physical measurements",
+      recordPatientVitalSigns:
+        "Record the patient's vital signs and basic physical measurements",
       temperature: "Temperature",
       temperatureUnit: "(°C)",
       heartRate: "Heart Rate",
@@ -258,10 +264,12 @@ const messages = {
       bmiCategory: "BMI Category",
       autoCalculated: "Auto-calculated",
       generalAppearanceNotes: "General Appearance & Vital Signs Notes",
-      generalAppearanceNotesPlaceholder: "Describe general appearance, vital signs stability, any abnormalities...",
+      generalAppearanceNotesPlaceholder:
+        "Describe general appearance, vital signs stability, any abnormalities...",
       painScale: "Pain Scale",
       additionalNotes: "Additional Notes",
-      vitalSignsNotesPlaceholder: "Enter any additional notes about vital signs",
+      vitalSignsNotesPlaceholder:
+        "Enter any additional notes about vital signs",
       underweight: "Underweight",
       normalWeight: "Normal Weight",
       overweight: "Overweight",
@@ -272,7 +280,8 @@ const messages = {
       physicalExamDescription: "Document physical examination findings",
       generalAppearance: "General Appearance",
       appearance: "Appearance",
-      generalAppearancePlaceholder: "Describe general appearance (e.g., well-nourished, in no acute distress)",
+      generalAppearancePlaceholder:
+        "Describe general appearance (e.g., well-nourished, in no acute distress)",
       consciousnessLevel: "Consciousness Level",
       obtunded: "Obtunded",
       stuporous: "Stuporous",
@@ -286,21 +295,28 @@ const messages = {
       notRecorded: "Not recorded",
       physicalExaminationBySystem: "Physical Examination by System",
       headAndNeck: "Head and Neck",
-      heentPlaceholder: "HEENT: pupils, ears, nose, throat, neck examination...",
+      heentPlaceholder:
+        "HEENT: pupils, ears, nose, throat, neck examination...",
       cardiovascular: "Cardiovascular",
-      cardiovascularPlaceholder: "Heart sounds, murmurs, rhythm, peripheral pulses...",
+      cardiovascularPlaceholder:
+        "Heart sounds, murmurs, rhythm, peripheral pulses...",
       respiratory: "Respiratory",
-      respiratoryPlaceholder: "Breath sounds, chest expansion, percussion findings...",
+      respiratoryPlaceholder:
+        "Breath sounds, chest expansion, percussion findings...",
       abdominal: "Abdominal",
-      abdominalPlaceholder: "Inspection, auscultation, palpation, percussion findings...",
+      abdominalPlaceholder:
+        "Inspection, auscultation, palpation, percussion findings...",
       neurological: "Neurological",
-      neurologicalPlaceholder: "Cranial nerves, motor, sensory, reflexes, coordination...",
+      neurologicalPlaceholder:
+        "Cranial nerves, motor, sensory, reflexes, coordination...",
       musculoskeletal: "Musculoskeletal",
-      musculoskeletalPlaceholder: "Joint examination, range of motion, deformities, tenderness...",
+      musculoskeletalPlaceholder:
+        "Joint examination, range of motion, deformities, tenderness...",
       skin: "Skin",
       skinPlaceholder: "Color, turgor, lesions, rashes, wounds...",
       additionalExaminationNotes: "Additional Examination Notes",
-      additionalFindingsPlaceholder: "Any additional examination findings, special tests, or pertinent negatives...",
+      additionalFindingsPlaceholder:
+        "Any additional examination findings, special tests, or pertinent negatives...",
 
       // Diagnostic Workup
       diagnosticWorkup: "Diagnostic Workup",
@@ -319,7 +335,8 @@ const messages = {
       additionalTestsPlaceholder: "List any additional diagnostic tests",
       laboratoryResults: "Laboratory Results",
       completeLaboratoryResults: "Complete Laboratory Results",
-      completeLabPlaceholder: "Enter all laboratory test results including CBC, CMP, liver function, coagulation studies...",
+      completeLabPlaceholder:
+        "Enter all laboratory test results including CBC, CMP, liver function, coagulation studies...",
       hemoglobin: "Hemoglobin",
       hemoglobinUnit: "(g/dL)",
       whiteBloodCellCount: "White Blood Cell Count",
@@ -335,13 +352,15 @@ const messages = {
       glucose: "Glucose",
       glucoseUnit: "(mg/dL)",
       imagingFindings: "Imaging Findings",
-      imagingFindingsPlaceholder: "Describe all imaging findings: X-rays, CT scans, MRI, ultrasound, etc...",
+      imagingFindingsPlaceholder:
+        "Describe all imaging findings: X-rays, CT scans, MRI, ultrasound, etc...",
       pathologyResults: "Pathology Results",
       pathologyPlaceholder: "Biopsy results, histopathology findings...",
       microbiologyResults: "Microbiology Results",
       microbiologyPlaceholder: "Culture results, sensitivity testing...",
       additionalInvestigations: "Additional Investigations",
-      additionalInvestigationsPlaceholder: "ECG findings, echocardiography, endoscopy, other special tests...",
+      additionalInvestigationsPlaceholder:
+        "ECG findings, echocardiography, endoscopy, other special tests...",
       completeBloodCount: "Complete Blood Count (CBC)",
       cbcDescription: "WBC, RBC, Hemoglobin, Hematocrit, Platelets",
       comprehensiveMetabolicPanel: "Comprehensive Metabolic Panel (CMP)",
@@ -378,7 +397,8 @@ const messages = {
       diagnosis: "Diagnosis",
       icdCode: "ICD-10 Code",
       icdCodePlaceholder: "e.g., J18.9 (Pneumonia, unspecified)",
-      assessmentPlanDescription: "Document diagnosis, treatment plan, and learning objectives",
+      assessmentPlanDescription:
+        "Document diagnosis, treatment plan, and learning objectives",
       assessment: "Assessment",
       primaryDiagnosis: "Primary Diagnosis",
       primaryDiagnosisPlaceholder: "Enter the primary diagnosis",
@@ -386,12 +406,15 @@ const messages = {
       differentialDiagnosisPlaceholder: "List differential diagnoses",
       managementPlan: "Patient Management Plan",
       clinicalReasoning: "Clinical Reasoning",
-      clinicalReasoningPlaceholder: "Explain the clinical reasoning and thought process",
+      clinicalReasoningPlaceholder:
+        "Explain the clinical reasoning and thought process",
       treatmentPlan: "Treatment Plan",
-      treatmentPlanPlaceholder: "Detailed treatment approach including immediate interventions, ongoing management...",
+      treatmentPlanPlaceholder:
+        "Detailed treatment approach including immediate interventions, ongoing management...",
       medications: "Medications",
       medicationsPrescribed: "Medications Prescribed",
-      medicationsPrescribedPlaceholder: "List all medications with dosage, route, frequency, and duration...",
+      medicationsPrescribedPlaceholder:
+        "List all medications with dosage, route, frequency, and duration...",
       medicationName: "Medication Name",
       medicationNamePlaceholder: "e.g., Lisinopril",
       dosage: "Dosage",
@@ -410,11 +433,14 @@ const messages = {
       prognosis: "Prognosis",
       prognosisPlaceholder: "Expected outcomes, potential complications...",
       educationalObjectives: "Educational Objectives",
-      learningObjectivesPlaceholder: "What should students learn from this case? List specific objectives...",
+      learningObjectivesPlaceholder:
+        "What should students learn from this case? List specific objectives...",
       keyConcepts: "Key Concepts",
-      keyConceptsPlaceholder: "Important medical concepts illustrated by this case...",
+      keyConceptsPlaceholder:
+        "Important medical concepts illustrated by this case...",
       clinicalPearls: "Clinical Pearls",
-      clinicalPearlsPlaceholder: "Important clinical insights, tips, or teaching points...",
+      clinicalPearlsPlaceholder:
+        "Important clinical insights, tips, or teaching points...",
       references: "References",
       referencesPlaceholder: "Relevant literature, guidelines, or resources...",
 
@@ -455,7 +481,8 @@ const messages = {
       physicianNotes: "Physician Notes",
       enterPhysicianNotes: "Enter physician notes",
       isConfidential: "Is Confidential",
-      confidentialDescription: "Only instructors can view confidential attachments",
+      confidentialDescription:
+        "Only instructors can view confidential attachments",
 
       // Attachment Types
       xRay: "X-Ray",
@@ -505,12 +532,14 @@ const messages = {
       goTo: "Đi tới: {step}",
 
       // Messages
-      completionRequired: "Vui lòng hoàn thành tất cả các trường bắt buộc trước khi tiếp tục",
+      completionRequired:
+        "Vui lòng hoàn thành tất cả các trường bắt buộc trước khi tiếp tục",
       caseSavedDraft: "Hồ sơ đã được lưu thành nháp thành công!",
       caseCreated: "Hồ sơ bệnh án được tạo thành công!",
       failedToDraft: "Không thể lưu nháp. Vui lòng thử lại.",
       failedToCreate: "Không thể tạo hồ sơ. Vui lòng thử lại.",
-      completeRequired: "Vui lòng hoàn thành tất cả các trường bắt buộc trước khi tạo hồ sơ",
+      completeRequired:
+        "Vui lòng hoàn thành tất cả các trường bắt buộc trước khi tạo hồ sơ",
       buildCase: "Xây dựng hồ sơ bệnh án đầy đủ cho thực hành lâm sàng",
 
       // Step Titles & Descriptions
@@ -612,7 +641,8 @@ const messages = {
       vitalSignsDescription: "Ghi lại dấu hiệu sinh tồn và số đo của bệnh nhân",
       recordVitalSigns: "Ghi Dấu Hiệu Sinh Tồn",
       vitalSignsPhysicalMeasurements: "Dấu Hiệu Sinh Tồn & Số Đo Thể Chất",
-      recordPatientVitalSigns: "Ghi lại dấu hiệu sinh tồn và số đo thể chất cơ bản của bệnh nhân",
+      recordPatientVitalSigns:
+        "Ghi lại dấu hiệu sinh tồn và số đo thể chất cơ bản của bệnh nhân",
       temperature: "Nhiệt Độ",
       temperatureUnit: "(°C)",
       heartRate: "Nhịp Tim",
@@ -633,7 +663,8 @@ const messages = {
       bmiCategory: "Phân Loại BMI",
       autoCalculated: "Tự động tính toán",
       generalAppearanceNotes: "Ngoại Hình Chung & Ghi Chú Dấu Hiệu Sinh Tồn",
-      generalAppearanceNotesPlaceholder: "Mô tả ngoại hình chung, tính ổn định dấu hiệu sinh tồn, bất kỳ bất thường nào...",
+      generalAppearanceNotesPlaceholder:
+        "Mô tả ngoại hình chung, tính ổn định dấu hiệu sinh tồn, bất kỳ bất thường nào...",
       painScale: "Thang Điểm Đau",
       additionalNotes: "Ghi Chú Bổ Sung",
       vitalSignsNotesPlaceholder: "Nhập ghi chú bổ sung về dấu hiệu sinh tồn",
@@ -647,7 +678,8 @@ const messages = {
       physicalExamDescription: "Ghi lại kết quả khám thể lực",
       generalAppearance: "Ngoại Hình Chung",
       appearance: "Ngoại Hình",
-      generalAppearancePlaceholder: "Mô tả ngoại hình chung (ví dụ: dinh dưỡng tốt, không có triệu chứng cấp)",
+      generalAppearancePlaceholder:
+        "Mô tả ngoại hình chung (ví dụ: dinh dưỡng tốt, không có triệu chứng cấp)",
       consciousnessLevel: "Mức Độ Tỉnh Táo",
       obtunded: "Buồn Ngủ",
       stuporous: "Thần Trí Mơ Màng",
@@ -663,19 +695,23 @@ const messages = {
       headAndNeck: "Đầu và Cổ",
       heentPlaceholder: "HEENT: sơ cơ, tai, mũi, họng, khám cổ...",
       cardiovascular: "Tim Mạch",
-      cardiovascularPlaceholder: "Âm tim, tiếng thổi, nhịp tim, xung động ngoại biên...",
+      cardiovascularPlaceholder:
+        "Âm tim, tiếng thổi, nhịp tim, xung động ngoại biên...",
       respiratory: "Hô Hấp",
       respiratoryPlaceholder: "Âm phổi, mở rộng ngực, phát hiện gõ phổi...",
       abdominal: "Bụng",
       abdominalPlaceholder: "Khám nhìn, nghe, sờ, gõ bụng...",
       neurological: "Thần Kinh",
-      neurologicalPlaceholder: "Dây thần kinh sọ, vận động, cảm giác, phản xạ, điều phối...",
+      neurologicalPlaceholder:
+        "Dây thần kinh sọ, vận động, cảm giác, phản xạ, điều phối...",
       musculoskeletal: "Cơ Xương Khớp",
-      musculoskeletalPlaceholder: "Khám khớp, biên độ chuyển động, dị hình, cảm giác đau...",
+      musculoskeletalPlaceholder:
+        "Khám khớp, biên độ chuyển động, dị hình, cảm giác đau...",
       skin: "Da",
       skinPlaceholder: "Màu sắc, mất độ, tổn thương, phát ban, vết thương...",
       additionalExaminationNotes: "Ghi Chú Khám Bổ Sung",
-      additionalFindingsPlaceholder: "Bất kỳ phát hiện khám bổ sung, xét nghiệm đặc biệt hoặc những điều không có triệu chứng...",
+      additionalFindingsPlaceholder:
+        "Bất kỳ phát hiện khám bổ sung, xét nghiệm đặc biệt hoặc những điều không có triệu chứng...",
       physicalExamNotes: "Ghi Chú Khám Thể Lực",
       examNotesPlaceholder: "Ghi chú và kết quả khám bổ sung",
 
@@ -703,7 +739,8 @@ const messages = {
       thyroidFunction: "Chức Năng Tuyến Giáp",
       thyroidDescription: "TSH, T3, T4",
       urinalysis: "Xét Nghiệm Nước Tiểu",
-      urinalysisDescription: "Phân tích nước tiểu để tìm nhiễm trùng, protein, máu",
+      urinalysisDescription:
+        "Phân tích nước tiểu để tìm nhiễm trùng, protein, máu",
       cultures: "Cấy",
       culturesDescription: "Cấy máu, nước tiểu hoặc cấy khác",
       chestXray: "X-Quang Ngực",
@@ -725,8 +762,10 @@ const messages = {
       pulmonaryFunction: "Xét Nghiệm Chức Năng Phổi",
       pulmonaryFunctionDescription: "Kết quả xét nghiệm chức năng phổi",
       laboratoryResults: "Kết Quả Xét Nghiệm Phòng Thí Nghiệm",
-      completeLaboratoryResults: "Kết Quả Xét Nghiệm Phòng Thí Nghiệm Hoàn Chỉnh",
-      completeLabPlaceholder: "Nhập tất cả kết quả xét nghiệm phòng thí nghiệm bao gồm CBC, CMP, chức năng gan, xét nghiệm đông máu...",
+      completeLaboratoryResults:
+        "Kết Quả Xét Nghiệm Phòng Thí Nghiệm Hoàn Chỉnh",
+      completeLabPlaceholder:
+        "Nhập tất cả kết quả xét nghiệm phòng thí nghiệm bao gồm CBC, CMP, chức năng gan, xét nghiệm đông máu...",
       hemoglobin: "Hemoglobin",
       hemoglobinUnit: "(g/dL)",
       whiteBloodCellCount: "Số Lượng Bạch Cầu",
@@ -742,33 +781,39 @@ const messages = {
       glucose: "Glucose",
       glucoseUnit: "(mg/dL)",
       imagingFindings: "Phát Hiện Hình Ảnh",
-      imagingFindingsPlaceholder: "Mô tả tất cả phát hiện hình ảnh: X-quang, CT, MRI, siêu âm, v.v...",
+      imagingFindingsPlaceholder:
+        "Mô tả tất cả phát hiện hình ảnh: X-quang, CT, MRI, siêu âm, v.v...",
       pathologyResults: "Kết Quả Bệnh Học",
       pathologyPlaceholder: "Kết quả sinh thiết, phát hiện mô bệnh học...",
       microbiologyResults: "Kết Quả Vi Sinh Vật",
       microbiologyPlaceholder: "Kết quả cấy, xét nghiệm nhạy cảm...",
       additionalInvestigations: "Xét Nghiệm Bổ Sung",
-      additionalInvestigationsPlaceholder: "Phát hiện điện tâm đồ, siêu âm tim, nội soi, các xét nghiệm đặc biệt khác...",
+      additionalInvestigationsPlaceholder:
+        "Phát hiện điện tâm đồ, siêu âm tim, nội soi, các xét nghiệm đặc biệt khác...",
 
       // Assessment & Plan
       assessmentAndPlan: "Đánh Giá & Kế Hoạch",
       diagnosis: "Chẩn Đoán",
       icdCode: "Mã ICD-10",
       icdCodePlaceholder: "ví dụ: J18.9 (Viêm phổi, không xác định)",
-      assessmentPlanDescription: "Ghi chẩn đoán, kế hoạch điều trị và mục tiêu học tập",
+      assessmentPlanDescription:
+        "Ghi chẩn đoán, kế hoạch điều trị và mục tiêu học tập",
       assessment: "Đánh Giá",
       primaryDiagnosis: "Chẩn Đoán Chính",
       primaryDiagnosisPlaceholder: "Nhập chẩn đoán chính",
       differentialDiagnosis: "Chẩn Đoán Phân Biệt",
       differentialDiagnosisPlaceholder: "Liệt kê chẩn đoán phân biệt",
       clinicalReasoning: "Lý Luận Lâm Sàng",
-      clinicalReasoningPlaceholder: "Giải thích lý luận lâm sàng và quá trình suy nghĩ",
+      clinicalReasoningPlaceholder:
+        "Giải thích lý luận lâm sàng và quá trình suy nghĩ",
       managementPlan: "Kế Hoạch Quản Lý Bệnh Nhân",
       treatmentPlan: "Kế Hoạch Điều Trị",
-      treatmentPlanPlaceholder: "Phương pháp điều trị chi tiết bao gồm can thiệp ngay lập tức, quản lý liên tục...",
+      treatmentPlanPlaceholder:
+        "Phương pháp điều trị chi tiết bao gồm can thiệp ngay lập tức, quản lý liên tục...",
       medications: "Thuốc",
       medicationsPrescribed: "Thuốc Được Kê Đơn",
-      medicationsPrescribedPlaceholder: "Liệt kê tất cả các thuốc được kê đơn trong kế hoạch điều trị với liều lượng, đường dùng, tần suất và thời gian...",
+      medicationsPrescribedPlaceholder:
+        "Liệt kê tất cả các thuốc được kê đơn trong kế hoạch điều trị với liều lượng, đường dùng, tần suất và thời gian...",
       medicationName: "Tên Thuốc",
       medicationNamePlaceholder: "ví dụ: Lisinopril",
       dosage: "Liều Lượng",
@@ -787,11 +832,14 @@ const messages = {
       prognosis: "Tiên Lượng",
       prognosisPlaceholder: "Kết quả dự kiến, các biến chứng tiềm ẩn...",
       educationalObjectives: "Mục Tiêu Giáo Dục",
-      learningObjectivesPlaceholder: "Học sinh nên học gì từ hồ sơ này? Liệt kê các mục tiêu cụ thể...",
+      learningObjectivesPlaceholder:
+        "Học sinh nên học gì từ hồ sơ này? Liệt kê các mục tiêu cụ thể...",
       keyConcepts: "Khái Niệm Chính",
-      keyConceptsPlaceholder: "Các khái niệm y học quan trọng được minh họa bởi hồ sơ này...",
+      keyConceptsPlaceholder:
+        "Các khái niệm y học quan trọng được minh họa bởi hồ sơ này...",
       clinicalPearls: "Mẹo Lâm Sàng",
-      clinicalPearlsPlaceholder: "Những hiểu biết lâm sàng quan trọng, mẹo hoặc điểm giảng dạy...",
+      clinicalPearlsPlaceholder:
+        "Những hiểu biết lâm sàng quan trọng, mẹo hoặc điểm giảng dạy...",
       references: "Tài Liệu Tham Khảo",
       referencesPlaceholder: "Tài liệu, hướng dẫn hoặc nguồn liên quan...",
 
@@ -898,7 +946,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth) {
     if (!token) {
       // Inform the user they need to login
-      toast.info('Please log in to continue.');
+      toast.info("Please log in to continue.");
       next("/login");
       return;
     }
@@ -910,15 +958,20 @@ router.beforeEach((to, from, next) => {
 
     // Ensure user is loaded
     if (!user) {
-      toast.info('Your session is expired. Please log in again.');
+      toast.info("Your session is expired. Please log in again.");
       next("/login");
       return;
     }
 
     // Check if user's role is in required roles
     if (!requiredRoles.includes(user.role)) {
-      console.warn(`Access denied: user role "${user.role}" not in allowed roles:`, requiredRoles);
-      toast.error('Access denied: You do not have permission to view this page.');
+      console.warn(
+        `Access denied: user role "${user.role}" not in allowed roles:`,
+        requiredRoles,
+      );
+      toast.error(
+        "Access denied: You do not have permission to view this page.",
+      );
       // Redirect to home or 403 page
       next("/home");
       return;

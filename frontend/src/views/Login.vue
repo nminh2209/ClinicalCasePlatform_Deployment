@@ -5,10 +5,17 @@
       <div class="top-nav-bar">
         <!-- Back to Home Button -->
         <router-link to="/" class="back-button">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
-          <span>{{ t('login.goBack') }}</span>
+          <span>{{ t("login.goBack") }}</span>
         </router-link>
 
         <!-- Language Switcher -->
@@ -18,77 +25,102 @@
       </div>
 
       <div class="login-form-wrapper">
+        <div class="form-header">
+          <h2 class="form-title">{{ t("login.title") }}</h2>
+          <p class="form-subtitle">{{ t("login.subtitle") }}</p>
+        </div>
 
-          <div class="form-header">
-            <h2 class="form-title">{{ t('login.title') }}</h2>
-            <p class="form-subtitle">{{ t('login.subtitle') }}</p>
+        <!-- Login Form -->
+        <form @submit.prevent="handleSubmit" class="login-form">
+          <div class="form-group">
+            <Label htmlFor="email" class="form-label">{{
+              t("login.username")
+            }}</Label>
+            <Input
+              id="email"
+              v-model="email"
+              type="email"
+              :placeholder="t('login.placeholder.username')"
+              class="form-input"
+              required
+            />
           </div>
 
-          <!-- Login Form -->
-          <form @submit.prevent="handleSubmit" class="login-form">
-            <div class="form-group">
-              <Label htmlFor="email" class="form-label">{{ t('login.username') }}</Label>
-              <Input 
-                id="email" 
-                v-model="email" 
-                type="email" 
-                :placeholder="t('login.placeholder.username')" 
-                class="form-input"
-                required 
+          <div class="form-group">
+            <Label htmlFor="password" class="form-label">{{
+              t("login.password")
+            }}</Label>
+            <div class="password-input-wrapper">
+              <Input
+                id="password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                :placeholder="t('login.placeholder.password')"
+                class="form-input password-input"
+                required
               />
+              <button
+                type="button"
+                @click="togglePasswordVisibility"
+                class="password-toggle"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              >
+                <Eye v-if="!showPassword" />
+                <EyeOff v-else />
+              </button>
             </div>
+          </div>
 
-            <div class="form-group">
-              <Label htmlFor="password" class="form-label">{{ t('login.password') }}</Label>
-              <div class="password-input-wrapper">
-                <Input 
-                  id="password" 
-                  v-model="password" 
-                  :type="showPassword ? 'text' : 'password'" 
-                  :placeholder="t('login.placeholder.password')"
-                  class="form-input password-input" 
-                  required 
-                />
-                <button 
-                  type="button" 
-                  @click="togglePasswordVisibility" 
-                  class="password-toggle"
-                  :aria-label="showPassword ? 'Hide password' : 'Show password'"
-                >
-                  <Eye v-if="!showPassword" />
-                  <EyeOff v-else />
-                </button>
-              </div>
-            </div>
+          <div v-if="error" class="error-message">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            {{ t("login.error.failedLogin") }}
+          </div>
 
-            <div v-if="error" class="error-message">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
+          <Button type="submit" class="submit-button" :disabled="loading">
+            <span v-if="loading" class="loading-text">
+              <svg
+                class="spinner"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
               </svg>
-              {{ t('login.error.failedLogin') }}
-            </div>
-
-            <Button type="submit" class="submit-button" :disabled="loading">
-              <span v-if="loading" class="loading-text">
-                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-                Đang đăng nhập...
-              </span>
-              <span v-else class="button-content">
-                {{ t('login.button') }}
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </span>
-            </Button>
-          </form>
+              Đang đăng nhập...
+            </span>
+            <span v-else class="button-content">
+              {{ t("login.button") }}
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </span>
+          </Button>
+        </form>
 
         <div class="copyright">
-          <p>{{ t('login.copyright') }}</p>
+          <p>{{ t("login.copyright") }}</p>
         </div>
       </div>
     </div>
@@ -96,45 +128,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useLanguage } from '@/composables/useLanguage'
-import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
-import Button from '@/components/ui/Button.vue'
-import Input from '@/components/ui/Input.vue'
-import Label from '@/components/ui/Label.vue'
-import Eye from '@/components/icons/Eye.vue'
-import EyeOff from '@/components/icons/EyeOff.vue'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import { useLanguage } from "@/composables/useLanguage";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
+import Button from "@/components/ui/Button.vue";
+import Input from "@/components/ui/Input.vue";
+import Label from "@/components/ui/Label.vue";
+import Eye from "@/components/icons/Eye.vue";
+import EyeOff from "@/components/icons/EyeOff.vue";
 
-const router = useRouter()
-const authStore = useAuthStore()
-const { t } = useLanguage()
+const router = useRouter();
+const authStore = useAuthStore();
+const { t } = useLanguage();
 
-const email = ref("")
-const password = ref("")
-const error = ref("")
-const loading = ref(false)
-const showPassword = ref(false)
+const email = ref("");
+const password = ref("");
+const error = ref("");
+const loading = ref(false);
+const showPassword = ref(false);
 
 const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
 
 const handleSubmit = async () => {
-  loading.value = true
-  error.value = ""
+  loading.value = true;
+  error.value = "";
 
   try {
-    await authStore.login(email.value, password.value)
+    await authStore.login(email.value, password.value);
     // Redirect to home to show role-based dashboard
-    router.push('/home')
+    router.push("/home");
   } catch (err: any) {
-    error.value = err.response?.data?.detail || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.'
+    error.value =
+      err.response?.data?.detail ||
+      "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
 
 <style scoped>
@@ -327,9 +361,16 @@ const handleSubmit = async () => {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-8px); }
-  75% { transform: translateX(8px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
 }
 
 .form-footer {
@@ -347,7 +388,7 @@ const handleSubmit = async () => {
 }
 
 .forgot-link::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -2px;
   left: 0;

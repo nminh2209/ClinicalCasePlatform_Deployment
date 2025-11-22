@@ -11,26 +11,26 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { useRoute } from 'vue-router'
-import Layout from '@/components/Layout.vue'
+import { onMounted, computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { useRoute } from "vue-router";
+import Layout from "@/components/Layout.vue";
 
-const authStore = useAuthStore()
-const route = useRoute()
+const authStore = useAuthStore();
+const route = useRoute();
 
 // Pages that should NOT show the layout (sidebar/topbar)
-const noLayoutPages = ['/', '/login']
+const noLayoutPages = ["/", "/login"];
 
 // Show layout for all authenticated pages, hide for login/landing
 const showLayout = computed(() => {
-  return !noLayoutPages.includes(route.path)
-})
+  return !noLayoutPages.includes(route.path);
+});
 
 onMounted(() => {
   // Check for existing authentication on app load
-  authStore.checkAuth()
-})
+  authStore.checkAuth();
+});
 </script>
 
 <style>
@@ -42,9 +42,9 @@ onMounted(() => {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
@@ -111,7 +111,6 @@ body {
   color: var(--primary-blue);
 }
 
-
 .text-grey {
   color: var(--gray-50);
 }
@@ -151,15 +150,21 @@ body {
 
 /* Card Shadows */
 .card-shadow {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .card-shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .card-shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Animation Classes */
@@ -227,7 +232,11 @@ body {
 }
 
 .medical-header {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue) 0%,
+    var(--primary-blue-dark) 100%
+  );
 }
 
 /* Responsive Typography */
