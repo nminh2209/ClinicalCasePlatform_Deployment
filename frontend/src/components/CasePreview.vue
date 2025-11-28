@@ -19,14 +19,33 @@
             <Badge variant="secondary" class="text-lg px-4 py-2">{{ caseData.specialty }}</Badge>
           </div>
 
+          <!-- Case Metadata -->
+          <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500 mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">📊 Thông tin ca bệnh</h3>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div><span class="font-medium">Mức độ ưu tiên:</span> {{ formatPriority(caseData.priority_level) }}</div>
+              <div><span class="font-medium">Độ phức tạp:</span> {{ formatComplexity(caseData.complexity_level) }}</div>
+              <div v-if="caseData.estimated_study_hours"><span class="font-medium">Giờ học ước tính:</span> {{ caseData.estimated_study_hours }} giờ</div>
+              <div v-if="caseData.learning_tags"><span class="font-medium">Tags:</span> {{ caseData.learning_tags }}</div>
+            </div>
+            <div v-if="caseData.case_summary" class="mt-3 pt-3 border-t border-purple-200">
+              <span class="font-medium">Tóm tắt:</span>
+              <p class="text-gray-700 mt-1">{{ caseData.case_summary }}</p>
+            </div>
+          </div>
+
           <!-- Patient Information -->
           <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">👤 Thông tin bệnh nhân</h3>
             <div class="grid grid-cols-2 gap-3 text-sm">
-              <div><span class="font-medium">Tên:</span> {{ caseData.patient_name || 'Chưa nhập' }}</div>
               <div><span class="font-medium">Tuổi:</span> {{ caseData.patient_age || 'Chưa nhập' }}</div>
               <div><span class="font-medium">Giới tính:</span> {{ formatGender(caseData.patient_gender) }}</div>
+              <div v-if="caseData.patient_ethnicity"><span class="font-medium">Dân tộc:</span> {{ caseData.patient_ethnicity }}</div>
+              <div v-if="caseData.patient_occupation"><span class="font-medium">Nghề nghiệp:</span> {{ caseData.patient_occupation }}</div>
+              <div v-if="caseData.admission_date"><span class="font-medium">Ngày nhập viện:</span> {{ caseData.admission_date }}</div>
+              <div v-if="caseData.discharge_date"><span class="font-medium">Ngày xuất viện:</span> {{ caseData.discharge_date }}</div>
               <div><span class="font-medium">Số hồ sơ:</span> {{ caseData.medical_record_number || 'Chưa nhập' }}</div>
+              <div v-if="caseData.chief_complaint_brief"><span class="font-medium">Lý do khám:</span> {{ caseData.chief_complaint_brief }}</div>
             </div>
           </div>
 
@@ -44,14 +63,43 @@
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history?.history_present_illness || 'Chưa nhập' }}</div>
             </div>
 
+            <div v-if="caseData.clinical_history?.symptom_duration_days || caseData.clinical_history?.symptom_onset || caseData.clinical_history?.symptom_progression" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Thông tin triệu chứng</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg">
+                <div v-if="caseData.clinical_history?.symptom_duration_days">Thời gian: {{ caseData.clinical_history.symptom_duration_days }} ngày</div>
+                <div v-if="caseData.clinical_history?.symptom_onset">Khởi phát: {{ formatSymptomOnset(caseData.clinical_history.symptom_onset) }}</div>
+                <div v-if="caseData.clinical_history?.symptom_progression">Diễn biến: {{ formatSymptomProgression(caseData.clinical_history.symptom_progression) }}</div>
+              </div>
+            </div>
+
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Tiền sử bệnh tật</h4>
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history?.past_medical_history || 'Chưa nhập' }}</div>
             </div>
 
+            <div v-if="caseData.clinical_history?.family_history" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Tiền sử gia đình</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history.family_history }}</div>
+            </div>
+
+            <div v-if="caseData.clinical_history?.social_history" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Tiền sử xã hội</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history.social_history }}</div>
+            </div>
+
+            <div v-if="caseData.clinical_history?.allergies" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Dị ứng</h4>
+              <div class="text-gray-700 bg-red-50 p-3 rounded-lg whitespace-pre-line border-l-4 border-red-500">{{ caseData.clinical_history.allergies }}</div>
+            </div>
+
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Thuốc đang sử dụng</h4>
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history?.medications || 'Chưa nhập' }}</div>
+            </div>
+
+            <div v-if="caseData.clinical_history?.review_systems" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Hỏi bệnh theo hệ thống</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.clinical_history.review_systems }}</div>
             </div>
           </div>
 
@@ -78,6 +126,31 @@
               <h4 class="text-md font-semibold text-gray-800 mb-2">Hô hấp</h4>
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination?.respiratory || 'Chưa nhập' }}</div>
             </div>
+
+            <div v-if="caseData.physical_examination?.abdominal" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Bụng</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination.abdominal }}</div>
+            </div>
+
+            <div v-if="caseData.physical_examination?.neurological" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Thần kinh</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination.neurological }}</div>
+            </div>
+
+            <div v-if="caseData.physical_examination?.musculoskeletal" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Cơ xương khớp</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination.musculoskeletal }}</div>
+            </div>
+
+            <div v-if="caseData.physical_examination?.skin" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Da</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination.skin }}</div>
+            </div>
+
+            <div v-if="caseData.physical_examination?.head_neck" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Đầu và cổ</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.physical_examination.head_neck }}</div>
+            </div>
           </div>
 
           <!-- Investigations -->
@@ -98,6 +171,16 @@
               <h4 class="text-md font-semibold text-gray-800 mb-2">Điện tâm đồ</h4>
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.detailed_investigations?.ecg_findings || 'Chưa nhập' }}</div>
             </div>
+
+            <div v-if="caseData.detailed_investigations?.other_procedures || caseData.investigations?.other_procedures" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Thủ thuật khác</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.detailed_investigations?.other_procedures || caseData.investigations?.other_procedures }}</div>
+            </div>
+
+            <div v-if="caseData.detailed_investigations?.pathology_results || caseData.investigations?.pathology_results" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Kết quả giải phẫu bệnh</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.detailed_investigations?.pathology_results || caseData.investigations?.pathology_results }}</div>
+            </div>
           </div>
 
           <!-- Diagnosis and Management -->
@@ -109,9 +192,29 @@
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management?.primary_diagnosis || 'Chưa nhập' }}</div>
             </div>
 
+            <div v-if="caseData.diagnosis_management?.differential_diagnoses" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Chẩn đoán phân biệt</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.differential_diagnoses }}</div>
+            </div>
+
             <div class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Kế hoạch điều trị</h4>
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management?.treatment_plan || 'Chưa nhập' }}</div>
+            </div>
+
+            <div v-if="caseData.diagnosis_management?.procedures_performed" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Thủ thuật đã thực hiện</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.procedures_performed }}</div>
+            </div>
+
+            <div v-if="caseData.diagnosis_management?.prognosis" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Tiên lượng</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.prognosis }}</div>
+            </div>
+
+            <div v-if="caseData.diagnosis_management?.discharge_plan" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Kế hoạch xuất viện</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.discharge_plan }}</div>
             </div>
           </div>
 
@@ -315,6 +418,45 @@ const formatVitalSigns = () => {
   if (pe.vital_signs_height) parts.push(`Chiều cao: ${pe.vital_signs_height} cm`)
   
   return parts.length > 0 ? parts.join('\n') : 'Chưa nhập'
+}
+
+const formatPriority = (priority: string) => {
+  const map: Record<string, string> = {
+    'low': 'Thấp',
+    'medium': 'Trung bình',
+    'high': 'Cao',
+    'urgent': 'Khẩn cấp'
+  }
+  return map[priority] || priority
+}
+
+const formatComplexity = (complexity: string) => {
+  const map: Record<string, string> = {
+    'basic': 'Cơ bản',
+    'intermediate': 'Trung cấp',
+    'advanced': 'Nâng cao',
+    'expert': 'Chuyên gia'
+  }
+  return map[complexity] || complexity
+}
+
+const formatSymptomOnset = (onset: string) => {
+  const map: Record<string, string> = {
+    'sudden': 'Đột ngột',
+    'gradual': 'Từ từ',
+    'chronic': 'Mạn tính'
+  }
+  return map[onset] || onset
+}
+
+const formatSymptomProgression = (progression: string) => {
+  const map: Record<string, string> = {
+    'improving': 'Cải thiện',
+    'worsening': 'Xấu đi',
+    'stable': 'Ổn định',
+    'fluctuating': 'Biến đổi'
+  }
+  return map[progression] || progression
 }
 </script>
 

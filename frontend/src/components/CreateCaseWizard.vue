@@ -1,67 +1,50 @@
 <template>
   <div class="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
-    <div class="min-h-screen p-4 md:p-6">
-      <div class="max-w-5xl mx-auto">
-        <Card class=" bg-white my-6">
-          <CardHeader class="border-b mb-2">
+    <div class="min-h-screen p-4 md:p-6 flex items-center justify-center">
+      <div class="max-w-4xl w-full">
+        <Card class="bg-white">
+          <CardHeader class="border-b">
             <div class="flex items-center justify-between">
               <div>
-                <CardTitle></CardTitle>
-                <CardDescription>
-                  {{ t('wizard.buildCase') }}
-                </CardDescription>
+                <CardTitle>{{ steps[currentStep]?.title }}</CardTitle>
+                <CardDescription>{{ t('wizard.step') }} {{ currentStep + 1 }}/{{ steps.length }}</CardDescription>
               </div>
-              <Button variant="ghost" @click="$emit('close')">
-                <ArrowLeft class=" h-4 w-4 mr-2" />
-                {{ t('wizard.cancel') }}
+              <Button variant="ghost" size="sm" @click="$emit('close')">
+                <X class="h-4 w-4" />
               </Button>
             </div>
 
-            <!-- Progress Steps -->
-            <div class="mt-6">
-              <div class="flex items-start justify-between mt-1 mb-2">
-                <div v-for="(step, index) in steps" :key="step.id" class="flex items-start flex-1">
-                  <div class="flex flex-col items-center flex-1">
-                    <button type="button" @click="handleStepClick(index)" :disabled="currentStep === -1" :class="`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all cursor-pointer hover:scale-110 disabled:cursor-default disabled:hover:scale-100 ${currentStep === index
-                      ? 'bg-primary text-white border-primary shadow-lg'
-                      : currentStep > index
-                        ? 'bg-green-500 text-white border-green-500 hover:shadow-md'
-                        : 'bg-white text-gray-400 border-gray-300 hover:border-primary hover:text-primary'
-                      }`" :title="t('wizard.goTo', { step: step.title })">
-                      <component :is="currentStep > index ? CheckCircle : step.icon" class="h-5 w-5" />
-                    </button>
-                    <p :class="`text-xs mt-2 text-center hidden md:block min-h-[2rem] ${currentStep === index ? 'font-medium text-gray-900' : 'text-gray-500'
-                      }`">
-                      {{ step.title }}
-                    </p>
-                  </div>
-                  <div v-if="index < steps.length - 1" :class="`mt-5 h-0.5 flex-1 mx-2 transition-colors ${currentStep > index ? 'bg-green-500' : 'bg-gray-300'
-                    }`" />
-                </div>
+            <!-- Compact Progress Bar -->
+            <div class="mt-4">
+              <div class="flex gap-1">
+                <div v-for="(step, index) in steps" :key="step.id" 
+                  :class="`h-2 flex-1 rounded-full transition-all ${
+                    currentStep === index ? 'bg-blue-500' :
+                    currentStep > index ? 'bg-green-500' : 'bg-gray-200'
+                  }`" 
+                />
               </div>
             </div>
           </CardHeader>
 
           <CardContent class="p-6">
-            <div class="mb-6 text-center">
-              <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ steps[currentStep]?.title }}</h2>
-              <p class="text-muted-foreground">{{ steps[currentStep]?.description }}</p>
-            </div>
-
-            <!-- Step Content -->
-            <div class="max-h-[60vh] overflow-y-auto pr-2">
-              <component :is="currentStepComponent" :case-data="caseData" @update:case-data="updateCaseData"
-                @validation-changed="onValidationChanged" ref="currentStepRef" />
+            <!-- Step Content with max height -->
+            <div class="max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
+              <component 
+                :is="currentStepComponent" 
+                :case-data="caseData" 
+                @update:case-data="updateCaseData"
+                @validation-changed="onValidationChanged" 
+                ref="currentStepRef" 
+              />
             </div>
 
             <!-- Navigation Buttons -->
-            <div class="flex items-center justify-between mt-8 pt-6 border-t">
-              <div class="flex gap-2">
-                <Button variant="outline" @click="handleSaveDraft">
-                  <Save class="h-4 w-4 mr-2" />
-                  {{ t('wizard.saveDraft') }}
-                </Button>
-              </div>
+            <div class="flex items-center justify-between mt-6 pt-6 border-t">
+              <Button variant="outline" size="sm" @click="handleSaveDraft">
+                <Save class="h-4 w-4 mr-2" />
+                {{ t('wizard.saveDraft') }}
+              </Button>
 
               <div class="flex gap-2">
                 <Button v-if="currentStep > 0" variant="outline" @click="handleBack">
@@ -70,11 +53,11 @@
                 </Button>
 
                 <Button v-if="currentStep < steps.length - 1" @click="handleNext"
-                  class="bg-primary text-white hover:bg-blue-600" :disabled="stepValidations[currentStep] === false">
+                  :disabled="stepValidations[currentStep] === false">
                   {{ t('wizard.next') }}
                   <ArrowRight class="h-4 w-4 ml-2" />
                 </Button>
-                <Button v-else @click="handleComplete" class="text-white bg-green-600 hover:bg-green-700"
+                <Button v-else @click="handleComplete" class="bg-green-600 hover:bg-green-700"
                   :disabled="stepValidations[currentStep] === false">
                   <CheckCircle class="h-4 w-4 mr-2" />
                   {{ t('wizard.createCase') }}
@@ -98,6 +81,7 @@ import CardDescription from '@/components/ui/CardDescription.vue'
 import CardHeader from '@/components/ui/CardHeader.vue'
 import CardTitle from '@/components/ui/CardTitle.vue'
 import Button from '@/components/ui/Button.vue'
+import X from '@/components/icons/X.vue'
 import {
   ArrowLeft,
   ArrowRight,

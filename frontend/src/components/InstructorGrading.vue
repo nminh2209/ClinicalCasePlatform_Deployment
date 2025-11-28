@@ -66,12 +66,7 @@
           </CardHeader>
           <CardContent class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm text-gray-500">Tên bệnh nhân</label>
-                <p class="text-gray-800">
-                  {{ caseData.patient_name || "N/A" }}
-                </p>
-              </div>
+              <!-- Patient name hidden per client request -->
               <div>
                 <label class="text-sm text-gray-500">Tuổi</label>
                 <p class="text-gray-800">{{ caseData.patient_age || "N/A" }}</p>

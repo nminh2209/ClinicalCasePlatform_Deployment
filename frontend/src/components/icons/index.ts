@@ -15,6 +15,7 @@ import Activity from './Activity.vue';
 import FlaskConical from './FlaskConical.vue';
 import Paperclip from './Paperclip.vue';
 import Sparkles from './Sparkles.vue';
+import ChevronDown from './ChevronDown.vue';
 import CheckCircleIcon from './CheckCircleIcon.vue';
 import CheckIcon from './CheckIcon.vue';
 import PlusIcon from './PlusIcon.vue';
@@ -48,6 +49,7 @@ export {
   FlaskConical,
   Paperclip,
   Sparkles,
+  ChevronDown,
   CheckCircleIcon,
   CheckIcon,
   PlusIcon,

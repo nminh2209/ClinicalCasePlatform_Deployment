@@ -9,13 +9,11 @@
             <Label for="title">{{ t('createCase.caseTitle') }} *</Label>
             <Input id="title" v-model="localData.title" :placeholder="t('createCase.enterCaseTitle')"
               :error="getTranslatedError('title')" />
+            <p class="text-xs text-gray-500 mt-1">{{ t('createCase.focusOnDiseasesAndSymptoms') }}</p>
           </div>
 
-          <div class="space-y-2 md:col-span-2">
-            <Label for="patientName">{{ t('createCase.patientName') }} *</Label>
-            <Input id="patientName" v-model="localData.patient_name" :placeholder="t('createCase.patientName') + ' ' + t('createCase.canBeAnonymized')"
-              :error="getTranslatedError('patientName')" />
-          </div>
+          <!-- Patient name hidden - auto-generated from title -->
+          <input type="hidden" v-model="localData.patient_name" />
 
           <div class="space-y-2">
             <Label for="specialty">{{ t('createCase.specialty') }} *</Label>
@@ -183,8 +181,9 @@ const validateStep = () => {
     errors.value.title = 'Case title is required'
   }
 
+  // Auto-generate patient name from title if not provided (since field is hidden)
   if (!localData.value.patient_name?.trim()) {
-    errors.value.patient_name = 'Patient name is required'
+    localData.value.patient_name = `Patient - ${localData.value.title?.substring(0, 20) || 'Anonymous'}`
   }
 
   if (!localData.value.specialty?.trim()) {

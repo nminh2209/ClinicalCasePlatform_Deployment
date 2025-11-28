@@ -601,40 +601,40 @@ class CasePermissionSerializer(serializers.ModelSerializer):
             return "Công khai"
         return obj.get_share_type_display()
 
-    def validate(self, data):
+    def validate(self, attrs):
         """Custom validation for permission logic"""
-        share_type = data.get("share_type", CasePermission.ShareTypeChoices.INDIVIDUAL)
+        share_type = attrs.get("share_type", CasePermission.ShareTypeChoices.INDIVIDUAL)
 
         # Validate individual sharing
         if share_type == CasePermission.ShareTypeChoices.INDIVIDUAL:
-            if not data.get("user"):
+            if not attrs.get("user"):
                 raise serializers.ValidationError(
                     {"user": "Bắt buộc phải chọn người dùng cho chia sẻ cá nhân"}
                 )
 
         # Validate department sharing
         elif share_type == CasePermission.ShareTypeChoices.DEPARTMENT:
-            if not data.get("target_department"):
+            if not attrs.get("target_department"):
                 raise serializers.ValidationError(
                     {"target_department": "Bắt buộc phải chọn khoa cho chia sẻ khoa"}
                 )
-            data["user"] = None  # Clear user for department sharing
+            attrs["user"] = None  # Clear user for department sharing
 
         # Validate class group sharing
         elif share_type == CasePermission.ShareTypeChoices.CLASS_GROUP:
-            if not data.get("class_group"):
+            if not attrs.get("class_group"):
                 raise serializers.ValidationError(
                     {"class_group": "Bắt buộc phải nhập mã lớp cho chia sẻ lớp"}
                 )
-            data["user"] = None  # Clear user for class sharing
+            attrs["user"] = None  # Clear user for class sharing
 
         # Public sharing doesn't need specific target
         elif share_type == CasePermission.ShareTypeChoices.PUBLIC:
-            data["user"] = None
-            data["target_department"] = None
-            data["class_group"] = ""
+            attrs["user"] = None
+            attrs["target_department"] = None
+            attrs["class_group"] = ""
 
-        return data
+        return attrs
 
     def create(self, validated_data):
         validated_data["granted_by"] = self.context["request"].user
@@ -930,27 +930,27 @@ class BulkPermissionSerializer(serializers.Serializer):
     )
     notes = serializers.CharField(max_length=500, required=False, help_text="Ghi chú")
 
-    def validate(self, data):
+    def validate(self, attrs):
         """Validate bulk permission request"""
-        share_type = data.get("share_type")
+        share_type = attrs.get("share_type")
 
         if share_type == CasePermission.ShareTypeChoices.INDIVIDUAL:
-            if not data.get("users_ids"):
+            if not attrs.get("users_ids"):
                 raise serializers.ValidationError(
                     {"users_ids": "Bắt buộc phải chọn người dùng cho chia sẻ cá nhân"}
                 )
         elif share_type == CasePermission.ShareTypeChoices.DEPARTMENT:
-            if not data.get("department_id"):
+            if not attrs.get("department_id"):
                 raise serializers.ValidationError(
                     {"department_id": "Bắt buộc phải chọn khoa cho chia sẻ khoa"}
                 )
         elif share_type == CasePermission.ShareTypeChoices.CLASS_GROUP:
-            if not data.get("class_group"):
+            if not attrs.get("class_group"):
                 raise serializers.ValidationError(
                     {"class_group": "Bắt buộc phải nhập mã lớp cho chia sẻ lớp"}
                 )
 
-        return data
+        return attrs
 
 
 class StudentNotesSerializer(serializers.ModelSerializer):
