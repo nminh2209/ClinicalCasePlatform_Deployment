@@ -130,7 +130,7 @@
               <input type="hidden" v-model="caseData.patient_name" />
               <div>
                 <label class="text-sm text-gray-500">Tuổi</label>
-                <Input v-model.number="caseData.patient_age" type="number" placeholder="Tuổi..." :disabled="!canEdit" />
+                <Input v-model="caseData.patient_age" type="number" placeholder="Tuổi..." :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Giới tính</label>

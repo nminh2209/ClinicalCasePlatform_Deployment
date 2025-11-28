@@ -613,7 +613,7 @@
     <!-- Share Permission Modal -->
     <SharePermissionModal
       v-model:open="showShareModal"
-      :case-id="caseId"
+      :case-id="Number(caseId)"
       @permission-granted="handlePermissionGranted"
     />
   </div>
