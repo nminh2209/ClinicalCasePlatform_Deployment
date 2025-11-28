@@ -441,6 +441,11 @@ class CaseCreateUpdateSerializer(serializers.ModelSerializer):
 
         # Set the student to the current user
         validated_data["student"] = self.context["request"].user
+        
+        # Auto-public for instructor cases
+        user = self.context["request"].user
+        if hasattr(user, 'is_instructor') and user.is_instructor:
+            validated_data["is_public"] = True
 
         # Create the case
         case = super().create(validated_data)
