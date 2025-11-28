@@ -279,74 +279,81 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const getStatusLabel = (status: string) => {
+const getStatusLabel = (status: string | number) => {
+  const statusStr = String(status)
   const labels: Record<string, string> = {
     draft: 'Bản nháp',
     submitted: 'Đã nộp',
     reviewed: 'Đã xem xét',
     approved: 'Đã phê duyệt'
   }
-  return labels[status] || status
+  return labels[statusStr] || statusStr
 }
 
-const getStatusBadgeClass = (status: string) => {
+const getStatusBadgeClass = (status: string | number) => {
+  const statusStr = String(status)
   const classes: Record<string, string> = {
     draft: 'bg-gray-500 text-white',
     submitted: 'bg-yellow-500 text-white',
     reviewed: 'bg-blue-500 text-white',
     approved: 'bg-green-500 text-white'
   }
-  return classes[status] || 'bg-gray-500 text-white'
+  return classes[statusStr] || 'bg-gray-500 text-white'
 }
 
-const getStatusBarClass = (status: string) => {
+const getStatusBarClass = (status: string | number) => {
+  const statusStr = String(status)
   const classes: Record<string, string> = {
     draft: 'bg-gray-500',
     submitted: 'bg-yellow-500',
     reviewed: 'bg-blue-500',
     approved: 'bg-green-500'
   }
-  return classes[status] || 'bg-gray-500'
+  return classes[statusStr] || 'bg-gray-500'
 }
 
-const getPriorityLabel = (priority: string) => {
+const getPriorityLabel = (priority: string | number) => {
+  const priorityStr = String(priority)
   const labels: Record<string, string> = {
     low: 'Thấp',
     medium: 'Trung bình',
     high: 'Cao',
     urgent: 'Khẩn cấp'
   }
-  return labels[priority] || priority
+  return labels[priorityStr] || priorityStr
 }
 
-const getPriorityBadgeClass = (priority: string) => {
+const getPriorityBadgeClass = (priority: string | number) => {
+  const priorityStr = String(priority)
   const classes: Record<string, string> = {
     low: 'bg-gray-500 text-white',
     medium: 'bg-blue-500 text-white',
     high: 'bg-orange-500 text-white',
     urgent: 'bg-red-500 text-white'
   }
-  return classes[priority] || 'bg-gray-500 text-white'
+  return classes[priorityStr] || 'bg-gray-500 text-white'
 }
 
-const getComplexityLabel = (complexity: string) => {
+const getComplexityLabel = (complexity: string | number) => {
+  const complexityStr = String(complexity)
   const labels: Record<string, string> = {
     basic: 'Cơ bản',
     intermediate: 'Trung cấp',
     advanced: 'Nâng cao',
     expert: 'Chuyên gia'
   }
-  return labels[complexity] || complexity
+  return labels[complexityStr] || complexityStr
 }
 
-const getComplexityBadgeClass = (complexity: string) => {
+const getComplexityBadgeClass = (complexity: string | number) => {
+  const complexityStr = String(complexity)
   const classes: Record<string, string> = {
     basic: 'bg-green-500 text-white',
     intermediate: 'bg-blue-500 text-white',
     advanced: 'bg-orange-500 text-white',
     expert: 'bg-red-500 text-white'
   }
-  return classes[complexity] || 'bg-gray-500 text-white'
+  return classes[complexityStr] || 'bg-gray-500 text-white'
 }
 
 onMounted(() => {
