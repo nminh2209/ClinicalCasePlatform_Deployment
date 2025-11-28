@@ -105,7 +105,7 @@
                 </div>
                 <div>
                   <label class="text-xs text-gray-500">Giờ học ước tính</label>
-                  <Input v-model.number="caseData.estimated_study_hours" type="number" placeholder="Số giờ" :disabled="!canEdit" class="text-sm" />
+                  <Input v-model="caseData.estimated_study_hours" type="number" placeholder="Số giờ" :disabled="!canEdit" class="text-sm" />
                 </div>
               </div>
             </div>
@@ -204,7 +204,7 @@
             <div class="grid grid-cols-3 gap-4">
               <div>
                 <label class="text-sm text-gray-500">Thời gian có triệu chứng (ngày)</label>
-                <Input v-model.number="caseData.clinical_history.symptom_duration_days" type="number" placeholder="Số ngày..." :disabled="!canEdit" />
+                <Input v-model="caseData.clinical_history.symptom_duration_days" type="number" placeholder="Số ngày..." :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Khởi phát triệu chứng</label>
@@ -691,7 +691,7 @@ const props = defineProps({
 const emit = defineEmits(['navigate'])
 
 // Collapsible sections state
-const expandedSections = ref({
+const expandedSections = ref<Record<string, boolean>>({
   basic: true,
   patient: false,
   clinical: false,
