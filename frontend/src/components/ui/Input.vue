@@ -8,7 +8,7 @@ import { computed } from 'vue'
 
 interface Props {
   type?: string
-  modelValue?: number | string
+  modelValue?: number | string | null
   placeholder?: string
   disabled?: boolean
   class?: string
