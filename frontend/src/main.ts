@@ -32,6 +32,7 @@ import ViewStudentList from "./views/ViewStudentList.vue";
 import Users from "./views/Users.vue";
 import SharedCases from "./views/SharedCases.vue";
 import PublicFeed from "./views/PublicFeed.vue";
+import CaseSummary from "./views/CaseSummary.vue";
 
 import { useToast } from "@/composables/useToast";
 
@@ -91,6 +92,11 @@ const routes: RouteRecordRaw[] = [
     path: "/public-feed/:id",
     component: CaseNotes,
     props: true,
+    meta: { requiresAuth: true, requiresRoles: ["student", "instructor"] },
+  },
+  {
+    path: "/case-summary",
+    component: CaseSummary,
     meta: { requiresAuth: true, requiresRoles: ["student", "instructor"] },
   },
 

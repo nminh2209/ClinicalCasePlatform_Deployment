@@ -102,4 +102,9 @@ export const casesService = {
     const response = await api.put(`/cases/notes/${noteId}/`, notesData);
     return response.data;
   },
+
+  async getCaseSummary() {
+    const response = await api.get("/cases/summary/");
+    return response.data;
+  },
 };

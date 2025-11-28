@@ -1097,3 +1097,20 @@ class PublicFeedSerializer(serializers.ModelSerializer):
             except Exception:
                 return None
         return None
+
+
+class CaseSummarySerializer(serializers.Serializer):
+    """
+    Serializer for comprehensive case summary statistics
+    Provides overview of all cases with analytics and metrics
+    """
+    
+    total_cases = serializers.IntegerField()
+    by_status = serializers.DictField()
+    by_specialty = serializers.DictField()
+    by_priority = serializers.DictField()
+    by_complexity = serializers.DictField()
+    completion_stats = serializers.DictField()
+    recent_cases = CaseListSerializer(many=True)
+    top_specialties = serializers.ListField()
+    learning_metrics = serializers.DictField()

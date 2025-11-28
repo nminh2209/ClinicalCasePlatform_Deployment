@@ -46,6 +46,7 @@ from .serializers import (
     MedicalTermSerializer,
     ICD10Serializer,
     AbbreviationSerializer,
+    CaseSummarySerializer,
 )
 
 
@@ -1826,3 +1827,125 @@ def cleanup_expired_permissions(request):
             "expired_guest_accesses": guests_count,
         }
     )
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def case_summary_view(request):
+    """
+    Comprehensive case summary endpoint
+    GET /api/cases/summary/
+    Returns statistics and analytics for all cases
+    """
+    user: User = request.user  # type: ignore
+    
+    # Get all cases accessible to user
+    if user.role == "instructor":
+        # Instructors see all cases
+        cases = Case.objects.all()
+    else:
+        # Students see their own cases and shared cases
+        cases = Case.objects.filter(
+            Q(student=user) | 
+            Q(permissions__user=user, permissions__is_active=True) |
+            Q(permissions__share_type=CasePermission.ShareTypeChoices.PUBLIC, permissions__is_active=True)
+        ).distinct()
+    
+    # Total cases
+    total_cases = cases.count()
+    
+    # Cases by status
+    by_status = {}
+    for status_choice in Case.StatusChoices.choices:
+        status_value = status_choice[0]
+        count = cases.filter(case_status=status_value).count()
+        by_status[status_value] = {
+            "count": count,
+            "label": status_choice[1],
+            "percentage": round((count / total_cases * 100) if total_cases > 0 else 0, 1)
+        }
+    
+    # Cases by specialty
+    specialty_data = cases.values('specialty').annotate(count=Count('id')).order_by('-count')
+    by_specialty = {
+        item['specialty']: item['count'] 
+        for item in specialty_data if item['specialty']
+    }
+    
+    # Cases by priority
+    priority_data = cases.values('priority_level').annotate(count=Count('id'))
+    by_priority = {
+        item['priority_level']: item['count'] 
+        for item in priority_data if item['priority_level']
+    }
+    
+    # Cases by complexity
+    complexity_data = cases.values('complexity_level').annotate(count=Count('id'))
+    by_complexity = {
+        item['complexity_level']: item['count'] 
+        for item in complexity_data if item['complexity_level']
+    }
+    
+    # Completion statistics
+    completion_stats = {
+        "total_submitted": cases.filter(case_status__in=['submitted', 'reviewed', 'approved']).count(),
+        "total_drafts": cases.filter(case_status='draft').count(),
+        "completion_rate": round(
+            (cases.filter(case_status__in=['submitted', 'reviewed', 'approved']).count() / total_cases * 100)
+            if total_cases > 0 else 0, 1
+        ),
+        "approval_rate": round(
+            (cases.filter(case_status='approved').count() / total_cases * 100)
+            if total_cases > 0 else 0, 1
+        )
+    }
+    
+    # Recent cases (last 10)
+    recent_cases = cases.order_by('-created_at')[:10]
+    recent_cases_data = CaseListSerializer(recent_cases, many=True, context={'request': request}).data
+    
+    # Top specialties (top 5)
+    top_specialties = [
+        {"specialty": item['specialty'], "count": item['count']}
+        for item in specialty_data[:5]
+    ]
+    
+    # Learning metrics
+    total_study_hours = sum([case.estimated_study_hours or 0 for case in cases])
+    avg_study_hours = round(total_study_hours / total_cases, 1) if total_cases > 0 else 0
+    
+    # Count cases with learning outcomes (using filter instead of exclude)
+    cases_with_outcomes = 0
+    try:
+        from .medical_models import LearningOutcomes
+        cases_with_outcomes = LearningOutcomes.objects.filter(case__in=cases).count()
+    except Exception:
+        pass
+    
+    learning_metrics = {
+        "total_study_hours": total_study_hours,
+        "average_study_hours_per_case": avg_study_hours,
+        "total_cases_with_learning_outcomes": cases_with_outcomes,
+        "cases_created_this_month": cases.filter(
+            created_at__gte=timezone.now() - timedelta(days=30)
+        ).count(),
+        "cases_created_this_week": cases.filter(
+            created_at__gte=timezone.now() - timedelta(days=7)
+        ).count()
+    }
+    
+    # Prepare summary data
+    summary_data = {
+        "total_cases": total_cases,
+        "by_status": by_status,
+        "by_specialty": by_specialty,
+        "by_priority": by_priority,
+        "by_complexity": by_complexity,
+        "completion_stats": completion_stats,
+        "recent_cases": recent_cases_data,
+        "top_specialties": top_specialties,
+        "learning_metrics": learning_metrics
+    }
+    
+    serializer = CaseSummarySerializer(summary_data)
+    return Response(serializer.data)

@@ -29,6 +29,7 @@ from .views import (
     MedicalTermAutocompleteView,
     ICD10ListView,
     AbbreviationListCreateView,
+    case_summary_view,
 )
 
 # Public Feed Views
@@ -204,4 +205,7 @@ urlpatterns = [
     path("<int:pk>/react/", react_to_case, name="react-to-case"),
     path("<int:pk>/reactions/", get_case_reactions, name="case-reactions"),
     path("feed-statistics/", feed_statistics, name="feed-statistics"),
+    
+    # Case Summary / Analytics
+    path("summary/", case_summary_view, name="case-summary"),
 ]
