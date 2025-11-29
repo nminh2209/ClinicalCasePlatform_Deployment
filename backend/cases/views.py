@@ -886,7 +886,22 @@ class StudentNotesListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         case_id = self.kwargs.get("case_id")
-        serializer.save(student=self.request.user, case_id=case_id)
+        # Use update_or_create to handle both creation and updates
+        # This prevents duplicate key errors when notes already exist
+        student = self.request.user
+        
+        # Check if notes already exist for this case and student
+        existing_notes = StudentNotes.objects.filter(case_id=case_id, student=student).first()
+        
+        if existing_notes:
+            # Update existing notes
+            for key, value in serializer.validated_data.items():
+                setattr(existing_notes, key, value)
+            existing_notes.save()
+            serializer.instance = existing_notes
+        else:
+            # Create new notes
+            serializer.save(student=student, case_id=case_id)
 
 
 class StudentNotesDetailView(generics.RetrieveUpdateDestroyAPIView):

@@ -96,11 +96,17 @@ import {
 } from '@/components/icons'
 import { Stethoscope } from 'lucide-vue-next'
 import api from '@/services/api'
+import { casesService } from '@/services/cases'
+import { onMounted } from 'vue'
 
 const props = defineProps({
   studentDepartment: {
     type: String,
     required: true
+  },
+  caseId: {
+    type: String,
+    default: null
   }
 })
 
@@ -129,6 +135,7 @@ const caseData = ref<Record<string, any>>({
   case_summary: '',
   chief_complaint_brief: '',
   keywords: '',
+  learning_tags: '',
   patient_ethnicity: '',
   patient_occupation: '',
   estimated_study_hours: null,
@@ -311,6 +318,66 @@ const handleStepClick = (stepIndex: number) => {
   currentStep.value = stepIndex
 }
 
+// Load existing case data if editing
+onMounted(async () => {
+  if (props.caseId) {
+    try {
+      const existingCase = await casesService.getCase(props.caseId)
+      console.log('Loading existing case:', existingCase)
+      
+      // Populate all fields from existing case
+      Object.assign(caseData.value, {
+        title: existingCase.title || '',
+        patient_name: existingCase.patient_name || '',
+        repository: existingCase.repository || null,
+        specialty: existingCase.specialty || '',
+        complexity_level: existingCase.complexity_level || 'intermediate',
+        patient_age: existingCase.patient_age || null,
+        patient_gender: existingCase.patient_gender || '',
+        medical_record_number: existingCase.medical_record_number || '',
+        admission_date: existingCase.admission_date || null,
+        discharge_date: existingCase.discharge_date || null,
+        case_summary: existingCase.case_summary || '',
+        chief_complaint_brief: existingCase.chief_complaint_brief || '',
+        keywords: existingCase.keywords || '',
+        patient_ethnicity: existingCase.patient_ethnicity || '',
+        patient_occupation: existingCase.patient_occupation || '',
+        estimated_study_hours: existingCase.estimated_study_hours || null,
+        requires_follow_up: existingCase.requires_follow_up || false,
+        follow_up_date: existingCase.follow_up_date || null,
+        learning_tags: existingCase.learning_tags || '',
+        template: existingCase.template || null
+      })
+      
+      if (existingCase.template) {
+        selectedTemplate.value = existingCase.template
+      }
+      
+      // Load nested models
+      if (existingCase.clinical_history) {
+        Object.assign(caseData.value.clinical_history, existingCase.clinical_history)
+      }
+      if (existingCase.physical_examination) {
+        Object.assign(caseData.value.physical_examination, existingCase.physical_examination)
+      }
+      if (existingCase.detailed_investigations) {
+        Object.assign(caseData.value.detailed_investigations, existingCase.detailed_investigations)
+      }
+      if (existingCase.diagnosis_management) {
+        Object.assign(caseData.value.diagnosis_management, existingCase.diagnosis_management)
+      }
+      if (existingCase.learning_outcomes) {
+        Object.assign(caseData.value.learning_outcomes, existingCase.learning_outcomes)
+      }
+      
+      console.log('Case data loaded successfully')
+    } catch (error) {
+      console.error('Error loading case:', error)
+      toast.error('Không thể tải dữ liệu ca bệnh')
+    }
+  }
+})
+
 const handleSaveDraft = async () => {
   try {
     // Prepare the case data payload with draft status
@@ -326,8 +393,15 @@ const handleSaveDraft = async () => {
       patient_occupation: caseData.value.patient_occupation,
       medical_record_number: caseData.value.medical_record_number,
       admission_date: caseData.value.admission_date,
+      discharge_date: caseData.value.discharge_date,
       chief_complaint_brief: caseData.value.chief_complaint_brief,
+      case_summary: caseData.value.case_summary,
       keywords: caseData.value.keywords,
+      learning_tags: caseData.value.learning_tags,
+      estimated_study_hours: caseData.value.estimated_study_hours,
+      requires_follow_up: caseData.value.requires_follow_up,
+      follow_up_date: caseData.value.follow_up_date,
+      template: caseData.value.template,
       case_status: 'draft', // Explicitly set as draft
 
       // Nested models
@@ -338,34 +412,40 @@ const handleSaveDraft = async () => {
       learning_outcomes: caseData.value.learning_outcomes
     }
 
-    // Check if there are attachments
-    const hasAttachments = caseData.value.attachments && caseData.value.attachments.length > 0
-
     let response
-    if (hasAttachments) {
-      // Use FormData for multipart upload
-      const formData = new FormData()
-      formData.append('data', JSON.stringify(payload))
-
-      caseData.value.attachments.forEach((file: File, index: number) => {
-        formData.append(`attachment_${index}`, file)
-      })
-
-      response = await api.post('/cases/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+    
+    if (props.caseId) {
+      // Update existing draft
+      response = await api.put(`/cases/${props.caseId}/`, payload)
+      toast.success('Đã cập nhật nháp!')
     } else {
-      // Use regular JSON for cases without attachments
-      response = await api.post('/cases/', payload)
+      // Create new draft - check if there are attachments
+      const hasAttachments = caseData.value.attachments && caseData.value.attachments.length > 0
+
+      if (hasAttachments) {
+        // Use FormData for multipart upload
+        const formData = new FormData()
+        formData.append('data', JSON.stringify(payload))
+
+        caseData.value.attachments.forEach((file: File, index: number) => {
+          formData.append(`attachment_${index}`, file)
+        })
+
+        response = await api.post('/cases/', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+      } else {
+        // Use regular JSON for cases without attachments
+        response = await api.post('/cases/', payload)
+      }
+      toast.success(t('wizard.caseSavedDraft'))
     }
 
-    toast.success(t('wizard.caseSavedDraft'))
-
-    // Navigate to the new case
+    // Navigate to the case
     setTimeout(() => {
-      emit('complete', { caseId: response.data.id, caseData: response.data })
+      emit('complete', { caseId: response.data.id || props.caseId, caseData: response.data })
     }, 500)
   } catch (error: any) {
     console.error('Error saving draft:', error)
@@ -408,13 +488,20 @@ const handleComplete = async () => {
     }
 
     // Add optional basic fields only if they have values
+    if (caseData.value.template) payload.template = caseData.value.template
     if (caseData.value.patient_gender) payload.patient_gender = caseData.value.patient_gender
     if (caseData.value.patient_ethnicity) payload.patient_ethnicity = caseData.value.patient_ethnicity
     if (caseData.value.patient_occupation) payload.patient_occupation = caseData.value.patient_occupation
     if (caseData.value.medical_record_number) payload.medical_record_number = caseData.value.medical_record_number
     if (caseData.value.admission_date) payload.admission_date = caseData.value.admission_date
+    if (caseData.value.discharge_date) payload.discharge_date = caseData.value.discharge_date
     if (caseData.value.chief_complaint_brief) payload.chief_complaint_brief = caseData.value.chief_complaint_brief
+    if (caseData.value.case_summary) payload.case_summary = caseData.value.case_summary
     if (caseData.value.keywords) payload.keywords = caseData.value.keywords
+    if (caseData.value.learning_tags) payload.learning_tags = caseData.value.learning_tags
+    if (caseData.value.estimated_study_hours) payload.estimated_study_hours = caseData.value.estimated_study_hours
+    if (caseData.value.requires_follow_up !== undefined) payload.requires_follow_up = caseData.value.requires_follow_up
+    if (caseData.value.follow_up_date) payload.follow_up_date = caseData.value.follow_up_date
 
     // Add nested models only if they have data
     const cleanedClinicalHistory = cleanObject(caseData.value.clinical_history)

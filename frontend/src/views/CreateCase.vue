@@ -16,8 +16,13 @@ const handleClose = () => {
   router.push('/cases')
 }
 
-const handleComplete = (result: string) => {
+const handleComplete = (result: { caseId: number; caseData: any }) => {
   console.log('Case created:', result)
-  router.push('/cases')
+  // Navigate to the newly created case
+  if (result.caseId) {
+    router.push(`/cases/${result.caseId}`)
+  } else {
+    router.push('/cases')
+  }
 }
 </script>

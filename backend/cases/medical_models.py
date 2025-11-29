@@ -587,7 +587,7 @@ class StudentNotes(models.Model):
     Helps track student's thought process and understanding
     """
 
-    case = models.OneToOneField(
+    case = models.ForeignKey(
         "Case", on_delete=models.CASCADE, related_name="student_notes"
     )
     student = models.ForeignKey(
@@ -640,6 +640,7 @@ class StudentNotes(models.Model):
         verbose_name = "Student Notes"
         verbose_name_plural = "Student Notes"
         ordering = ["-updated_at"]
+        unique_together = [["case", "student"]]  # One set of notes per student per case
 
     def __str__(self):
         return f"Notes by {self.student.get_full_name()} for {self.case.title}"

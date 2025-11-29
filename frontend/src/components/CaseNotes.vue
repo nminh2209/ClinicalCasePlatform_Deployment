@@ -906,7 +906,9 @@ const handleNoteChange = () => {
 
 const handleSave = async () => {
   try {
-    console.log('Starting save...', caseData.value)
+    console.log('=== SAVING CASE ===')
+    console.log('Current notes data:', notes.value)
+    console.log('Current case data:', caseData.value)
     
     // Helper function to clean nested objects
     const cleanObject = (obj: any) => {
@@ -1032,13 +1034,20 @@ const handleSave = async () => {
       challenges_faced: notes.value.challenges_faced || '',
       resources_used: notes.value.resources_used || ''
     }
+    
+    console.log('Saving student notes:', notesData)
 
     // Check if notes already exist
     const existingNotes = await casesService.getStudentNotes(props.caseId)
+    console.log('Existing notes found:', existingNotes)
     if (existingNotes && existingNotes.id) {
-      await casesService.updateStudentNotes(existingNotes.id, notesData)
+      console.log('Updating existing notes with ID:', existingNotes.id)
+      const updateResult = await casesService.updateStudentNotes(existingNotes.id, notesData)
+      console.log('Update result:', updateResult)
     } else {
-      await casesService.saveStudentNotes(props.caseId, notesData)
+      console.log('Creating new notes for case:', props.caseId)
+      const createResult = await casesService.saveStudentNotes(props.caseId, notesData)
+      console.log('Create result:', createResult)
     }
 
     // 3. Upload new attachments
@@ -1183,64 +1192,100 @@ onMounted(async () => {
     
     caseStatus.value = caseDetails.case_status || caseDetails.status || 'draft'
     
-    // Ensure all nested objects are initialized
-    caseData.value = {
-      ...caseDetails,
-      clinical_history: caseDetails.clinical_history || {
-        chief_complaint: '',
-        history_present_illness: '',
-        symptom_duration_days: null,
-        symptom_onset: '',
-        symptom_progression: '',
-        past_medical_history: '',
-        family_history: '',
-        social_history: '',
-        allergies: '',
-        medications: '',
-        review_systems: ''
-      },
-      physical_examination: caseDetails.physical_examination || {
-        general_appearance: '',
-        vital_signs: '',
-        head_neck: '',
-        cardiovascular: '',
-        respiratory: '',
-        abdominal: '',
-        neurological: '',
-        musculoskeletal: '',
-        skin: '',
-        other_findings: ''
-      },
-      investigations: caseDetails.investigations_detail || {
-        laboratory_results: '',
-        imaging_studies: '',
-        ecg_findings: '',
-        other_procedures: '',
-        pathology_results: '',
-        special_tests: '',
-        biochemistry: '',
-        hematology: '',
-        microbiology: ''
-      },
-      diagnosis_management: caseDetails.diagnosis_management || {
-        primary_diagnosis: '',
-        differential_diagnoses: '',
-        treatment_plan: '',
-        procedures_performed: '',
-        prognosis: '',
-        discharge_plan: '',
-        medications_prescribed: '',
-        follow_up_plan: '',
-        complications: ''
-      },
-      learning_outcomes: caseDetails.learning_outcomes || {
-        learning_objectives: '',
-        key_concepts: '',
-        clinical_pearls: '',
-        references: '',
-        discussion_points: '',
-        assessment_criteria: ''
-      }
+    // Merge all basic fields
+    Object.assign(caseData.value, {
+      title: caseDetails.title || '',
+      specialty: caseDetails.specialty || '',
+      patient_name: caseDetails.patient_name || '',
+      patient_age: caseDetails.patient_age || '',
+      patient_gender: caseDetails.patient_gender || '',
+      medical_record_number: caseDetails.medical_record_number || '',
+      patient_ethnicity: caseDetails.patient_ethnicity || '',
+      patient_occupation: caseDetails.patient_occupation || '',
+      admission_date: caseDetails.admission_date || '',
+      discharge_date: caseDetails.discharge_date || '',
+      chief_complaint_brief: caseDetails.chief_complaint_brief || '',
+      requires_follow_up: caseDetails.requires_follow_up || false,
+      follow_up_date: caseDetails.follow_up_date || '',
+      priority_level: caseDetails.priority_level || 'medium',
+      complexity_level: caseDetails.complexity_level || 'basic',
+      case_summary: caseDetails.case_summary || '',
+      learning_tags: caseDetails.learning_tags || '',
+      estimated_study_hours: caseDetails.estimated_study_hours || null,
+      keywords: caseDetails.keywords || '',
+      template: caseDetails.template || null,
+      repository: caseDetails.repository || null
+    })
+    
+    // Merge nested objects to preserve reactivity
+    if (caseDetails.clinical_history) {
+      Object.assign(caseData.value.clinical_history, {
+        chief_complaint: caseDetails.clinical_history.chief_complaint || '',
+        history_present_illness: caseDetails.clinical_history.history_present_illness || '',
+        symptom_duration_days: caseDetails.clinical_history.symptom_duration_days || null,
+        symptom_onset: caseDetails.clinical_history.symptom_onset || '',
+        symptom_progression: caseDetails.clinical_history.symptom_progression || '',
+        past_medical_history: caseDetails.clinical_history.past_medical_history || '',
+        family_history: caseDetails.clinical_history.family_history || '',
+        social_history: caseDetails.clinical_history.social_history || '',
+        allergies: caseDetails.clinical_history.allergies || '',
+        medications: caseDetails.clinical_history.medications || '',
+        review_systems: caseDetails.clinical_history.review_systems || ''
+      })
+    }
+    
+    if (caseDetails.physical_examination) {
+      Object.assign(caseData.value.physical_examination, {
+        general_appearance: caseDetails.physical_examination.general_appearance || '',
+        vital_signs: caseDetails.physical_examination.vital_signs || '',
+        head_neck: caseDetails.physical_examination.head_neck || '',
+        cardiovascular: caseDetails.physical_examination.cardiovascular || '',
+        respiratory: caseDetails.physical_examination.respiratory || '',
+        abdominal: caseDetails.physical_examination.abdominal || '',
+        neurological: caseDetails.physical_examination.neurological || '',
+        musculoskeletal: caseDetails.physical_examination.musculoskeletal || '',
+        skin: caseDetails.physical_examination.skin || '',
+        other_findings: caseDetails.physical_examination.other_systems || ''
+      })
+    }
+    
+    if (caseDetails.detailed_investigations) {
+      Object.assign(caseData.value.investigations, {
+        laboratory_results: caseDetails.detailed_investigations.laboratory_results || '',
+        imaging_studies: caseDetails.detailed_investigations.imaging_studies || '',
+        ecg_findings: caseDetails.detailed_investigations.ecg_findings || '',
+        other_procedures: caseDetails.detailed_investigations.special_tests || '',
+        pathology_results: caseDetails.detailed_investigations.pathology_results || '',
+        special_tests: caseDetails.detailed_investigations.special_tests || '',
+        biochemistry: caseDetails.detailed_investigations.biochemistry || '',
+        hematology: caseDetails.detailed_investigations.hematology || '',
+        microbiology: caseDetails.detailed_investigations.microbiology || ''
+      })
+    }
+    
+    if (caseDetails.diagnosis_management) {
+      Object.assign(caseData.value.diagnosis_management, {
+        primary_diagnosis: caseDetails.diagnosis_management.primary_diagnosis || '',
+        differential_diagnoses: caseDetails.diagnosis_management.differential_diagnosis || '',
+        treatment_plan: caseDetails.diagnosis_management.treatment_plan || '',
+        procedures_performed: caseDetails.diagnosis_management.procedures_performed || '',
+        prognosis: caseDetails.diagnosis_management.prognosis || '',
+        discharge_plan: caseDetails.diagnosis_management.follow_up_plan || '',
+        medications_prescribed: caseDetails.diagnosis_management.medications_prescribed || '',
+        follow_up_plan: caseDetails.diagnosis_management.follow_up_plan || '',
+        complications: caseDetails.diagnosis_management.complications || ''
+      })
+    }
+    
+    if (caseDetails.learning_outcomes) {
+      Object.assign(caseData.value.learning_outcomes, {
+        learning_objectives: caseDetails.learning_outcomes.learning_objectives || '',
+        key_concepts: caseDetails.learning_outcomes.key_concepts || '',
+        clinical_pearls: caseDetails.learning_outcomes.clinical_pearls || '',
+        references: caseDetails.learning_outcomes.references || '',
+        discussion_points: caseDetails.learning_outcomes.discussion_points || '',
+        assessment_criteria: caseDetails.learning_outcomes.assessment_criteria || ''
+      })
     }
 
     // Load existing attachments
@@ -1254,21 +1299,27 @@ onMounted(async () => {
     }
 
     // Load existing student notes if any
-    const existingNotes = await casesService.getStudentNotes(props.caseId)
-    if (existingNotes) {
-      notes.value = {
-        clinical_assessment: existingNotes.clinical_assessment || '',
-        differential_diagnosis: existingNotes.differential_diagnosis || '',
-        treatment_plan: existingNotes.treatment_plan || '',
-        learning_reflections: existingNotes.learning_reflections || '',
-        questions_for_instructor: existingNotes.questions_for_instructor || '',
-        challenges_faced: existingNotes.challenges_faced || '',
-        resources_used: existingNotes.resources_used || '',
-        final_diagnosis: existingNotes.clinical_assessment || '',
-        plan: existingNotes.treatment_plan || '',
-        learning: existingNotes.learning_reflections || ''
+    console.log('Attempting to load student notes for case:', props.caseId)
+    try {
+      const existingNotes = await casesService.getStudentNotes(props.caseId)
+      console.log('Loaded student notes:', existingNotes)
+      if (existingNotes) {
+        Object.assign(notes.value, {
+          clinical_assessment: existingNotes.clinical_assessment || '',
+          differential_diagnosis: existingNotes.differential_diagnosis || '',
+          treatment_plan: existingNotes.treatment_plan || '',
+          learning_reflections: existingNotes.learning_reflections || '',
+          questions_for_instructor: existingNotes.questions_for_instructor || '',
+          challenges_faced: existingNotes.challenges_faced || '',
+          resources_used: existingNotes.resources_used || ''
+        })
+        console.log('Notes after assignment:', notes.value)
       }
+    } catch (notesError) {
+      console.error('Error loading student notes:', notesError)
     }
+    
+    console.log('Final caseData:', caseData.value)
   } catch (error) {
     console.error('Error loading case data:', error)
     toast.error('Không thể tải dữ liệu ca bệnh')

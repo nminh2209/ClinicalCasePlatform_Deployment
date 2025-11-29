@@ -85,10 +85,15 @@ export const casesService = {
   async getStudentNotes(caseId: string) {
     try {
       const response = await api.get(`/cases/${caseId}/notes/`);
-      // Return the first note if available, or null
+      console.log('getStudentNotes API response:', response.data);
+      // Handle paginated response
+      if (response.data.results && response.data.results.length > 0) {
+        return response.data.results[0];
+      }
+      // Fallback for non-paginated response
       return response.data.length > 0 ? response.data[0] : null;
     } catch (error) {
-      console.warn("Failed to fetch student notes:", error);
+      console.error("Failed to fetch student notes:", error);
       return null;
     }
   },
