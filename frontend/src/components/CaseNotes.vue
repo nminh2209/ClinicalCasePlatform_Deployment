@@ -270,10 +270,44 @@
               <label class="text-sm text-gray-500">Tình trạng chung</label>
               <Textarea v-model="caseData.physical_examination.general_appearance" placeholder="Tình trạng chung..." :disabled="!canEdit" />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Sinh hiệu</label>
-              <Textarea v-model="caseData.physical_examination.vital_signs" placeholder="Sinh hiệu..." :disabled="!canEdit" />
+            
+            <!-- Vital Signs Detail -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div>
+                <label class="text-sm text-gray-500">Nhiệt Độ (°C)</label>
+                <Input v-model="caseData.physical_examination.vital_signs_temp" type="number" step="0.1" placeholder="37.0" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Nhịp Tim (bpm)</label>
+                <Input v-model="caseData.physical_examination.vital_signs_hr" type="number" placeholder="72" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Huyết Áp (mmHg)</label>
+                <Input v-model="caseData.physical_examination.vital_signs_bp" placeholder="120/80" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Nhịp Thở (lần/phút)</label>
+                <Input v-model="caseData.physical_examination.vital_signs_rr" type="number" placeholder="16" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Độ Bão Hòa Oxy (%)</label>
+                <Input v-model="caseData.physical_examination.vital_signs_spo2" type="number" placeholder="98" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Cân Nặng (kg)</label>
+                <Input v-model="caseData.physical_examination.vital_signs_weight" type="number" step="0.1" placeholder="70" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Chiều Cao (cm)</label>
+                <Input v-model="caseData.physical_examination.vital_signs_height" type="number" step="0.1" placeholder="170" :disabled="!canEdit" />
+              </div>
             </div>
+            
+            <div>
+              <label class="text-sm text-gray-500">Sinh hiệu (Ghi chú)</label>
+              <Textarea v-model="caseData.physical_examination.vital_signs" placeholder="Ghi chú về sinh hiệu..." :disabled="!canEdit" />
+            </div>
+            
             <div>
               <label class="text-sm text-gray-500">Tim mạch</label>
               <Textarea v-model="caseData.physical_examination.cardiovascular" placeholder="Khám tim mạch..." :disabled="!canEdit" />
@@ -319,9 +353,42 @@
           </button>
           <CardContent v-show="expandedSections.investigations" class="pt-0 pb-4 px-4 space-y-3">
             <div>
-              <label class="text-sm text-gray-500">Xét nghiệm</label>
-              <Textarea v-model="caseData.investigations.laboratory_results" placeholder="Kết quả xét nghiệm..." :disabled="!canEdit" />
+              <label class="text-sm text-gray-500">Xét nghiệm (Tổng quan)</label>
+              <Textarea v-model="caseData.investigations.laboratory_results" placeholder="Kết quả xét nghiệm tổng quan..." :disabled="!canEdit" />
             </div>
+            
+            <!-- Lab Values Detail -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div>
+                <label class="text-sm text-gray-500">Hemoglobin (g/dL)</label>
+                <Input v-model="caseData.investigations.hemoglobin_level" type="number" step="0.1" placeholder="14.0" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Số Lượng Bạch Cầu (10^9/L)</label>
+                <Input v-model="caseData.investigations.white_cell_count" type="number" step="0.1" placeholder="7.5" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Số Lượng Tiểu Cầu (10^9/L)</label>
+                <Input v-model="caseData.investigations.platelet_count" type="number" placeholder="250" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Natri (mmol/L)</label>
+                <Input v-model="caseData.investigations.sodium_level" type="number" step="0.1" placeholder="140" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Kali (mmol/L)</label>
+                <Input v-model="caseData.investigations.potassium_level" type="number" step="0.1" placeholder="4.0" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Creatinine (mg/dL)</label>
+                <Input v-model="caseData.investigations.creatinine_level" type="number" step="0.1" placeholder="1.0" :disabled="!canEdit" />
+              </div>
+              <div>
+                <label class="text-sm text-gray-500">Glucose (mg/dL)</label>
+                <Input v-model="caseData.investigations.glucose_level" type="number" placeholder="100" :disabled="!canEdit" />
+              </div>
+            </div>
+            
             <div>
               <label class="text-sm text-gray-500">Chẩn đoán hình ảnh</label>
               <Textarea v-model="caseData.investigations.imaging_studies" placeholder="Kết quả chẩn đoán hình ảnh..." :disabled="!canEdit" />
@@ -331,12 +398,16 @@
               <Textarea v-model="caseData.investigations.ecg_findings" placeholder="Kết quả điện tâm đồ..." :disabled="!canEdit" />
             </div>
             <div>
-              <label class="text-sm text-gray-500">Thủ thuật khác</label>
-              <Textarea v-model="caseData.investigations.other_procedures" placeholder="Các thủ thuật khác..." :disabled="!canEdit" />
-            </div>
-            <div>
               <label class="text-sm text-gray-500">Kết quả giải phẫu bệnh</label>
               <Textarea v-model="caseData.investigations.pathology_results" placeholder="Kết quả giải phẫu bệnh..." :disabled="!canEdit" />
+            </div>
+            <div>
+              <label class="text-sm text-gray-500">Kết quả Vi sinh</label>
+              <Textarea v-model="caseData.investigations.microbiology_results" placeholder="Kết quả vi sinh..." :disabled="!canEdit" />
+            </div>
+            <div>
+              <label class="text-sm text-gray-500">Xét nghiệm khác</label>
+              <Textarea v-model="caseData.investigations.other_investigations" placeholder="Các xét nghiệm khác..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -858,7 +929,15 @@ const caseData = ref({
   },
   physical_examination: {
     general_appearance: '',
+    consciousness_level: '',
     vital_signs: '',
+    vital_signs_bp: '',
+    vital_signs_hr: null,
+    vital_signs_rr: null,
+    vital_signs_temp: null,
+    vital_signs_spo2: null,
+    vital_signs_weight: null,
+    vital_signs_height: null,
     head_neck: '',
     cardiovascular: '',
     respiratory: '',
@@ -870,10 +949,22 @@ const caseData = ref({
   },
   investigations: {
     laboratory_results: '',
+    hemoglobin_level: null,
+    white_cell_count: null,
+    platelet_count: null,
+    sodium_level: null,
+    potassium_level: null,
+    glucose_level: null,
+    creatinine_level: null,
     imaging_studies: '',
     ecg_findings: '',
-    other_procedures: '',
+    ecg_rhythm: '',
+    ecg_rate: null,
     pathology_results: '',
+    microbiology_results: '',
+    other_investigations: '',
+    arterial_blood_gas: '',
+    ph_level: null,
     special_tests: '',
     biochemistry: '',
     hematology: '',
@@ -965,7 +1056,15 @@ const handleSave = async () => {
     
     const physicalExam = cleanObject({
       general_appearance: caseData.value.physical_examination?.general_appearance,
+      consciousness_level: caseData.value.physical_examination?.consciousness_level,
       vital_signs: caseData.value.physical_examination?.vital_signs,
+      vital_signs_bp: caseData.value.physical_examination?.vital_signs_bp,
+      vital_signs_hr: caseData.value.physical_examination?.vital_signs_hr,
+      vital_signs_rr: caseData.value.physical_examination?.vital_signs_rr,
+      vital_signs_temp: caseData.value.physical_examination?.vital_signs_temp,
+      vital_signs_spo2: caseData.value.physical_examination?.vital_signs_spo2,
+      vital_signs_weight: caseData.value.physical_examination?.vital_signs_weight,
+      vital_signs_height: caseData.value.physical_examination?.vital_signs_height,
       head_neck: caseData.value.physical_examination?.head_neck,
       cardiovascular: caseData.value.physical_examination?.cardiovascular,
       respiratory: caseData.value.physical_examination?.respiratory,
@@ -979,10 +1078,22 @@ const handleSave = async () => {
     
     const investigations = cleanObject({
       laboratory_results: caseData.value.investigations?.laboratory_results,
+      hemoglobin_level: caseData.value.investigations?.hemoglobin_level,
+      white_cell_count: caseData.value.investigations?.white_cell_count,
+      platelet_count: caseData.value.investigations?.platelet_count,
+      sodium_level: caseData.value.investigations?.sodium_level,
+      potassium_level: caseData.value.investigations?.potassium_level,
+      glucose_level: caseData.value.investigations?.glucose_level,
+      creatinine_level: caseData.value.investigations?.creatinine_level,
       imaging_studies: caseData.value.investigations?.imaging_studies,
       ecg_findings: caseData.value.investigations?.ecg_findings,
-      other_procedures: caseData.value.investigations?.other_procedures,
+      ecg_rhythm: caseData.value.investigations?.ecg_rhythm,
+      ecg_rate: caseData.value.investigations?.ecg_rate,
       pathology_results: caseData.value.investigations?.pathology_results,
+      microbiology_results: caseData.value.investigations?.microbiology_results,
+      other_investigations: caseData.value.investigations?.other_investigations,
+      arterial_blood_gas: caseData.value.investigations?.arterial_blood_gas,
+      ph_level: caseData.value.investigations?.ph_level,
       special_tests: caseData.value.investigations?.special_tests,
       biochemistry: caseData.value.investigations?.biochemistry,
       hematology: caseData.value.investigations?.hematology,
@@ -1237,7 +1348,15 @@ onMounted(async () => {
     if (caseDetails.physical_examination) {
       Object.assign(caseData.value.physical_examination, {
         general_appearance: caseDetails.physical_examination.general_appearance || '',
+        consciousness_level: caseDetails.physical_examination.consciousness_level || '',
         vital_signs: caseDetails.physical_examination.vital_signs || '',
+        vital_signs_bp: caseDetails.physical_examination.vital_signs_bp || '',
+        vital_signs_hr: caseDetails.physical_examination.vital_signs_hr || null,
+        vital_signs_rr: caseDetails.physical_examination.vital_signs_rr || null,
+        vital_signs_temp: caseDetails.physical_examination.vital_signs_temp || null,
+        vital_signs_spo2: caseDetails.physical_examination.vital_signs_spo2 || null,
+        vital_signs_weight: caseDetails.physical_examination.vital_signs_weight || null,
+        vital_signs_height: caseDetails.physical_examination.vital_signs_height || null,
         head_neck: caseDetails.physical_examination.head_neck || '',
         cardiovascular: caseDetails.physical_examination.cardiovascular || '',
         respiratory: caseDetails.physical_examination.respiratory || '',
@@ -1252,10 +1371,22 @@ onMounted(async () => {
     if (caseDetails.detailed_investigations) {
       Object.assign(caseData.value.investigations, {
         laboratory_results: caseDetails.detailed_investigations.laboratory_results || '',
+        hemoglobin_level: caseDetails.detailed_investigations.hemoglobin_level || null,
+        white_cell_count: caseDetails.detailed_investigations.white_cell_count || null,
+        platelet_count: caseDetails.detailed_investigations.platelet_count || null,
+        sodium_level: caseDetails.detailed_investigations.sodium_level || null,
+        potassium_level: caseDetails.detailed_investigations.potassium_level || null,
+        glucose_level: caseDetails.detailed_investigations.glucose_level || null,
+        creatinine_level: caseDetails.detailed_investigations.creatinine_level || null,
         imaging_studies: caseDetails.detailed_investigations.imaging_studies || '',
         ecg_findings: caseDetails.detailed_investigations.ecg_findings || '',
-        other_procedures: caseDetails.detailed_investigations.special_tests || '',
+        ecg_rhythm: caseDetails.detailed_investigations.ecg_rhythm || '',
+        ecg_rate: caseDetails.detailed_investigations.ecg_rate || null,
         pathology_results: caseDetails.detailed_investigations.pathology_results || '',
+        microbiology_results: caseDetails.detailed_investigations.microbiology_results || '',
+        other_investigations: caseDetails.detailed_investigations.other_investigations || '',
+        arterial_blood_gas: caseDetails.detailed_investigations.arterial_blood_gas || '',
+        ph_level: caseDetails.detailed_investigations.ph_level || null,
         special_tests: caseDetails.detailed_investigations.special_tests || '',
         biochemistry: caseDetails.detailed_investigations.biochemistry || '',
         hematology: caseDetails.detailed_investigations.hematology || '',

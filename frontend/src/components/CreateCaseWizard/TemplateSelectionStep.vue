@@ -28,7 +28,7 @@
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-3">
                   <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <ActivityIcon class="w-5 h-5 text-blue-600" />
+                    <component :is="getSpecialtyIcon(template.specialty)" class="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
                     <h3 class="font-semibold text-gray-900">{{ translateTemplateField(template.name) }}</h3>
@@ -130,14 +130,49 @@ import { ref, computed, onMounted, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
-import { Activity as ActivityIcon, CheckIcon, CheckCircleIcon } from '@/components/icons'
+import { 
+  Activity as ActivityIcon, 
+  CheckIcon, 
+  CheckCircleIcon,
+  Stethoscope,
+  FlaskConical,
+  Eye,
+  User
+} from '@/components/icons'
 import { type CaseTemplate, useCaseTemplates } from '@/composables/useCaseTemplates'
 import { useBackendTranslations } from '@/composables/useBackendTranslations'
+import { shallowRef, type Component } from 'vue'
 
 const { t } = useI18n()
 const { translateSpecialty, translateDepartment } = useBackendTranslations()
 
 const { caseTemplates, loading, error, fetchCaseTemplates } = useCaseTemplates()
+
+// Map specialties to icons
+const getSpecialtyIcon = (specialty: string | null | undefined): Component => {
+  if (!specialty) return ActivityIcon
+  
+  const specialtyLower = specialty.toLowerCase()
+  
+  // Map Vietnamese specialties to icons
+  if (specialtyLower.includes('tiêu hóa') || specialtyLower.includes('digestive') || specialtyLower.includes('gastro')) {
+    return FlaskConical // Digestive/lab work
+  } else if (specialtyLower.includes('thần kinh') || specialtyLower.includes('neuro') || specialtyLower.includes('brain')) {
+    return Eye // Neurology
+  } else if (specialtyLower.includes('ngoại') || specialtyLower.includes('surgery') || specialtyLower.includes('surgical')) {
+    return Stethoscope // Surgery
+  } else if (specialtyLower.includes('nội') || specialtyLower.includes('internal') || specialtyLower.includes('medicine')) {
+    return Stethoscope // Internal medicine
+  } else if (specialtyLower.includes('hô hấp') || specialtyLower.includes('respiratory') || specialtyLower.includes('pulmonary')) {
+    return ActivityIcon // Respiratory (Activity = heartbeat/breathing)
+  } else if (specialtyLower.includes('tim') || specialtyLower.includes('cardio') || specialtyLower.includes('heart')) {
+    return ActivityIcon // Cardiology
+  } else if (specialtyLower.includes('nhi') || specialtyLower.includes('pediatric') || specialtyLower.includes('child')) {
+    return User // Pediatrics
+  }
+  
+  return ActivityIcon // Default
+}
 
 const props = defineProps({
   caseData: {

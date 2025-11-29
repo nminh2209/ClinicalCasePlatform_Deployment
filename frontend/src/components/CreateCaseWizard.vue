@@ -5,24 +5,37 @@
         <Card class="bg-white">
           <CardHeader class="border-b">
             <div class="flex items-center justify-between">
-              <div>
-                <CardTitle>{{ steps[currentStep]?.title }}</CardTitle>
-                <CardDescription>{{ t('wizard.step') }} {{ currentStep + 1 }}/{{ steps.length }}</CardDescription>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <component :is="steps[currentStep]?.icon" class="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <CardTitle>{{ steps[currentStep]?.title }}</CardTitle>
+                  <CardDescription>{{ t('wizard.step') }} {{ currentStep + 1 }}/{{ steps.length }}</CardDescription>
+                </div>
               </div>
               <Button variant="ghost" size="sm" @click="$emit('close')">
                 <X class="h-4 w-4" />
               </Button>
             </div>
 
-            <!-- Compact Progress Bar -->
+            <!-- Clickable Step Navigation -->
             <div class="mt-4">
-              <div class="flex gap-1">
-                <div v-for="(step, index) in steps" :key="step.id" 
-                  :class="`h-2 flex-1 rounded-full transition-all ${
-                    currentStep === index ? 'bg-blue-500' :
-                    currentStep > index ? 'bg-green-500' : 'bg-gray-200'
-                  }`" 
-                />
+              <div class="flex gap-2">
+                <button
+                  v-for="(step, index) in steps" 
+                  :key="step.id"
+                  @click="currentStep = index"
+                  :class="`h-10 flex-1 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                    currentStep === index ? 'bg-blue-500 text-white shadow-md' :
+                    currentStep > index ? 'bg-green-500 text-white hover:bg-green-600' : 
+                    'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`"
+                  :title="step.title"
+                >
+                  <component :is="step.icon" class="w-4 h-4" />
+                  <span class="text-xs font-medium hidden md:inline">{{ index + 1 }}</span>
+                </button>
               </div>
             </div>
           </CardHeader>
@@ -166,6 +179,8 @@ const caseData = ref<Record<string, any>>({
     vital_signs_rr: null,
     vital_signs_temp: null,
     vital_signs_spo2: null,
+    vital_signs_weight: null,
+    vital_signs_height: null,
     head_neck: '',
     cardiovascular: '',
     respiratory: '',
@@ -181,6 +196,9 @@ const caseData = ref<Record<string, any>>({
     laboratory_results: '',
     hemoglobin_level: null,
     white_cell_count: null,
+    platelet_count: null,
+    sodium_level: null,
+    potassium_level: null,
     glucose_level: null,
     creatinine_level: null,
     imaging_studies: '',
@@ -188,6 +206,8 @@ const caseData = ref<Record<string, any>>({
     ecg_rhythm: '',
     ecg_rate: null,
     pathology_results: '',
+    microbiology_results: '',
+    other_investigations: '',
     arterial_blood_gas: '',
     ph_level: null,
     special_tests: '',
