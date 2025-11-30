@@ -61,6 +61,12 @@ erDiagram
         boolean is_archived
         int view_count
         float average_rating
+        boolean is_published_to_feed
+        datetime published_to_feed_at
+        int published_by FK
+        string feed_visibility
+        boolean is_featured
+        int reaction_count
         datetime created_at
         datetime updated_at
         datetime submitted_at
@@ -82,8 +88,8 @@ erDiagram
         text family_history
         text social_history
         text allergies
-        text current_medications
-        text review_of_systems
+        text medications
+        text review_systems
         datetime created_at
         datetime updated_at
         int documented_by FK
@@ -270,14 +276,18 @@ erDiagram
     GRADE {
         int id PK
         int case_id FK
-        int instructor_id FK
-        int student_id FK
+        int graded_by FK
         string grade_scale
-        float overall_score
+        float score
         string letter_grade
         float clinical_reasoning_score
         float documentation_score
+        float presentation_score
+        json grading_criteria
         text evaluation_notes
+        text strengths
+        text weaknesses
+        text recommendations
         boolean is_final
         datetime graded_at
         datetime updated_at

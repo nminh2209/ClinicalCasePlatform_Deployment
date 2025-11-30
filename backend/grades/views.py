@@ -1,27 +1,45 @@
 from rest_framework import generics, permissions
-
-# from rest_framework.response import Response
+from rest_framework.response import Response
 from .models import Grade
+from .serializers import GradeSerializer, GradeListSerializer
 
 
 class GradeListCreateView(generics.ListCreateAPIView):
     """
-    List grades and create new grades
+    List grades and create new grades with proper filtering
     """
 
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Grade.objects.all()
+
+    def get_queryset(self):
+        """
+        Filter grades based on query parameters
+        - ?student=me : Get grades for current user (if student)
+        - ?case_id=X : Get grade for specific case
+        """
+        user = self.request.user
+        queryset = Grade.objects.select_related('case', 'case__student', 'graded_by').all()
+
+        # Filter by student
+        if self.request.query_params.get('student') == 'me':
+            if user.is_student:
+                queryset = queryset.filter(case__student=user)
+            elif user.is_instructor:
+                # Instructors get all grades they assigned
+                queryset = queryset.filter(graded_by=user)
+
+        # Filter by case_id
+        case_id = self.request.query_params.get('case_id')
+        if case_id:
+            queryset = queryset.filter(case_id=case_id)
+
+        return queryset.order_by('-graded_at')
 
     def get_serializer_class(self):
-        from rest_framework import serializers
-
-        class GradeSerializer(serializers.ModelSerializer):
-            class Meta:
-                model = Grade
-                fields = "__all__"
-                read_only_fields = ("graded_by", "graded_at")
-
-        return GradeSerializer
+        """Use detailed serializer for create, list serializer for list"""
+        if self.request.method == 'POST':
+            return GradeSerializer
+        return GradeListSerializer
 
     def perform_create(self, serializer):
         serializer.save(graded_by=self.request.user)
@@ -33,15 +51,18 @@ class GradeDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
 
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Grade.objects.all()
+    serializer_class = GradeSerializer
 
-    def get_serializer_class(self):
-        from rest_framework import serializers
-
-        class GradeSerializer(serializers.ModelSerializer):
-            class Meta:
-                model = Grade
-                fields = "__all__"
-                read_only_fields = ("graded_by", "graded_at")
-
-        return GradeSerializer
+    def get_queryset(self):
+        """Filter based on user role"""
+        user = self.request.user
+        queryset = Grade.objects.select_related('case', 'case__student', 'graded_by').all()
+        
+        if user.is_student:
+            # Students can only see their own grades
+            queryset = queryset.filter(case__student=user)
+        elif user.is_instructor:
+            # Instructors can see all grades
+            pass
+        
+        return queryset

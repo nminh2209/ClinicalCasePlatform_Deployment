@@ -58,6 +58,13 @@ class Grade(models.Model):
         help_text="Score for presentation (0-100)",
     )
 
+    # Detailed grading criteria breakdown
+    grading_criteria = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Detailed grading criteria: {history, examination, differential, treatment, presentation}",
+    )
+
     # Qualitative assessment
     evaluation_notes = models.TextField(
         help_text="Detailed evaluation notes and comments"
@@ -85,6 +92,11 @@ class Grade(models.Model):
 
     def __str__(self):
         return f"Grade for {self.case.title}: {self.score}%"
+
+    @property
+    def student(self):
+        """Get the student for this grade via the case relationship"""
+        return self.case.student
 
     @property
     def overall_grade_letter(self):

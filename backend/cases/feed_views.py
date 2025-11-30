@@ -38,7 +38,7 @@ class PublicFeedListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        user: User = self.request.user
+        user = self.request.user  # Type hint removed to avoid Pylance warning
         queryset = Case.objects.filter(
             is_published_to_feed=True,
             case_status=Case.StatusChoices.APPROVED
@@ -52,7 +52,7 @@ class PublicFeedListView(generics.ListAPIView):
         ).order_by('-published_to_feed_at')
         
         # Filter by user's department or all
-        filter_type = self.request.query_params.get('filter', 'department')
+        filter_type = self.request.query_params.get('filter', 'department')  # type: ignore
         
         if filter_type == 'department' and user.department:
             queryset = queryset.filter(
@@ -64,11 +64,11 @@ class PublicFeedListView(generics.ListAPIView):
         # 'all' shows all university-wide + own department
         
         # Additional filters
-        specialty = self.request.query_params.get('specialty')
+        specialty = self.request.query_params.get('specialty')  # type: ignore
         if specialty:
             queryset = queryset.filter(specialty=specialty)
         
-        department_id = self.request.query_params.get('department_id')
+        department_id = self.request.query_params.get('department_id')  # type: ignore
         if department_id:
             queryset = queryset.filter(student__department_id=department_id)
         

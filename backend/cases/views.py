@@ -1205,7 +1205,7 @@ class EnhancedCasePermissionViewSet(viewsets.ModelViewSet):
 
             for user_id in users_ids:
                 # Skip if user is the case owner
-                if case.student_id == user_id:
+                if case.student.id == user_id:
                     continue
 
                 permission, created = CasePermission.objects.get_or_create(
