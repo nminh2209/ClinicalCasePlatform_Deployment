@@ -1213,15 +1213,24 @@ async function saveGrade() {
   }
   saving.value = true;
   try {
+    // Ensure all criteria values are valid numbers
+    const criteria = {
+      history: Number(gradingForm.value.criteria.history) || 0,
+      examination: Number(gradingForm.value.criteria.examination) || 0,
+      differential: Number(gradingForm.value.criteria.differential) || 0,
+      treatment: Number(gradingForm.value.criteria.treatment) || 0,
+      presentation: Number(gradingForm.value.criteria.presentation) || 0,
+    };
+
     const payload: GradeSubmission = {
       grade_scale: "percentage",
-      score: gradingForm.value.score,
+      score: Number(gradingForm.value.score) || 0,
       letter_grade: getLetterGrade(gradingForm.value.score),
-      evaluation_notes: gradingForm.value.evaluation_notes,
-      strengths: gradingForm.value.strengths,
-      weaknesses: gradingForm.value.weaknesses,
-      recommendations: gradingForm.value.recommendations,
-      grading_criteria: gradingForm.value.criteria,
+      evaluation_notes: gradingForm.value.evaluation_notes || "",
+      strengths: gradingForm.value.strengths || "",
+      weaknesses: gradingForm.value.weaknesses || "",
+      recommendations: gradingForm.value.recommendations || "",
+      grading_criteria: criteria,
       is_final: false,
       case: Number(props.caseId),
     };
@@ -1259,15 +1268,24 @@ async function submitGrade() {
   }
   submitting.value = true;
   try {
+    // Ensure all criteria values are valid numbers
+    const criteria = {
+      history: Number(gradingForm.value.criteria.history) || 0,
+      examination: Number(gradingForm.value.criteria.examination) || 0,
+      differential: Number(gradingForm.value.criteria.differential) || 0,
+      treatment: Number(gradingForm.value.criteria.treatment) || 0,
+      presentation: Number(gradingForm.value.criteria.presentation) || 0,
+    };
+
     const payload: GradeSubmission = {
       grade_scale: "percentage",
-      score: gradingForm.value.score,
+      score: Number(gradingForm.value.score) || 0,
       letter_grade: getLetterGrade(gradingForm.value.score),
-      evaluation_notes: gradingForm.value.evaluation_notes,
-      strengths: gradingForm.value.strengths,
-      weaknesses: gradingForm.value.weaknesses,
-      recommendations: gradingForm.value.recommendations,
-      grading_criteria: gradingForm.value.criteria,
+      evaluation_notes: gradingForm.value.evaluation_notes || "",
+      strengths: gradingForm.value.strengths || "",
+      weaknesses: gradingForm.value.weaknesses || "",
+      recommendations: gradingForm.value.recommendations || "",
+      grading_criteria: criteria,
       is_final: true,
       case: Number(props.caseId),
     };

@@ -67,7 +67,7 @@ class Grade(models.Model):
 
     # Qualitative assessment
     evaluation_notes = models.TextField(
-        help_text="Detailed evaluation notes and comments"
+        blank=True, help_text="Detailed evaluation notes and comments"
     )
     strengths = models.TextField(
         blank=True, help_text="Student's strengths demonstrated in this case"
