@@ -37,6 +37,71 @@
       <span v-else-if="!isDraft">ℹ️ Ca bệnh đã được nộp. Không thể chỉnh sửa.</span>
     </div>
 
+    <!-- Grade Display for Students -->
+    <Card v-if="gradeData && gradeData.is_final" class="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+      <CardHeader>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-purple-100 rounded-lg">
+              <svg class="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+              </svg>
+            </div>
+            <CardTitle class="text-purple-900">Kết quả đánh giá</CardTitle>
+          </div>
+          <div class="text-right">
+            <div class="text-3xl font-bold text-purple-900">{{ gradeData.score }}%</div>
+            <div class="text-sm text-purple-700">Xếp loại: {{ gradeData.letter_grade }}</div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent class="space-y-3">
+        <div v-if="gradeData.evaluation_notes">
+          <label class="text-sm font-semibold text-purple-900">Nhận xét chung</label>
+          <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ gradeData.evaluation_notes }}</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div v-if="gradeData.strengths">
+            <label class="text-sm font-semibold text-green-900">✓ Điểm mạnh</label>
+            <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ gradeData.strengths }}</p>
+          </div>
+          <div v-if="gradeData.weaknesses">
+            <label class="text-sm font-semibold text-orange-900">⚠ Cần cải thiện</label>
+            <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ gradeData.weaknesses }}</p>
+          </div>
+        </div>
+        <div v-if="gradeData.recommendations">
+          <label class="text-sm font-semibold text-blue-900">💡 Khuyến nghị</label>
+          <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ gradeData.recommendations }}</p>
+        </div>
+        <div v-if="gradeData.grading_criteria" class="border-t border-purple-200 pt-3">
+          <label class="text-sm font-semibold text-purple-900 mb-2 block">Tiêu chí đánh giá chi tiết</label>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+            <div class="text-center p-2 bg-white rounded border border-purple-100">
+              <div class="text-xs text-gray-500">Tiền sử</div>
+              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.history || 0 }}</div>
+            </div>
+            <div class="text-center p-2 bg-white rounded border border-purple-100">
+              <div class="text-xs text-gray-500">Khám</div>
+              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.examination || 0 }}</div>
+            </div>
+            <div class="text-center p-2 bg-white rounded border border-purple-100">
+              <div class="text-xs text-gray-500">Chẩn đoán</div>
+              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.differential || 0 }}</div>
+            </div>
+            <div class="text-center p-2 bg-white rounded border border-purple-100">
+              <div class="text-xs text-gray-500">Điều trị</div>
+              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.treatment || 0 }}</div>
+            </div>
+            <div class="text-center p-2 bg-white rounded border border-purple-100">
+              <div class="text-xs text-gray-500">Trình bày</div>
+              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.presentation || 0 }}</div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <!-- Left Column: Case Information (Collapsible Sections) -->
       <div class="space-y-3">
@@ -295,11 +360,11 @@
               </div>
               <div>
                 <label class="text-sm text-gray-500">Cân Nặng (kg)</label>
-                <Input v-model="caseData.physical_examination.vital_signs_weight" type="number" step="0.1" placeholder="70" :disabled="!canEdit" />
+                <Input v-model="caseData.physical_examination.weight_kg" type="number" step="0.1" placeholder="70" :disabled="!canEdit" />
               </div>
               <div>
                 <label class="text-sm text-gray-500">Chiều Cao (cm)</label>
-                <Input v-model="caseData.physical_examination.vital_signs_height" type="number" step="0.1" placeholder="170" :disabled="!canEdit" />
+                <Input v-model="caseData.physical_examination.height_cm" type="number" step="0.1" placeholder="170" :disabled="!canEdit" />
               </div>
             </div>
             
@@ -431,7 +496,11 @@
             </div>
             <div>
               <label class="text-sm text-gray-500">Chẩn đoán phân biệt</label>
-              <Textarea v-model="caseData.diagnosis_management.differential_diagnoses" placeholder="Các chẩn đoán phân biệt..." :disabled="!canEdit" />
+              <Textarea v-model="caseData.diagnosis_management.differential_diagnosis" placeholder="Các chẩn đoán phân biệt..." :disabled="!canEdit" />
+            </div>
+            <div>
+              <label class="text-sm text-gray-500">Mã ICD-10</label>
+              <Input v-model="caseData.diagnosis_management.icd10_codes" placeholder="Mã ICD-10..." :disabled="!canEdit" />
             </div>
             <div>
               <label class="text-sm text-gray-500">Kế hoạch điều trị</label>
@@ -446,8 +515,8 @@
               <Textarea v-model="caseData.diagnosis_management.prognosis" placeholder="Tiên lượng bệnh..." :disabled="!canEdit" />
             </div>
             <div>
-              <label class="text-sm text-gray-500">Kế hoạch xuất viện</label>
-              <Textarea v-model="caseData.diagnosis_management.discharge_plan" placeholder="Kế hoạch xuất viện..." :disabled="!canEdit" />
+              <label class="text-sm text-gray-500">Kế hoạch theo dõi</label>
+              <Textarea v-model="caseData.diagnosis_management.follow_up_plan" placeholder="Kế hoạch theo dõi..." :disabled="!canEdit" />
             </div>
           </CardContent>
         </Card>
@@ -751,6 +820,7 @@ import TabsTrigger from '@/components/ui/TabsTrigger.vue'
 import CasePreview from '@/components/CasePreview.vue'
 import { ArrowLeft, Save, Send, Eye, ChevronDown } from '@/components/icons'
 import { casesService } from '@/services/cases'
+import { gradesService } from '@/services/grades'
 
 const props = defineProps({
   caseId: {
@@ -777,6 +847,9 @@ const expandedSections = ref<Record<string, boolean>>({
 const toggleSection = (section: string) => {
   expandedSections.value[section] = !expandedSections.value[section]
 }
+
+// Grade data for students
+const gradeData = ref<any>(null)
 
 const notes = ref({
   clinical_assessment: '',
@@ -936,8 +1009,8 @@ const caseData = ref({
     vital_signs_rr: null,
     vital_signs_temp: null,
     vital_signs_spo2: null,
-    vital_signs_weight: null,
-    vital_signs_height: null,
+    weight_kg: null,
+    height_cm: null,
     head_neck: '',
     cardiovascular: '',
     respiratory: '',
@@ -972,11 +1045,11 @@ const caseData = ref({
   },
   diagnosis_management: {
     primary_diagnosis: '',
-    differential_diagnoses: '',
+    differential_diagnosis: '',
+    icd10_codes: '',
     treatment_plan: '',
     procedures_performed: '',
     prognosis: '',
-    discharge_plan: '',
     medications_prescribed: '',
     follow_up_plan: '',
     complications: ''
@@ -1014,6 +1087,23 @@ const handleSave = async () => {
       return Object.keys(cleaned).length > 0 ? cleaned : undefined
     }
     
+    // Helper function to format date to YYYY-MM-DD or null
+    const formatDate = (dateValue: any) => {
+      if (!dateValue || dateValue === '') return null
+      // If already in YYYY-MM-DD format, return as-is
+      if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        return dateValue
+      }
+      // Try to parse and format
+      try {
+        const date = new Date(dateValue)
+        if (isNaN(date.getTime())) return null
+        return date.toISOString().split('T')[0]
+      } catch {
+        return null
+      }
+    }
+
     // 1. Update main case data with properly formatted nested objects
     const caseUpdateData: any = {
       title: caseData.value.title,
@@ -1024,11 +1114,11 @@ const handleSave = async () => {
       medical_record_number: caseData.value.medical_record_number,
       patient_ethnicity: caseData.value.patient_ethnicity,
       patient_occupation: caseData.value.patient_occupation,
-      admission_date: caseData.value.admission_date,
-      discharge_date: caseData.value.discharge_date,
+      admission_date: formatDate(caseData.value.admission_date),
+      discharge_date: formatDate(caseData.value.discharge_date),
       chief_complaint_brief: caseData.value.chief_complaint_brief,
       requires_follow_up: caseData.value.requires_follow_up,
-      follow_up_date: caseData.value.follow_up_date,
+      follow_up_date: formatDate(caseData.value.follow_up_date),
       priority_level: caseData.value.priority_level,
       complexity_level: caseData.value.complexity_level,
       case_summary: caseData.value.case_summary,
@@ -1063,8 +1153,8 @@ const handleSave = async () => {
       vital_signs_rr: caseData.value.physical_examination?.vital_signs_rr,
       vital_signs_temp: caseData.value.physical_examination?.vital_signs_temp,
       vital_signs_spo2: caseData.value.physical_examination?.vital_signs_spo2,
-      vital_signs_weight: caseData.value.physical_examination?.vital_signs_weight,
-      vital_signs_height: caseData.value.physical_examination?.vital_signs_height,
+      weight_kg: caseData.value.physical_examination?.weight_kg,
+      height_cm: caseData.value.physical_examination?.height_cm,
       head_neck: caseData.value.physical_examination?.head_neck,
       cardiovascular: caseData.value.physical_examination?.cardiovascular,
       respiratory: caseData.value.physical_examination?.respiratory,
@@ -1103,11 +1193,11 @@ const handleSave = async () => {
     
     const diagnosisManagement = cleanObject({
       primary_diagnosis: caseData.value.diagnosis_management?.primary_diagnosis,
-      differential_diagnoses: caseData.value.diagnosis_management?.differential_diagnoses,
+      differential_diagnosis: caseData.value.diagnosis_management?.differential_diagnosis,
+      icd10_codes: caseData.value.diagnosis_management?.icd10_codes,
       treatment_plan: caseData.value.diagnosis_management?.treatment_plan,
       procedures_performed: caseData.value.diagnosis_management?.procedures_performed,
       prognosis: caseData.value.diagnosis_management?.prognosis,
-      discharge_plan: caseData.value.diagnosis_management?.discharge_plan,
       medications_prescribed: caseData.value.diagnosis_management?.medications_prescribed,
       follow_up_plan: caseData.value.diagnosis_management?.follow_up_plan,
       complications: caseData.value.diagnosis_management?.complications
@@ -1355,8 +1445,8 @@ onMounted(async () => {
         vital_signs_rr: caseDetails.physical_examination.vital_signs_rr || null,
         vital_signs_temp: caseDetails.physical_examination.vital_signs_temp || null,
         vital_signs_spo2: caseDetails.physical_examination.vital_signs_spo2 || null,
-        vital_signs_weight: caseDetails.physical_examination.vital_signs_weight || null,
-        vital_signs_height: caseDetails.physical_examination.vital_signs_height || null,
+        weight_kg: caseDetails.physical_examination.weight_kg || null,
+        height_cm: caseDetails.physical_examination.height_cm || null,
         head_neck: caseDetails.physical_examination.head_neck || '',
         cardiovascular: caseDetails.physical_examination.cardiovascular || '',
         respiratory: caseDetails.physical_examination.respiratory || '',
@@ -1397,11 +1487,11 @@ onMounted(async () => {
     if (caseDetails.diagnosis_management) {
       Object.assign(caseData.value.diagnosis_management, {
         primary_diagnosis: caseDetails.diagnosis_management.primary_diagnosis || '',
-        differential_diagnoses: caseDetails.diagnosis_management.differential_diagnosis || '',
+        differential_diagnosis: caseDetails.diagnosis_management.differential_diagnosis || '',
+        icd10_codes: caseDetails.diagnosis_management.icd10_codes || '',
         treatment_plan: caseDetails.diagnosis_management.treatment_plan || '',
         procedures_performed: caseDetails.diagnosis_management.procedures_performed || '',
         prognosis: caseDetails.diagnosis_management.prognosis || '',
-        discharge_plan: caseDetails.diagnosis_management.follow_up_plan || '',
         medications_prescribed: caseDetails.diagnosis_management.medications_prescribed || '',
         follow_up_plan: caseDetails.diagnosis_management.follow_up_plan || '',
         complications: caseDetails.diagnosis_management.complications || ''
@@ -1448,6 +1538,19 @@ onMounted(async () => {
       }
     } catch (notesError) {
       console.error('Error loading student notes:', notesError)
+    }
+
+    // Load grade if available
+    if (caseDetails.has_grade) {
+      try {
+        const grade = await gradesService.getGrade(props.caseId)
+        console.log('Loaded grade for student:', grade)
+        if (grade && grade.is_final) {
+          gradeData.value = grade
+        }
+      } catch (gradeError) {
+        console.error('Error loading grade:', gradeError)
+      }
     }
     
     console.log('Final caseData:', caseData.value)

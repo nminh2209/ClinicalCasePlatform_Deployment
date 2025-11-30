@@ -258,8 +258,17 @@ class Investigations(models.Model):
     hemoglobin_level = models.FloatField(
         null=True, blank=True, help_text="Hemoglobin (g/dL)"
     )
-    white_cell_count = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Bạch cầu (cells/μL)"
+    white_cell_count = models.FloatField(
+        null=True, blank=True, help_text="Bạch cầu (10^9/L)"
+    )
+    platelet_count = models.FloatField(
+        null=True, blank=True, help_text="Tiểu cầu (10^9/L)"
+    )
+    sodium_level = models.FloatField(
+        null=True, blank=True, help_text="Natri (mmol/L)"
+    )
+    potassium_level = models.FloatField(
+        null=True, blank=True, help_text="Kali (mmol/L)"
     )
     glucose_level = models.FloatField(
         null=True, blank=True, help_text="Glucose (mg/dL)"
@@ -278,6 +287,8 @@ class Investigations(models.Model):
         null=True, blank=True, help_text="Tần số điện tim (bpm)"
     )
     pathology_results = models.TextField(blank=True, help_text="Kết quả giải phẫu bệnh")
+    microbiology_results = models.TextField(blank=True, help_text="Kết quả vi sinh")
+    other_investigations = models.TextField(blank=True, help_text="Xét nghiệm khác")
     arterial_blood_gas = models.TextField(blank=True, help_text="Khí máu động mạch")
     ph_level = models.FloatField(null=True, blank=True, help_text="pH máu")
     special_tests = models.TextField(blank=True, help_text="Các xét nghiệm đặc biệt")

@@ -22,7 +22,7 @@
 
           <div class="space-y-2">
             <Label for="icdCode">{{ t('createCase.icdCode') }}</Label>
-            <Input id="icdCode" v-model="localData.diagnosis_management.icd_code"
+            <Input id="icdCode" v-model="localData.diagnosis_management.icd10_codes"
               :placeholder="t('createCase.icdCodePlaceholder')" />
           </div>
         </div>
@@ -51,13 +51,13 @@
 
           <div class="space-y-2">
             <Label for="procedures">{{ t('createCase.proceduresInterventions') }}</Label>
-            <Textarea id="procedures" v-model="localData.diagnosis_management.procedures_interventions"
+            <Textarea id="procedures" v-model="localData.diagnosis_management.procedures_performed"
               :placeholder="t('createCase.proceduresPlaceholder')" rows="3" />
           </div>
 
           <div class="space-y-2">
             <Label for="followUp">{{ t('createCase.followUp') }}</Label>
-            <Textarea id="followUp" v-model="localData.diagnosis_management.follow_up_recommendations"
+            <Textarea id="followUp" v-model="localData.diagnosis_management.follow_up_plan"
               :placeholder="t('createCase.followUpPlaceholder')" rows="3" />
           </div>
 

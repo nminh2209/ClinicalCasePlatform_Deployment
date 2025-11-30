@@ -263,11 +263,20 @@ class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
         if case.student == user:
             return case  # Owner has full access
 
-        # Check if user has permission to view this case
+        # Check if user has permission to view this case (with expiry check)
         if user.is_instructor and case.repository.is_public:
             return case
 
-        if CasePermission.objects.filter(case=case, user=user, is_active=True).exists():
+        # Check active permissions with expiry
+        active_permission = CasePermission.objects.filter(
+            case=case, 
+            user=user, 
+            is_active=True
+        ).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=timezone.now())
+        ).exists()
+        
+        if active_permission:
             return case
 
         # If no permission, check if it's a public repository
@@ -278,6 +287,31 @@ class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
         from django.core.exceptions import PermissionDenied
 
         raise PermissionDenied("You don't have permission to access this case")
+    
+    def perform_update(self, serializer):
+        """Only owner can update their own draft cases"""
+        case = self.get_object()
+        user = self.request.user
+        
+        # Only the case owner can update
+        if case.student != user:
+            raise PermissionDenied("Only the case owner can update this case")
+        
+        # Only drafts can be updated
+        if case.case_status != 'draft':
+            raise PermissionDenied("Only draft cases can be updated")
+        
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        """Only owner can delete their own cases"""
+        user = self.request.user
+        
+        # Only the case owner or instructors can delete
+        if instance.student != user and not user.is_instructor:
+            raise PermissionDenied("Only the case owner or instructors can delete this case")
+        
+        instance.delete()
 
 
 class CasePermissionListCreateView(generics.ListCreateAPIView):

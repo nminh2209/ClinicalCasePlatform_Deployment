@@ -47,14 +47,14 @@
           <!-- Weight -->
           <div class="space-y-2">
             <Label for="weight">{{ t('createCase.weight') }} {{ t('createCase.weightUnit') }}</Label>
-            <Input id="weight" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_weight" placeholder="70" min="10"
+            <Input id="weight" type="number" step="0.1" v-model.number="localData.physical_examination.weight_kg" placeholder="70" min="10"
               max="300" />
           </div>
 
           <!-- Height -->
           <div class="space-y-2">
             <Label for="height">{{ t('createCase.height') }} {{ t('createCase.heightUnit') }}</Label>
-            <Input id="height" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_height" placeholder="170" min="50"
+            <Input id="height" type="number" step="0.1" v-model.number="localData.physical_examination.height_cm" placeholder="170" min="50"
               max="250" />
           </div>
 
@@ -112,8 +112,8 @@ const localData = computed({
 })
 
 const calculatedBMI = computed(() => {
-  const weight = localData.value.physical_examination?.vital_signs_weight
-  const height = localData.value.physical_examination?.vital_signs_height
+  const weight = localData.value.physical_examination?.weight_kg
+  const height = localData.value.physical_examination?.height_cm
 
   if (weight && height && height > 0) {
     // BMI = weight (kg) / (height (m))^2

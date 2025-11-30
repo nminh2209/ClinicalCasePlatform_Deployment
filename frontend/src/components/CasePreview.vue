@@ -192,9 +192,9 @@
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management?.primary_diagnosis || 'Chưa nhập' }}</div>
             </div>
 
-            <div v-if="caseData.diagnosis_management?.differential_diagnoses" class="mb-4">
+            <div v-if="caseData.diagnosis_management?.differential_diagnosis" class="mb-4">
               <h4 class="text-md font-semibold text-gray-800 mb-2">Chẩn đoán phân biệt</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.differential_diagnoses }}</div>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.differential_diagnosis }}</div>
             </div>
 
             <div class="mb-4">
@@ -212,9 +212,9 @@
               <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.prognosis }}</div>
             </div>
 
-            <div v-if="caseData.diagnosis_management?.discharge_plan" class="mb-4">
-              <h4 class="text-md font-semibold text-gray-800 mb-2">Kế hoạch xuất viện</h4>
-              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.discharge_plan }}</div>
+            <div v-if="caseData.diagnosis_management?.follow_up_plan" class="mb-4">
+              <h4 class="text-md font-semibold text-gray-800 mb-2">Kế hoạch theo dõi</h4>
+              <div class="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">{{ caseData.diagnosis_management.follow_up_plan }}</div>
             </div>
           </div>
 
@@ -414,8 +414,8 @@ const formatVitalSigns = () => {
   if (pe.vital_signs_bp) parts.push(`Huyết áp: ${pe.vital_signs_bp} mmHg`)
   if (pe.vital_signs_rr) parts.push(`Nhịp thở: ${pe.vital_signs_rr} /phút`)
   if (pe.vital_signs_spo2) parts.push(`SpO2: ${pe.vital_signs_spo2}%`)
-  if (pe.vital_signs_weight) parts.push(`Cân nặng: ${pe.vital_signs_weight} kg`)
-  if (pe.vital_signs_height) parts.push(`Chiều cao: ${pe.vital_signs_height} cm`)
+  if (pe.weight_kg) parts.push(`Cân nặng: ${pe.weight_kg} kg`)
+  if (pe.height_cm) parts.push(`Chiều cao: ${pe.height_cm} cm`)
   
   return parts.length > 0 ? parts.join('\n') : 'Chưa nhập'
 }

@@ -45,16 +45,20 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Case Information (Read-only for instructors) -->
-      <div class="space-y-6">
+      <div class="space-y-3">
         <!-- Basic Information -->
         <Card class="bg-white">
-          <CardHeader>
+          <button 
+            @click="toggleSection('basic')" 
+            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-center gap-2">
               <InfoIcon stroke="#3b82f6" />
-              <CardTitle>Thông tin cơ bản</CardTitle>
+              <CardTitle class="text-base">Thông tin cơ bản</CardTitle>
             </div>
-          </CardHeader>
-          <CardContent class="space-y-4">
+            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.basic && 'rotate-180']" />
+          </button>
+          <CardContent v-show="expandedSections.basic" class="pt-0 pb-4 px-4 space-y-3">
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="text-sm text-gray-500">Tiêu đề</label>
@@ -70,15 +74,18 @@
 
         <!-- Patient Information -->
         <Card class="bg-white">
-          <CardHeader>
+          <button 
+            @click="toggleSection('patient')" 
+            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-center gap-2">
               <User class="w-5 h-5 text-blue-500" />
-              <CardTitle>Thông tin bệnh nhân</CardTitle>
+              <CardTitle class="text-base">Thông tin bệnh nhân</CardTitle>
             </div>
-          </CardHeader>
-          <CardContent class="space-y-4">
+            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.patient && 'rotate-180']" />
+          </button>
+          <CardContent v-show="expandedSections.patient" class="pt-0 pb-4 px-4 space-y-3">
             <div class="grid grid-cols-2 gap-4">
-              <!-- Patient name hidden per client request -->
               <div>
                 <label class="text-sm text-gray-500">Tuổi</label>
                 <p class="text-gray-800">{{ caseData.patient_age || "N/A" }}</p>
@@ -101,18 +108,22 @@
 
         <!-- Clinical History -->
         <Card v-if="hasData('clinical_history')" class="bg-white">
-          <CardHeader>
+          <button 
+            @click="toggleSection('clinical')" 
+            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-center gap-2">
               <DocumentIcon class="text-blue-500 w-5 h-5" stroke="#3b82f6" />
-              <CardTitle>Tiền sử lâm sàng</CardTitle>
+              <CardTitle class="text-base">Tiền sử lâm sàng</CardTitle>
             </div>
-          </CardHeader>
-          <CardContent class="space-y-4">
+            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.clinical && 'rotate-180']" />
+          </button>
+          <CardContent v-show="expandedSections.clinical" class="pt-0 pb-4 px-4 space-y-3">
             <div v-if="caseData.clinical_history?.chief_complaint">
               <label class="text-sm font-medium text-gray-500"
                 >Lý do khám chính</label
               >
-              <p class="text-gray-800 mt-1">
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.clinical_history?.chief_complaint || "N/A" }}
               </p>
             </div>
@@ -130,16 +141,48 @@
               <label class="text-sm font-medium text-gray-500"
                 >Tiền sử bệnh tật</label
               >
-              <p class="text-gray-800 mt-1">
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.clinical_history?.past_medical_history || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.clinical_history?.family_history">
+              <label class="text-sm font-medium text-gray-500"
+                >Tiền sử gia đình</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.clinical_history?.family_history || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.clinical_history?.social_history">
+              <label class="text-sm font-medium text-gray-500"
+                >Tiền sử xã hội</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.clinical_history?.social_history || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.clinical_history?.allergies">
+              <label class="text-sm font-medium text-gray-500"
+                >Dị ứng</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.clinical_history?.allergies || "N/A" }}
               </p>
             </div>
             <div v-if="caseData.clinical_history?.medications">
               <label class="text-sm font-medium text-gray-500"
                 >Thuốc đang sử dụng</label
               >
-              <p class="text-gray-800 mt-1">
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.clinical_history?.medications || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.clinical_history?.review_systems">
+              <label class="text-sm font-medium text-gray-500"
+                >Đánh giá hệ thống</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.clinical_history?.review_systems || "N/A" }}
               </p>
             </div>
           </CardContent>
@@ -147,13 +190,17 @@
 
         <!-- Physical Examination -->
         <Card v-if="hasData('physical_examination')" class="bg-white">
-          <CardHeader>
+          <button 
+            @click="toggleSection('physical')" 
+            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-center gap-2">
               <FlaskConical class="text-blue-500 w-5 h-5" stroke="#3b82f6" />
-              <CardTitle>Khám lâm sàng</CardTitle>
+              <CardTitle class="text-base">Khám lâm sàng</CardTitle>
             </div>
-          </CardHeader>
-          <CardContent class="space-y-4">
+            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.physical && 'rotate-180']" />
+          </button>
+          <CardContent v-show="expandedSections.physical" class="pt-0 pb-4 px-4 space-y-3">
             <div v-if="caseData.physical_examination?.general_appearance">
               <label class="text-sm font-medium text-gray-500"
                 >Tình trạng chung</label
@@ -162,22 +209,86 @@
                 {{ caseData.physical_examination.general_appearance || "N/A" }}
               </p>
             </div>
+            
+            <!-- Detailed Vital Signs -->
+            <div class="grid grid-cols-2 gap-3">
+              <div v-if="caseData.physical_examination?.vital_signs_temp">
+                <label class="text-sm font-medium text-gray-500">Nhiệt độ</label>
+                <p class="text-gray-800 mt-1">{{ caseData.physical_examination.vital_signs_temp }}°C</p>
+              </div>
+              <div v-if="caseData.physical_examination?.vital_signs_hr">
+                <label class="text-sm font-medium text-gray-500">Nhịp tim</label>
+                <p class="text-gray-800 mt-1">{{ caseData.physical_examination.vital_signs_hr }} bpm</p>
+              </div>
+              <div v-if="caseData.physical_examination?.vital_signs_bp">
+                <label class="text-sm font-medium text-gray-500">Huyết áp</label>
+                <p class="text-gray-800 mt-1">{{ caseData.physical_examination.vital_signs_bp }} mmHg</p>
+              </div>
+              <div v-if="caseData.physical_examination?.vital_signs_rr">
+                <label class="text-sm font-medium text-gray-500">Nhịp thở</label>
+                <p class="text-gray-800 mt-1">{{ caseData.physical_examination.vital_signs_rr }} /phút</p>
+              </div>
+              <div v-if="caseData.physical_examination?.vital_signs_spo2">
+                <label class="text-sm font-medium text-gray-500">SpO2</label>
+                <p class="text-gray-800 mt-1">{{ caseData.physical_examination.vital_signs_spo2 }}%</p>
+              </div>
+              <div v-if="caseData.physical_examination?.weight_kg">
+                <label class="text-sm font-medium text-gray-500">Cân nặng</label>
+                <p class="text-gray-800 mt-1">{{ caseData.physical_examination.weight_kg }} kg</p>
+              </div>
+              <div v-if="caseData.physical_examination?.height_cm">
+                <label class="text-sm font-medium text-gray-500">Chiều cao</label>
+                <p class="text-gray-800 mt-1">{{ caseData.physical_examination.height_cm }} cm</p>
+              </div>
+            </div>
+
             <div v-if="caseData.physical_examination?.vital_signs">
-              <label class="text-sm font-medium text-gray-500">Sinh hiệu</label>
-              <p class="text-gray-800 mt-1">
+              <label class="text-sm font-medium text-gray-500">Ghi chú sinh hiệu</label>
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.physical_examination.vital_signs || "N/A" }}
               </p>
             </div>
+            
             <div v-if="caseData.physical_examination?.cardiovascular">
               <label class="text-sm font-medium text-gray-500">Tim mạch</label>
-              <p class="text-gray-800 mt-1">
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.physical_examination.cardiovascular || "N/A" }}
               </p>
             </div>
             <div v-if="caseData.physical_examination?.respiratory">
               <label class="text-sm font-medium text-gray-500">Hô hấp</label>
-              <p class="text-gray-800 mt-1">
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.physical_examination.respiratory || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.physical_examination?.abdominal">
+              <label class="text-sm font-medium text-gray-500">Bụng</label>
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.physical_examination.abdominal || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.physical_examination?.neurological">
+              <label class="text-sm font-medium text-gray-500">Thần kinh</label>
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.physical_examination.neurological || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.physical_examination?.musculoskeletal">
+              <label class="text-sm font-medium text-gray-500">Cơ xương khớp</label>
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.physical_examination.musculoskeletal || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.physical_examination?.skin">
+              <label class="text-sm font-medium text-gray-500">Da</label>
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.physical_examination.skin || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.physical_examination?.head_neck">
+              <label class="text-sm font-medium text-gray-500">Đầu và cổ</label>
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.physical_examination.head_neck || "N/A" }}
               </p>
             </div>
           </CardContent>
@@ -185,21 +296,58 @@
 
         <!-- Investigations -->
         <Card v-if="hasData('investigations')" class="bg-white">
-          <CardHeader>
+          <button 
+            @click="toggleSection('investigations')" 
+            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-center gap-2">
               <FlaskConical class="text-blue-500 w-5 h-5" stroke="#3b82f6" />
-              <CardTitle>Cận lâm sàng</CardTitle>
+              <CardTitle class="text-base">Cận lâm sàng</CardTitle>
             </div>
-          </CardHeader>
-          <CardContent class="space-y-4">
+            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.investigations && 'rotate-180']" />
+          </button>
+          <CardContent v-show="expandedSections.investigations" class="pt-0 pb-4 px-4 space-y-3">
             <div v-if="caseData.investigations?.laboratory_results">
               <label class="text-sm font-medium text-gray-500"
-                >Xét nghiệm</label
+                >Xét nghiệm tổng quát</label
               >
               <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.investigations.laboratory_results || "N/A" }}
               </p>
             </div>
+            
+            <!-- Detailed Lab Values -->
+            <div class="grid grid-cols-2 gap-3">
+              <div v-if="caseData.investigations?.hemoglobin_level">
+                <label class="text-sm font-medium text-gray-500">Hemoglobin</label>
+                <p class="text-gray-800 mt-1">{{ caseData.investigations.hemoglobin_level }} g/dL</p>
+              </div>
+              <div v-if="caseData.investigations?.white_cell_count">
+                <label class="text-sm font-medium text-gray-500">WBC</label>
+                <p class="text-gray-800 mt-1">{{ caseData.investigations.white_cell_count }} ×10⁹/L</p>
+              </div>
+              <div v-if="caseData.investigations?.platelet_count">
+                <label class="text-sm font-medium text-gray-500">Tiểu cầu</label>
+                <p class="text-gray-800 mt-1">{{ caseData.investigations.platelet_count }} ×10⁹/L</p>
+              </div>
+              <div v-if="caseData.investigations?.sodium_level">
+                <label class="text-sm font-medium text-gray-500">Natri</label>
+                <p class="text-gray-800 mt-1">{{ caseData.investigations.sodium_level }} mmol/L</p>
+              </div>
+              <div v-if="caseData.investigations?.potassium_level">
+                <label class="text-sm font-medium text-gray-500">Kali</label>
+                <p class="text-gray-800 mt-1">{{ caseData.investigations.potassium_level }} mmol/L</p>
+              </div>
+              <div v-if="caseData.investigations?.creatinine_level">
+                <label class="text-sm font-medium text-gray-500">Creatinine</label>
+                <p class="text-gray-800 mt-1">{{ caseData.investigations.creatinine_level }} mg/dL</p>
+              </div>
+              <div v-if="caseData.investigations?.glucose_level">
+                <label class="text-sm font-medium text-gray-500">Glucose</label>
+                <p class="text-gray-800 mt-1">{{ caseData.investigations.glucose_level }} mg/dL</p>
+              </div>
+            </div>
+
             <div v-if="caseData.investigations?.imaging_studies">
               <label class="text-sm font-medium text-gray-500"
                 >Chẩn đoán hình ảnh</label
@@ -212,8 +360,32 @@
               <label class="text-sm font-medium text-gray-500"
                 >Điện tâm đồ</label
               >
-              <p class="text-gray-800 mt-1">
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.investigations.ecg_findings || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.investigations?.pathology_results">
+              <label class="text-sm font-medium text-gray-500"
+                >Giải phẫu bệnh</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.investigations.pathology_results || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.investigations?.microbiology_results">
+              <label class="text-sm font-medium text-gray-500"
+                >Vi sinh</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.investigations.microbiology_results || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.investigations?.other_investigations">
+              <label class="text-sm font-medium text-gray-500"
+                >Xét nghiệm khác</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.investigations.other_investigations || "N/A" }}
               </p>
             </div>
           </CardContent>
@@ -221,19 +393,39 @@
 
         <!-- Diagnosis and Management -->
         <Card v-if="hasData('diagnosis_management')" class="bg-white">
-          <CardHeader>
+          <button 
+            @click="toggleSection('diagnosis')" 
+            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-center gap-2">
               <Stethoscope class="text-blue-500 w-5 h-5" stroke="#3b82f6" />
-              <CardTitle>Chuẩn đoán và điều trị</CardTitle>
+              <CardTitle class="text-base">Chẩn đoán và điều trị</CardTitle>
             </div>
-          </CardHeader>
-          <CardContent class="space-y-4">
+            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.diagnosis && 'rotate-180']" />
+          </button>
+          <CardContent v-show="expandedSections.diagnosis" class="pt-0 pb-4 px-4 space-y-3">
             <div v-if="caseData.diagnosis_management?.primary_diagnosis">
               <label class="text-sm font-medium text-gray-500"
                 >Chẩn đoán chính</label
               >
-              <p class="text-gray-800 mt-1">
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
                 {{ caseData.diagnosis_management.primary_diagnosis || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.diagnosis_management?.differential_diagnosis">
+              <label class="text-sm font-medium text-gray-500"
+                >Chẩn đoán phân biệt</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.diagnosis_management.differential_diagnosis || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.diagnosis_management?.icd10_codes">
+              <label class="text-sm font-medium text-gray-500"
+                >Mã ICD-10</label
+              >
+              <p class="text-gray-800 mt-1">
+                {{ caseData.diagnosis_management.icd10_codes || "N/A" }}
               </p>
             </div>
             <div v-if="caseData.diagnosis_management?.treatment_plan">
@@ -244,21 +436,65 @@
                 {{ caseData.diagnosis_management.treatment_plan || "N/A" }}
               </p>
             </div>
+            <div v-if="caseData.diagnosis_management?.medications_prescribed">
+              <label class="text-sm font-medium text-gray-500"
+                >Thuốc được kê đơn</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.diagnosis_management.medications_prescribed || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.diagnosis_management?.procedures_performed">
+              <label class="text-sm font-medium text-gray-500"
+                >Thủ thuật đã thực hiện</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.diagnosis_management.procedures_performed || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.diagnosis_management?.follow_up_plan">
+              <label class="text-sm font-medium text-gray-500"
+                >Kế hoạch theo dõi</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.diagnosis_management.follow_up_plan || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.diagnosis_management?.prognosis">
+              <label class="text-sm font-medium text-gray-500"
+                >Tiên lượng</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.diagnosis_management.prognosis || "N/A" }}
+              </p>
+            </div>
+            <div v-if="caseData.diagnosis_management?.complications">
+              <label class="text-sm font-medium text-gray-500"
+                >Biến chứng</label
+              >
+              <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                {{ caseData.diagnosis_management.complications || "N/A" }}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         <!-- Student Notes -->
         <Card class="bg-white">
-          <CardHeader>
+          <button 
+            @click="toggleSection('notes')" 
+            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-center gap-2">
               <FileText class="text-blue-500 w-5 h-5" stroke="#3b82f6" />
-              <CardTitle>Ghi chú của sinh viên</CardTitle>
+              <CardTitle class="text-base">Ghi chú của sinh viên</CardTitle>
             </div>
-            <CardDescription class="text-gray-500">
+            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.notes && 'rotate-180']" />
+          </button>
+          <CardContent v-show="expandedSections.notes" class="pt-0 pb-4 px-4 space-y-3">
+            <CardDescription class="text-gray-500 text-sm">
               Xem lại ghi chú lâm sàng của sinh viên
             </CardDescription>
-          </CardHeader>
-          <CardContent class="space-y-4">
             <!-- Tab Navigation -->
             <div class="flex gap-2 border-b border-gray-200">
               <button
@@ -636,7 +872,7 @@ import FileIcon from "@/components/icons/FileIcon.vue";
 import InfoIcon from "@/components/icons/InfoIcon.vue";
 import Paperclip from "@/components/icons/Paperclip.vue";
 
-import { ArrowLeft, Save, CheckCircle } from "@/components/icons";
+import { ArrowLeft, Save, CheckCircle, ChevronDown } from "@/components/icons";
 import { casesService } from "@/services/cases";
 import { gradesService } from "@/services/grades";
 import feedService from "@/services/feed";
@@ -649,6 +885,21 @@ import SharePermissionModal from "./SharePermissionModal.vue";
 
 const activeNotesTab = ref<"clinical" | "learning">("clinical");
 const showShareModal = ref(false);
+
+// Collapsible sections state
+const expandedSections = ref<Record<string, boolean>>({
+  basic: true,
+  patient: true,
+  clinical: true,
+  physical: true,
+  investigations: true,
+  diagnosis: true,
+  notes: true
+});
+
+const toggleSection = (section: string) => {
+  expandedSections.value[section] = !expandedSections.value[section];
+};
 
 const props = defineProps<{
   caseId: string;
@@ -775,6 +1026,8 @@ const caseData = ref<UnifiedCaseData>({
 const studentNotes = ref<StudentNote | null>(null);
 const saving = ref(false);
 const submitting = ref(false);
+const existingGradeId = ref<number | null>(null);
+const isFinalGrade = ref(false);
 
 const gradingForm = ref<GradingForm>({
   score: 0,
@@ -793,6 +1046,7 @@ const gradingForm = ref<GradingForm>({
 
 const canSaveGrade = computed(() => {
   return (
+    !isFinalGrade.value &&
     gradingForm.value.score >= 0 &&
     gradingForm.value.score <= 100 &&
     gradingForm.value.evaluation_notes.trim() !== ""
@@ -883,6 +1137,14 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
       general_appearance:
         apiCase.physical_examination?.general_appearance || "",
       vital_signs: apiCase.physical_examination?.vital_signs || "",
+      vital_signs_temp: apiCase.physical_examination?.vital_signs_temp || "",
+      vital_signs_hr: apiCase.physical_examination?.vital_signs_hr || "",
+      vital_signs_bp: apiCase.physical_examination?.vital_signs_bp || "",
+      vital_signs_rr: apiCase.physical_examination?.vital_signs_rr || "",
+      vital_signs_spo2: apiCase.physical_examination?.vital_signs_spo2 || "",
+      weight_kg: apiCase.physical_examination?.weight_kg || "",
+      height_cm: apiCase.physical_examination?.height_cm || "",
+      consciousness_level: apiCase.physical_examination?.consciousness_level || "",
       cardiovascular: apiCase.physical_examination?.cardiovascular || "",
       respiratory: apiCase.physical_examination?.respiratory || "",
       head_neck: apiCase.physical_examination?.head_neck || "",
@@ -899,10 +1161,21 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
         apiCase.detailed_investigations?.laboratory_results ||
         apiCase.investigations ||
         "",
+      hemoglobin_level: apiCase.detailed_investigations?.hemoglobin_level || "",
+      white_cell_count: apiCase.detailed_investigations?.white_cell_count || "",
+      platelet_count: apiCase.detailed_investigations?.platelet_count || "",
+      sodium_level: apiCase.detailed_investigations?.sodium_level || "",
+      potassium_level: apiCase.detailed_investigations?.potassium_level || "",
+      glucose_level: apiCase.detailed_investigations?.glucose_level || "",
+      creatinine_level: apiCase.detailed_investigations?.creatinine_level || "",
       imaging_studies: apiCase.detailed_investigations?.imaging_studies || "",
       ecg_findings: apiCase.detailed_investigations?.ecg_findings || "",
+      ecg_rhythm: apiCase.detailed_investigations?.ecg_rhythm || "",
+      ecg_rate: apiCase.detailed_investigations?.ecg_rate || "",
       pathology_results:
         apiCase.detailed_investigations?.pathology_results || "",
+      microbiology_results: apiCase.detailed_investigations?.microbiology_results || "",
+      other_investigations: apiCase.detailed_investigations?.other_investigations || "",
       special_tests: apiCase.detailed_investigations?.special_tests || "",
       microbiology: apiCase.detailed_investigations?.microbiology || "",
       biochemistry: apiCase.detailed_investigations?.biochemistry || "",
@@ -947,14 +1220,23 @@ async function saveGrade() {
       evaluation_notes: gradingForm.value.evaluation_notes,
       strengths: gradingForm.value.strengths,
       weaknesses: gradingForm.value.weaknesses,
-      recommendations: gradingForm.value.recommendations, // can be a textarea later
+      recommendations: gradingForm.value.recommendations,
       grading_criteria: gradingForm.value.criteria,
       is_final: false,
-      case: Number(props.caseId), // integer
+      case: Number(props.caseId),
     };
 
-    console.log("SAVE payload →", payload); // <-- debug
-    await gradesService.saveGrade(payload);
+    console.log("SAVE payload →", payload);
+    
+    if (existingGradeId.value) {
+      // Update existing draft grade
+      await gradesService.updateGrade(existingGradeId.value.toString(), payload);
+    } else {
+      // Create new draft grade
+      const result = await gradesService.saveGrade(payload);
+      existingGradeId.value = result.id;
+    }
+    
     toast.success("Đánh giá đã được lưu thành công!");
   } catch (error: unknown) {
     const err = error as import("axios").AxiosError<{ [k: string]: string[] }>;
@@ -967,6 +1249,10 @@ async function saveGrade() {
 }
 
 async function submitGrade() {
+  if (isFinalGrade.value) {
+    toast.error("Điểm đã được nộp. Không thể thay đổi.");
+    return;
+  }
   if (!canSaveGrade.value) {
     toast.error("Vui lòng nhập điểm số và nhận xét");
     return;
@@ -986,9 +1272,24 @@ async function submitGrade() {
       case: Number(props.caseId),
     };
 
-    console.log("SUBMIT payload →", payload); // <-- debug
-    console.log(typeof payload.letter_grade);
-    await gradesService.submitGrade(payload);
+    console.log("SUBMIT payload →", payload);
+    
+    if (existingGradeId.value) {
+      // Update existing grade to final
+      await gradesService.updateGrade(existingGradeId.value.toString(), payload);
+    } else {
+      // Create new final grade
+      const result = await gradesService.submitGrade(payload);
+      existingGradeId.value = result.id;
+    }
+    
+    // Update case status to reviewed
+    await casesService.updateCase(props.caseId, { case_status: 'reviewed' });
+    
+    // Set flag to disable further edits
+    isFinalGrade.value = true;
+    caseData.value.case_status = 'reviewed';
+    
     toast.success("Chấm điểm hoàn tất!");
     setTimeout(() => emit("navigate", "dashboard"), 1500);
   } catch (error: unknown) {
@@ -1026,6 +1327,9 @@ onMounted(async () => {
       try {
         const grade = await gradesService.getGrade(props.caseId);
         if (grade) {
+          existingGradeId.value = grade.id;
+          isFinalGrade.value = grade.is_final || false;
+          
           gradingForm.value = {
             score: grade.score ?? 0,
             evaluation_notes: grade.evaluation_notes || "",
@@ -1069,6 +1373,14 @@ interface ClinicalHistory {
 interface PhysicalExamination {
   general_appearance?: string;
   vital_signs?: string;
+  vital_signs_temp?: string;
+  vital_signs_hr?: string;
+  vital_signs_bp?: string;
+  vital_signs_rr?: string;
+  vital_signs_spo2?: string;
+  weight_kg?: string;
+  height_cm?: string;
+  consciousness_level?: string;
   cardiovascular?: string;
   respiratory?: string;
   head_neck?: string;
@@ -1081,9 +1393,20 @@ interface PhysicalExamination {
 
 interface Investigations {
   laboratory_results?: string;
+  hemoglobin_level?: string;
+  white_cell_count?: string;
+  platelet_count?: string;
+  sodium_level?: string;
+  potassium_level?: string;
+  glucose_level?: string;
+  creatinine_level?: string;
   imaging_studies?: string;
   ecg_findings?: string;
+  ecg_rhythm?: string;
+  ecg_rate?: string;
   pathology_results?: string;
+  microbiology_results?: string;
+  other_investigations?: string;
   special_tests?: string;
   microbiology?: string;
   biochemistry?: string;

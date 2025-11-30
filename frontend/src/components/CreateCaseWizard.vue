@@ -179,8 +179,8 @@ const caseData = ref<Record<string, any>>({
     vital_signs_rr: null,
     vital_signs_temp: null,
     vital_signs_spo2: null,
-    vital_signs_weight: null,
-    vital_signs_height: null,
+    weight_kg: null,
+    height_cm: null,
     head_neck: '',
     cardiovascular: '',
     respiratory: '',
@@ -497,6 +497,23 @@ const handleComplete = async () => {
       return Object.keys(cleaned).length > 0 ? cleaned : undefined
     }
 
+    // Helper function to format date to YYYY-MM-DD or null
+    const formatDate = (dateValue: any) => {
+      if (!dateValue || dateValue === '') return null
+      // If already in YYYY-MM-DD format, return as-is
+      if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        return dateValue
+      }
+      // Try to parse and format
+      try {
+        const date = new Date(dateValue)
+        if (isNaN(date.getTime())) return null
+        return date.toISOString().split('T')[0]
+      } catch {
+        return null
+      }
+    }
+
     // Prepare the case data payload
     const payload: any = {
       title: caseData.value.title,
@@ -508,27 +525,47 @@ const handleComplete = async () => {
     }
 
     // Add optional basic fields only if they have values
-    if (caseData.value.template) payload.template = caseData.value.template
+    if (caseData.value.template) {
+      // If template is an object, extract the ID
+      payload.template = typeof caseData.value.template === 'object' 
+        ? caseData.value.template.id 
+        : caseData.value.template
+    }
     if (caseData.value.patient_gender) payload.patient_gender = caseData.value.patient_gender
     if (caseData.value.patient_ethnicity) payload.patient_ethnicity = caseData.value.patient_ethnicity
     if (caseData.value.patient_occupation) payload.patient_occupation = caseData.value.patient_occupation
     if (caseData.value.medical_record_number) payload.medical_record_number = caseData.value.medical_record_number
-    if (caseData.value.admission_date) payload.admission_date = caseData.value.admission_date
-    if (caseData.value.discharge_date) payload.discharge_date = caseData.value.discharge_date
+    
+    // Format dates properly
+    const admissionDate = formatDate(caseData.value.admission_date)
+    if (admissionDate) payload.admission_date = admissionDate
+    
+    const dischargeDate = formatDate(caseData.value.discharge_date)
+    if (dischargeDate) payload.discharge_date = dischargeDate
+    
     if (caseData.value.chief_complaint_brief) payload.chief_complaint_brief = caseData.value.chief_complaint_brief
     if (caseData.value.case_summary) payload.case_summary = caseData.value.case_summary
     if (caseData.value.keywords) payload.keywords = caseData.value.keywords
     if (caseData.value.learning_tags) payload.learning_tags = caseData.value.learning_tags
     if (caseData.value.estimated_study_hours) payload.estimated_study_hours = caseData.value.estimated_study_hours
     if (caseData.value.requires_follow_up !== undefined) payload.requires_follow_up = caseData.value.requires_follow_up
-    if (caseData.value.follow_up_date) payload.follow_up_date = caseData.value.follow_up_date
+    
+    const followUpDate = formatDate(caseData.value.follow_up_date)
+    if (followUpDate) payload.follow_up_date = followUpDate
 
     // Add nested models only if they have data
     const cleanedClinicalHistory = cleanObject(caseData.value.clinical_history)
     if (cleanedClinicalHistory) payload.clinical_history = cleanedClinicalHistory
 
     const cleanedPhysicalExam = cleanObject(caseData.value.physical_examination)
-    if (cleanedPhysicalExam) payload.physical_examination = cleanedPhysicalExam
+    if (cleanedPhysicalExam) {
+      // Ensure consciousness_level is a valid choice (alert, drowsy, stupor, coma)
+      if (cleanedPhysicalExam.consciousness_level && 
+          !['alert', 'drowsy', 'stupor', 'coma'].includes(cleanedPhysicalExam.consciousness_level)) {
+        cleanedPhysicalExam.consciousness_level = 'alert' // Default to alert
+      }
+      payload.physical_examination = cleanedPhysicalExam
+    }
 
     const cleanedInvestigations = cleanObject(caseData.value.detailed_investigations)
     if (cleanedInvestigations) payload.detailed_investigations = cleanedInvestigations

@@ -146,10 +146,8 @@ const localData = computed({
 
 const consciousnessOptions = [
   { value: 'alert', label: 'Alert' },
-  { value: 'confused', label: 'Confused' },
-  { value: 'lethargic', label: 'Lethargic' },
-  { value: 'obtunded', label: 'Obtunded' },
-  { value: 'stuporous', label: 'Stuporous' },
-  { value: 'comatose', label: 'Comatose' }
+  { value: 'drowsy', label: 'Drowsy' },
+  { value: 'stupor', label: 'Stupor' },
+  { value: 'coma', label: 'Coma' }
 ]
 </script>
