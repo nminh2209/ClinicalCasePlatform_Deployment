@@ -166,7 +166,11 @@ const caseData = ref<Record<string, any>>({
     allergies: '',
     immunizations: '',
     surgical_history: '',
-    review_of_systems: ''
+    review_of_systems: '',
+    symptom_duration_days: null,
+    symptom_onset: '',
+    symptom_progression: '',
+    review_systems: ''
   },
 
   // PhysicalExamination (OneToOne)

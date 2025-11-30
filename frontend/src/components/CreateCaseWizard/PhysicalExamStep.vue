@@ -102,6 +102,13 @@
             <Textarea id="skin" v-model="localData.physical_examination.skin" 
               :placeholder="t('createCase.skinPlaceholder')" rows="3" />
           </div>
+
+          <!-- Missing Field: Other Systems -->
+          <div class="space-y-2">
+            <Label for="other_systems">Ghi chú khám bổ sung</Label>
+            <Textarea id="other_systems" v-model="localData.physical_examination.other_systems" 
+              placeholder="Các hệ thống khác hoặc ghi chú bổ sung..." rows="3" />
+          </div>
         </div>
       </div>
     </Card>

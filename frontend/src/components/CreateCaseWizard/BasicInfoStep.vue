@@ -122,6 +122,78 @@
             <Textarea id="allergies" v-model="localData.clinical_history.allergies"
               :placeholder="t('createCase.enterAllergies')" rows="2" />
           </div>
+
+          <!-- Missing Fields - Symptom Details -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="space-y-2">
+              <Label for="symptom_duration">Thời gian có triệu chứng (ngày)</Label>
+              <Input id="symptom_duration" type="number" v-model.number="localData.clinical_history.symptom_duration_days"
+                placeholder="Ví dụ: 7" min="0" />
+            </div>
+
+            <div class="space-y-2">
+              <Label for="symptom_onset">Khởi phát triệu chứng</Label>
+              <Input id="symptom_onset" v-model="localData.clinical_history.symptom_onset"
+                placeholder="Ví dụ: Đột ngột, Từ từ" />
+            </div>
+
+            <div class="space-y-2">
+              <Label for="symptom_progression">Diễn biến triệu chứng</Label>
+              <Input id="symptom_progression" v-model="localData.clinical_history.symptom_progression"
+                placeholder="Ví dụ: Tiến triển, Ổn định, Giảm dần" />
+            </div>
+          </div>
+
+          <!-- Missing Fields - Family & Social History -->
+          <div class="space-y-2">
+            <Label for="family_history">Tiền sử gia đình</Label>
+            <Textarea id="family_history" v-model="localData.clinical_history.family_history"
+              :placeholder="t('createCase.describeFamilyHistory')" rows="3" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="social_history">Tiền sử xã hội</Label>
+            <Textarea id="social_history" v-model="localData.clinical_history.social_history"
+              :placeholder="t('createCase.describeSocialHistory')" rows="3" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="review_systems">Hỏi bệnh theo hệ thống</Label>
+            <Textarea id="review_systems" v-model="localData.clinical_history.review_systems"
+              :placeholder="t('createCase.describeSystemsReview')" rows="4" />
+          </div>
+        </div>
+      </div>
+    </Card>
+
+    <!-- Missing Fields - Case Summary & Learning Info -->
+    <Card>
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">Tóm tắt và Thông tin Học tập</h3>
+
+        <div class="space-y-6">
+          <div class="space-y-2">
+            <Label for="case_summary">Tóm tắt ca bệnh</Label>
+            <Textarea id="case_summary" v-model="localData.case_summary"
+              placeholder="Tóm tắt ngắn gọn về ca bệnh này..." rows="4" />
+            <p class="text-xs text-gray-500 mt-1">Tóm tắt chung về ca bệnh để sinh viên dễ hiểu</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <Label for="learning_tags">Tags học tập</Label>
+              <Input id="learning_tags" v-model="localData.learning_tags"
+                placeholder="Ví dụ: Tim mạch, Cấp cứu, Nội khoa" />
+              <p class="text-xs text-gray-500 mt-1">Các từ khóa giúp tìm kiếm, cách nhau bởi dấu phẩy</p>
+            </div>
+
+            <div class="space-y-2">
+              <Label for="estimated_hours">Số giờ học ước tính</Label>
+              <Input id="estimated_hours" type="number" v-model.number="localData.estimated_study_hours"
+                placeholder="Ví dụ: 2" min="0" step="0.5" />
+              <p class="text-xs text-gray-500 mt-1">Thời gian học tập dự kiến (giờ)</p>
+            </div>
+          </div>
         </div>
       </div>
     </Card>

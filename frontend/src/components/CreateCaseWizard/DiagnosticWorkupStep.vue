@@ -74,6 +74,13 @@
             <Textarea id="imaging" v-model="localData.detailed_investigations.imaging_studies"
               :placeholder="t('createCase.imagingFindingsPlaceholder')" rows="4" />
           </div>
+
+          <!-- Missing Field: ECG Findings -->
+          <div class="space-y-2">
+            <Label for="ecg_findings">Điện tâm đồ (ECG)</Label>
+            <Textarea id="ecg_findings" v-model="localData.detailed_investigations.ecg_findings"
+              placeholder="Nhập kết quả điện tâm đồ..." rows="3" />
+          </div>
         </div>
       </div>
     </Card>

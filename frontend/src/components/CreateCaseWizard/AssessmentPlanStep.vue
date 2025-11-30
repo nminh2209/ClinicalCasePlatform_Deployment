@@ -101,6 +101,19 @@
             <Textarea id="references" v-model="localData.learning_outcomes.references"
               :placeholder="t('createCase.referencesPlaceholder')" rows="3" />
           </div>
+
+          <!-- Missing Fields: Discussion Points & Assessment Criteria -->
+          <div class="space-y-2">
+            <Label for="discussion_points">Điểm thảo luận</Label>
+            <Textarea id="discussion_points" v-model="localData.learning_outcomes.discussion_points"
+              placeholder="Các điểm quan trọng để thảo luận với sinh viên..." rows="3" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="assessment_criteria">Tiêu chí đánh giá</Label>
+            <Textarea id="assessment_criteria" v-model="localData.learning_outcomes.assessment_criteria"
+              placeholder="Các tiêu chí để đánh giá hiểu biết của sinh viên..." rows="3" />
+          </div>
         </div>
       </div>
     </Card>
