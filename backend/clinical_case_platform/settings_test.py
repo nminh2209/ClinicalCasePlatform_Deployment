@@ -90,7 +90,7 @@ WSGI_APPLICATION = "clinical_case_platform.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME_TEST", default="clinical_case_platform_test"),
+        "NAME": config("DB_NAME_TEST", default="clinical_case_db"),
         "USER": config("DB_USER", default="postgres"),
         "PASSWORD": config("DB_PASSWORD", default="postgres"),
         # For Hoang An's local Arch setup.
