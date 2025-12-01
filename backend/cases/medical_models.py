@@ -488,7 +488,6 @@ class MedicalAttachment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     # Access control
-    is_confidential = models.BooleanField(default=False, help_text="Đánh dấu tệp là bảo mật")
     confidentiality_level = models.CharField(
         max_length=50,
         choices=ConfidentialityLevel.choices,
@@ -580,8 +579,7 @@ class MedicalAttachment(models.Model):
         self.file.seek(0)
 
         # Check if MIME type is allowed
-        allowed_types = list(self.ALLOWED_FILE_TYPES.keys()) + ["text/plain"]
-        if mime_type not in allowed_types:
+        if mime_type not in self.ALLOWED_FILE_TYPES:
             raise ValidationError(f"Unsupported or invalid file type: {mime_type}")
 
         # Store metadata
