@@ -62,6 +62,7 @@ urlpatterns = [
     path("api/feedback/", include("feedback.urls")),
     path("api/exports/", include("exports.urls")),
     path("api/grades/", include("grades.urls")),
+    path("api/notifications/", include("notifications.urls")),
     # Analytics URLs
     path('api/', include('cases.analytics_urls')),
     # Validation URLs

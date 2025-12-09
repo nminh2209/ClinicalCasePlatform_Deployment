@@ -39,23 +39,36 @@ class GradeSerializer(serializers.ModelSerializer):
     def validate_grading_criteria(self, value):
         """
         Validate grading_criteria structure if provided
+        Rubric weights: History(25), Examination(25), Differential(20), Treatment(20), Presentation(10)
         """
         if value is not None:
             required_keys = ['history', 'examination', 'differential', 'treatment', 'presentation']
+            max_scores = {
+                'history': 25,
+                'examination': 25,
+                'differential': 20,
+                'treatment': 20,
+                'presentation': 10
+            }
+            
             if not isinstance(value, dict):
                 raise serializers.ValidationError("grading_criteria must be an object")
             
-            # Check all required keys are present
+            # Check all required keys are present and validate ranges
             for key in required_keys:
                 if key not in value:
                     raise serializers.ValidationError(f"grading_criteria missing required field: {key}")
                 
-                # Validate each score is a number between 0-100
                 score = value[key]
                 if not isinstance(score, (int, float)):
                     raise serializers.ValidationError(f"{key} must be a number")
-                if score < 0 or score > 100:
-                    raise serializers.ValidationError(f"{key} must be between 0 and 100")
+                if score < 0 or score > max_scores[key]:
+                    raise serializers.ValidationError(f"{key} must be between 0 and {max_scores[key]}")
+            
+            # Validate total doesn't exceed 100
+            total = sum(value[key] for key in required_keys)
+            if total > 100:
+                raise serializers.ValidationError(f"Total rubric score cannot exceed 100 (current: {total})")
         
         return value
 

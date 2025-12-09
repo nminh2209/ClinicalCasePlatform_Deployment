@@ -222,10 +222,9 @@
               </div>
               <div class="flex items-center gap-3">
                 <div class="text-right">
-                  <div class="text-2xl font-bold text-gray-900">{{ submission.grade }}%</div>
                   <span
                     :class="[
-                      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1',
+                      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
                       submission.visibility === 'public'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
@@ -291,10 +290,10 @@ const departmentCases = computed(() => {
   );
 });
 
-// Filter cases that are submitted (waiting for review)
+// Filter cases that are submitted (waiting for review) and not yet graded
 const pendingSubmissions = computed(() => {
   return departmentCases.value
-    .filter((c) => c.case_status === "submitted")
+    .filter((c) => c.case_status === "submitted" && c.case_status !== "reviewed" && c.case_status !== "approved")
     .map((c) => {
       const submittedDate = new Date(c.submitted_at || c.updated_at);
       const daysWaiting = Math.floor(

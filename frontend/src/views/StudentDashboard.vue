@@ -211,10 +211,10 @@
                 <p class="text-sm text-gray-600">Giảng viên: {{ case_.teacher }}</p>
               </div>
               <div class="text-right">
-                <div v-if="case_.grade !== null" class="text-2xl font-bold text-green-600">
+                <div v-if="case_.grade !== null && case_.grade !== undefined" class="text-2xl font-bold text-green-600">
                   {{ case_.grade }}%
                 </div>
-                <div v-else-if="case_.status === 'submitted'" class="text-sm font-medium text-blue-600">
+                <div v-else-if="case_.status === 'submitted' || case_.case_status === 'submitted'" class="text-sm font-medium text-blue-600">
                   Đang chấm
                 </div>
                 <div v-else class="text-2xl font-bold text-gray-400">

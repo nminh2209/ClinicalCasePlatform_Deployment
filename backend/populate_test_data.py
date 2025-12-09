@@ -68,6 +68,13 @@ from cases.medical_models import (  # noqa: E402
 )
 from repositories.models import Repository  # noqa: E402
 from templates.models import CaseTemplate  # noqa: E402
+from grades.models import Grade  # noqa: E402
+from comments.models import Comment  # noqa: E402
+from feedback.models import Feedback  # noqa: E402
+from notifications.models import Notification  # noqa: E402
+import random
+from datetime import timedelta
+from django.utils import timezone
 
 
 def remove_vietnamese_diacritics(text):
@@ -178,15 +185,32 @@ def enforce_department_scoping():
 
 
 def create_test_data(clear_existing: bool = False, per_dept_cases: int = 5):
-    print("🚀 Starting departmental test data creation...")
+    print("🚀 Starting comprehensive test data creation...")
 
     if clear_existing:
-        # Only remove non-critical data (keep admin if exists)
+        # Clear all test data (keep admin and manually created users)
+        print("🧹 Clearing existing test data...")
+        print("⚠️  Keeping: admin accounts and any manually created users")
+        
+        # Delete related data first
+        Notification.objects.all().delete()
+        Grade.objects.all().delete()
+        Comment.objects.all().delete()
+        Feedback.objects.all().delete()
         Case.objects.all().delete()
         Repository.objects.all().delete()
         CaseTemplate.objects.all().delete()
-        User.objects.filter(is_superuser=False).exclude(role="admin").delete()
-        print("🧹 Cleared existing non-admin data.")
+        
+        # Only delete users created by this script (have specific patterns)
+        # Keep manually created users
+        test_emails = [
+            'instructor@test.com', 'tran.thi.lan@test.com', 'le.van.hung@test.com',
+            'pham.thi.hoa@test.com', 'hoang.van.nam@test.com', 'student@test.com'
+        ]
+        User.objects.filter(email__in=test_emails).delete()
+        User.objects.filter(email__endswith='@student.com').delete()  # Auto-generated students
+        
+        print("✅ Test data cleared (kept your manual accounts).")
 
     # Create departments first
     departments_data = [
@@ -611,7 +635,8 @@ def create_test_data(clear_existing: bool = False, per_dept_cases: int = 5):
     }
 
     created_cases = []
-    case_statuses = ["draft", "submitted", "reviewed", "approved"]
+    # Weight statuses to have more graded cases (submitted, reviewed, approved)
+    case_statuses = ["draft", "submitted", "submitted", "reviewed", "reviewed", "approved"]
     genders = ["male", "female"]
     
     print(f"\n📝 Creating cases for {len(students)} students...")
@@ -693,70 +718,335 @@ def create_test_data(clear_existing: bool = False, per_dept_cases: int = 5):
 
     print(f"✅ Total cases created: {len(created_cases)}")
 
-    # Add detailed sections to the first few cases
-    print("\n📋 Adding detailed clinical data to sample cases...")
-    for i, case in enumerate(created_cases[:5]):  # Add details to first 5 cases
-        if "Nhồi máu cơ tim" in case.title or "Tim mạch" in case.specialty:
-            ClinicalHistory.objects.get_or_create(
+    # Add detailed clinical data to ALL cases
+    print("\n📋 Adding comprehensive clinical data to all cases...")
+    clinical_data_templates = {
+        "Tim mạch": {
+            "chief_complaints": ["Đau ngực cấp tính", "Khó thở", "Hồi hộp đánh trống ngực", "Phù chân"],
+            "histories": [
+                "Đau ngực xuất hiện đột ngột, lan ra cánh tay trái, kèm vã mồ hôi",
+                "Khó thở khi gắng sức, ho ra đờm hồng, phù chân tăng dần",
+                "Hồi hộp không đều, choáng váng, khó thở nhẹ",
+            ],
+            "vitals": ["T: 36.8°C, P: 110/min, BP: 160/95 mmHg", "T: 37.2°C, P: 95/min, BP: 145/90 mmHg"],
+            "labs": ["Troponin tăng, CK-MB tăng, D-dimer bình thường", "BNP tăng cao, Creatinine nhẹ tăng"],
+            "imaging": ["X-quang ngực: Phù phổi", "Echo tim: EF 35%, phì đại thất trái"],
+        },
+        "Nội khoa": {
+            "chief_complaints": ["Đau bụng", "Sốt cao", "Mệt mỏi", "Vàng da"],
+            "histories": [
+                "Đau bụng vùng thượng vị, buồn nôn, ăn uống kém",
+                "Sốt cao liên tục 3 ngày, đau đầu, mệt mỏi",
+                "Tiểu nhiều, uống nhiều nước, gầy sút cân",
+            ],
+            "vitals": ["T: 38.5°C, P: 88/min, BP: 120/75 mmHg", "T: 37°C, P: 72/min, BP: 130/80 mmHg"],
+            "labs": ["Đường huyết: 350 mg/dL, HbA1c: 9.5%", "ALT/AST tăng, Bilirubin tăng"],
+            "imaging": ["Siêu âm bụng: Gan to, mật độ tăng", "X-quang ngực bình thường"],
+        },
+        "Ngoại khoa": {
+            "chief_complaints": ["Đau bụng hạ vị phải", "Khối u", "Đau khi đi tiêu"],
+            "histories": [
+                "Đau bụng hạ vị phải xuất hiện 6 tiếng, buồn nôn, sốt nhẹ",
+                "Phát hiện khối u vùng bẹn, có thể đẩy lại được",
+                "Đau khi đi tiêu, táo bón, đi ngoài ra máu",
+            ],
+            "vitals": ["T: 38°C, P: 95/min, BP: 125/78 mmHg", "T: 36.9°C, P: 80/min, BP: 118/72 mmHg"],
+            "labs": ["BC tăng: 15000/mm3, CRP tăng", "Hb: 10.5 g/dL, CEA tăng"],
+            "imaging": ["Siêu âm: Ruột thừa to, dịch quanh ruột", "CT scan: Khối ở đại tràng sigma"],
+        },
+    }
+    
+    for case in created_cases:
+        # Determine category
+        category = "Nội khoa"
+        if "Tim mạch" in case.specialty or "Cardio" in case.specialty:
+            category = "Tim mạch"
+        elif "Ngoại" in case.specialty or "Surgery" in case.specialty:
+            category = "Ngoại khoa"
+            
+        templates = clinical_data_templates.get(category, clinical_data_templates["Nội khoa"])
+        
+        # Clinical History
+        ClinicalHistory.objects.get_or_create(
+            case=case,
+            defaults={
+                "chief_complaint": random.choice(templates["chief_complaints"]),
+                "history_present_illness": random.choice(templates["histories"]),
+                "past_medical_history": random.choice([
+                    "Tăng huyết áp 5 năm",
+                    "Đái tháo đường type 2",
+                    "Không có bệnh lý đặc biệt",
+                    "Hen phế quản",
+                ]),
+                "family_history": random.choice([
+                    "Cha mẹ có tiền sử bệnh tim mạch",
+                    "Không có tiền sử gia đình đáng chú ý",
+                    "Ông ngoại mắc đái tháo đường",
+                ]),
+                "social_history": random.choice([
+                    "Không hút thuốc, uống rượu",
+                    "Hút thuốc 10 điếu/ngày, 15 năm",
+                    "Văn phòng, ít vận động",
+                ]),
+                "medications": random.choice([
+                    "Đang dùng thuốc hạ áp: Amlodipine 5mg/ngày",
+                    "Metformin 500mg x 2 lần/ngày",
+                    "Chưa dùng thuốc thường xuyên",
+                ]),
+            },
+        )
+        
+        # Physical Examination
+        PhysicalExamination.objects.get_or_create(
+            case=case,
+            defaults={
+                "vital_signs": random.choice(templates["vitals"]),
+                "general_appearance": "Tỉnh táo, tiếp xúc tốt",
+                "cardiovascular": random.choice([
+                    "Tim đều, không tiếng thổi",
+                    "Nhịp nhanh, tiếng tim I mờ",
+                    "Nhịp không đều, tiếng thổi tâm thu",
+                ]),
+                "respiratory": random.choice([
+                    "Phổi trong, không ran",
+                    "Ran ẩm hai đáy phổi",
+                    "Phế âm giảm bên phải",
+                ]),
+                "abdominal": random.choice([
+                    "Bụng mềm, không đau ấn",
+                    "Đau ấn vùng hạ vị phải, Mc Burney (+)",
+                    "Gan to 2cm dưới bờ sườn",
+                ]),
+            },
+        )
+        
+        # Investigations
+        Investigations.objects.get_or_create(
+            case=case,
+            defaults={
+                "laboratory_results": random.choice(templates["labs"]),
+                "imaging_studies": random.choice(templates["imaging"]),
+                "ecg_findings": random.choice([
+                    "Nhịp xoang, không bất thường",
+                    "ST chênh lên V2-V5",
+                    "Rung nhĩ, tần số thất 120/phút",
+                ]) if category == "Tim mạch" else "",
+            },
+        )
+        
+        # Diagnosis & Management
+        DiagnosisManagement.objects.get_or_create(
+            case=case,
+            defaults={
+                "primary_diagnosis": case.title.split(" - ")[0] if " - " in case.title else case.title,
+                "differential_diagnosis": random.choice([
+                    "Cơn đau thắt ngực không ổn định",
+                    "Viêm phổi",
+                    "Viêm dạ dày cấp",
+                ]),
+                "treatment_plan": random.choice([
+                    "Điều trị nội khoa theo phác đồ",
+                    "Chỉ định phẫu thuật cấp",
+                    "Theo dõi tại bệnh viện 24-48h",
+                ]),
+                "medications_prescribed": random.choice([
+                    "Aspirin 300mg, Clopidogrel 300mg, Atorvastatin 40mg",
+                    "Ceftriaxone 2g/ngày, Metronidazole 500mg x3",
+                    "Insulin NPH + Regular, Metformin",
+                ]),
+            },
+        )
+        
+        # Learning Outcomes (for educational cases)
+        if case.case_status in ["approved", "reviewed"]:
+            LearningOutcomes.objects.get_or_create(
                 case=case,
                 defaults={
-                    "chief_complaint": "Đau ngực cấp tính",
-                    "history_present_illness": f"Bệnh nhân {case.patient_age} tuổi, đến khám vì đau ngực cấp tính. Đau dữ dội, lan ra cánh tay.",
-                    "past_medical_history": "Tiền sử tăng huyết áp",
-                    "family_history": "Có người thân mắc bệnh tim mạch",
-                    "social_history": "Hút thuốc/uống rượu",
-                    "medications": "Đang dùng thuốc hạ áp",
-                }
+                    "learning_objectives": "Nhận biết triệu chứng cơ bản, chẩn đoán phân biệt, xử trí ban đầu",
+                    "clinical_pearls": random.choice([
+                        "Luôn kiểm tra ECG trong vòng 10 phút khi bệnh nhân đau ngực",
+                        "Chỉ số Alvarado giúp đánh giá nguy cơ viêm ruột thừa",
+                        "Kiểm soát đường huyết là then chốt trong điều trị",
+                    ]),
+                    "references": "ESC Guidelines 2023, AHA/ACC 2024",
+                },
             )
-            PhysicalExamination.objects.get_or_create(
+    
+    print(f"✅ Added clinical data to all {len(created_cases)} cases")
+    
+    # Create Grades for submitted/reviewed/approved cases
+    print("\n📊 Creating grades for submitted cases...")
+    graded_cases = []
+    for case in created_cases:
+        if case.case_status in ["submitted", "reviewed", "approved"]:
+            # Find an instructor from the same department
+            instructor = User.objects.filter(
+                role="instructor",
+                department=case.student.department
+            ).first() or instructors[0]
+            
+            # Generate rubric scores with proper constraints
+            # History: max 25, Examination: max 25, Differential: max 20, Treatment: max 20, Presentation: max 10
+            history = random.randint(15, 25)
+            examination = random.randint(15, 25)
+            differential = random.randint(12, 20)
+            treatment = random.randint(12, 20)
+            presentation = random.randint(6, 10)
+            total_score = history + examination + differential + treatment + presentation
+            
+            grade, created = Grade.objects.get_or_create(
                 case=case,
                 defaults={
-                    "vital_signs": "T: 36.8°C, P: 110/min, BP: 160/95 mmHg",
-                    "cardiovascular": "Tim đều, không tiếng thổi",
-                    "respiratory": "Phổi trong",
-                }
+                    "graded_by": instructor,
+                    "grade_scale": "percentage",
+                    "score": total_score,
+                    "letter_grade": "A" if total_score >= 90 else "B" if total_score >= 80 else "C",
+                    "grading_criteria": {
+                        "history": history,
+                        "examination": examination,
+                        "differential": differential,
+                        "treatment": treatment,
+                        "presentation": presentation,
+                    },
+                    "evaluation_notes": f"Bệnh án được trình bày tốt với điểm tổng {total_score}/100. Sinh viên thể hiện khả năng lâm sàng tốt.",
+                    "strengths": "Khai thác bệnh sử chi tiết, khám lâm sàng cẩn thận",
+                    "weaknesses": "Cần cải thiện phần chẩn đoán phân biệt",
+                    "recommendations": "Đọc thêm về các triệu chứng không điển hình",
+                    "is_final": case.case_status in ["reviewed", "approved"],
+                },
             )
-            Investigations.objects.get_or_create(
+            if created:
+                graded_cases.append(grade)
+    
+    print(f"✅ Created {len(graded_cases)} grades")
+    
+    # Create Comments and Feedback
+    print("\n💬 Creating comments and feedback...")
+    created_comments = 0
+    created_feedback = 0
+    
+    for case in created_cases[:30]:  # Add comments to first 30 cases
+        # Instructor comment
+        instructor = User.objects.filter(
+            role="instructor",
+            department=case.student.department
+        ).first() or instructors[0]
+        
+        comment, created = Comment.objects.get_or_create(
+            case=case,
+            author=instructor,
+            defaults={
+                "content": random.choice([
+                    "Bệnh án được trình bày rõ ràng. Tuy nhiên, cần bổ sung thêm chẩn đoán phân biệt.",
+                    "Khai thác tiền sử tốt. Hãy chú ý thêm về khám thực thể.",
+                    "Phần điều trị cần chi tiết hơn về liều lượng thuốc.",
+                ]),
+                "is_instructor_feedback": True,
+            },
+        )
+        if created:
+            created_comments += 1
+            
+            # Student reply
+            reply, created = Comment.objects.get_or_create(
                 case=case,
+                author=case.student,
+                parent=comment,
                 defaults={
-                    "laboratory_results": "Troponin tăng, CK-MB tăng",
-                    "imaging_studies": "X-quang ngực, Echo tim",
-                    "ecg_findings": "ST chênh lên",
-                }
+                    "content": "Cảm ơn thầy/cô. Em sẽ bổ sung thêm phần này.",
+                },
             )
-            DiagnosisManagement.objects.get_or_create(
+            if created:
+                created_comments += 1
+        
+        # Structured Feedback
+        if case.case_status in ["reviewed", "approved"]:
+            feedback, created = Feedback.objects.get_or_create(
                 case=case,
+                instructor=instructor,
                 defaults={
-                    "primary_diagnosis": case.title.split(" - ")[0] if " - " in case.title else case.title,
-                    "treatment_plan": "Điều trị theo phác đồ chuyên khoa",
-                    "medications_prescribed": "Aspirin, Clopidogrel, Statin",
-                }
+                    "feedback_type": random.choice(["general", "clinical_reasoning", "documentation"]),
+                    "content": f"Nhận xét chung về ca bệnh {case.title}",
+                    "strengths": "Trình bày logic, có hệ thống, khai thác bệnh sử đầy đủ",
+                    "areas_for_improvement": "Cần cải thiện phần khám lâm sàng, chú ý các dấu hiệu đặc trưng",
+                    "recommendations": "Đọc thêm guidelines ESC/AHA, thực hành kỹ năng khám thực thể",
+                    "is_public": True,
+                },
             )
-        else:
-            # Add basic clinical data for other specialties
-            ClinicalHistory.objects.get_or_create(
-                case=case,
-                defaults={
-                    "chief_complaint": f"Triệu chứng liên quan đến {case.specialty}",
-                    "history_present_illness": f"Bệnh nhân {case.patient_age} tuổi đến khám...",
-                }
-            )
-            PhysicalExamination.objects.get_or_create(
-                case=case,
-                defaults={
-                    "vital_signs": "Sinh hiệu ổn định",
-                    "general_appearance": "Tỉnh táo, tiếp xúc tốt",
-                }
-            )
-
-    print(f"✅ Added clinical details to {min(5, len(created_cases))} sample cases")
+            if created:
+                created_feedback += 1
+    
+    print(f"✅ Created {created_comments} comments")
+    print(f"✅ Created {created_feedback} feedback entries")
+    
+    # Create Notifications
+    print("\n🔔 Creating notifications...")
+    created_notifications = 0
+    
+    # Grade notifications
+    for grade in graded_cases[:20]:
+        notif, created = Notification.objects.get_or_create(
+            recipient=grade.case.student,
+            notification_type="grade",
+            related_case=grade.case,
+            related_grade=grade,
+            defaults={
+                "title": "Bạn nhận được điểm mới",
+                "message": f"Bệnh án '{grade.case.title}' đã được chấm điểm: {grade.score}/100",
+                "action_url": f"/cases/{grade.case.id}",
+                "is_read": random.choice([True, False]),
+            },
+        )
+        if created:
+            created_notifications += 1
+    
+    # Comment notifications
+    for comment in Comment.objects.filter(is_instructor_feedback=True)[:15]:
+        notif, created = Notification.objects.get_or_create(
+            recipient=comment.case.student,
+            notification_type="comment",
+            related_case=comment.case,
+            related_comment=comment,
+            defaults={
+                "title": "Góp ý mới từ giảng viên",
+                "message": f"{comment.author.get_full_name()} đã góp ý về bệnh án '{comment.case.title}'",
+                "action_url": f"/cases/{comment.case.id}#comments",
+                "is_read": random.choice([True, False]),
+            },
+        )
+        if created:
+            created_notifications += 1
+    
+    # Submission notifications (to instructors)
+    for case in created_cases[:10]:
+        if case.case_status == "submitted":
+            instructor = User.objects.filter(
+                role="instructor",
+                department=case.student.department
+            ).first()
+            if instructor:
+                notif, created = Notification.objects.get_or_create(
+                    recipient=instructor,
+                    notification_type="submission",
+                    related_case=case,
+                    defaults={
+                        "title": "Bệnh án mới cần đánh giá",
+                        "message": f"{case.student.get_full_name()} đã nộp bệnh án '{case.title}'",
+                        "action_url": f"/cases/{case.id}",
+                        "is_read": random.choice([True, False]),
+                    },
+                )
+                if created:
+                    created_notifications += 1
+    
+    print(f"✅ Created {created_notifications} notifications")
 
     # Enforce and validate department scoping
     enforce_department_scoping()
 
     # Print summary
     print("\n" + "=" * 60)
-    print("📊 DATABASE SUMMARY")
+    print("📊 COMPREHENSIVE DATABASE SUMMARY")
     print("=" * 60)
     print(f"   🏥 Departments: {Department.objects.count()}")
     print(f"   👥 Total Users: {User.objects.count()}")
@@ -769,33 +1059,47 @@ def create_test_data(clear_existing: bool = False, per_dept_cases: int = 5):
     print(f"      └─ Draft: {Case.objects.filter(case_status='draft').count()}")
     print(f"      └─ Submitted: {Case.objects.filter(case_status='submitted').count()}")
     print(f"      └─ Reviewed: {Case.objects.filter(case_status='reviewed').count()}")
+    print(f"      └─ Approved: {Case.objects.filter(case_status='approved').count()}")
     print(f"   📋 Clinical Histories: {ClinicalHistory.objects.count()}")
     print(f"   🩺 Physical Examinations: {PhysicalExamination.objects.count()}")
     print(f"   🧪 Investigations: {Investigations.objects.count()}")
     print(f"   💊 Diagnosis & Management: {DiagnosisManagement.objects.count()}")
     print(f"   🎯 Learning Outcomes: {LearningOutcomes.objects.count()}")
+    print(f"   📊 Grades: {Grade.objects.count()}")
+    print(f"   💬 Comments: {Comment.objects.count()}")
+    print(f"   📝 Feedback: {Feedback.objects.count()}")
+    print(f"   🔔 Notifications: {Notification.objects.count()}")
 
     print("\n" + "=" * 60)
     print("🔐 LOGIN CREDENTIALS")
     print("=" * 60)
-    print("\n 👨‍ ADMIN:")
+    print("\n 👨‍💼 ADMIN:")
     print("   Email: admin@test.com")
     print("   Password: minh1234minh")
 
     print("\n 👨‍🏫 INSTRUCTORS (all use password: testpass123):")
-    for instructor in User.objects.filter(role="instructor"):
+    for instructor in User.objects.filter(role="instructor")[:5]:
         dept_name = (
             instructor.department.vietnamese_name if instructor.department else "N/A"
         )
         print(f"   • {instructor.email} - {dept_name}")
 
-    print("\n 🎓 STUDENTS (all use password: testpass123):")
-    for student in User.objects.filter(role="student"):
+    print("\n 🎓 STUDENTS (sample - all use password: testpass123):")
+    for student in User.objects.filter(role="student")[:10]:
         dept_name = student.department.vietnamese_name if student.department else "N/A"
         print(f"   • {student.email} - {dept_name} - {student.student_id}")
 
     print("\n" + "=" * 60)
-    print("✅ Enhanced test data setup complete!")
+    print("✅ COMPREHENSIVE TEST DATA SETUP COMPLETE!")
+    print("=" * 60)
+    print("\n🎉 All systems ready:")
+    print("   ✅ User accounts with departments")
+    print("   ✅ Clinical cases with full medical data")
+    print("   ✅ Grades with detailed rubric scoring")
+    print("   ✅ Comments and threaded discussions")
+    print("   ✅ Instructor feedback")
+    print("   ✅ Real-time notifications")
+    print("\n💡 You can now test the complete platform!")
     print("=" * 60)
 
 

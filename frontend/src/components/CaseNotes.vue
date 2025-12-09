@@ -588,7 +588,7 @@
                     chẩn đoán.
                   </p>
                   <Textarea rows="10" v-model="notes.clinical_assessment" placeholder="Viết đánh giá lâm sàng của bạn ở đây..."
-                    class="min-h-[400px]" @input="handleNoteChange" />
+                    class="min-h-[400px]" @input="handleNoteChange" :disabled="!canEdit" />
                 </div>
               </TabsContent>
 
@@ -600,7 +600,7 @@
                   </p>
                   <Textarea rows="10" v-model="notes.differential_diagnosis"
                     placeholder="1. Chẩn đoán có khả năng nhất và lý do&#10;2. Chẩn đoán phân biệt thứ hai và tại sao...&#10;3. Những cân nhắc khác..."
-                    class="min-h-[400px]" @input="handleNoteChange" />
+                    class="min-h-[400px]" @input="handleNoteChange" :disabled="!canEdit" />
                 </div>
               </TabsContent>
 
@@ -612,7 +612,7 @@
                   </p>
                   <Textarea rows="10" v-model="notes.treatment_plan"
                     placeholder="Xử trí ngay:&#10;- &#10;&#10;Xét nghiệm thêm:&#10;- &#10;&#10;Quản lý dài hạn:&#10;- "
-                    class="min-h-[400px]" @input="handleNoteChange" />
+                    class="min-h-[400px]" @input="handleNoteChange" :disabled="!canEdit" />
                 </div>
               </TabsContent>
 
@@ -624,7 +624,7 @@
                   </p>
                   <Textarea rows="10" v-model="notes.learning_reflections"
                     placeholder="Điểm học tập chính:&#10;- &#10;&#10;Câu hỏi cho giảng viên:&#10;- &#10;&#10;Lĩnh vực cần nghiên cứu thêm:&#10;- "
-                    class="min-h-[400px]" @input="handleNoteChange" />
+                    class="min-h-[400px]" @input="handleNoteChange" :disabled="!canEdit" />
                 </div>
               </TabsContent>
             </Tabs>
@@ -636,8 +636,8 @@
             <CardTitle>📎 Tệp đính kèm y tế</CardTitle>
           </CardHeader>
           <CardContent>
-            <!-- File Upload Area -->
-            <div
+            <!-- File Upload Area - Only show when canEdit is true -->
+            <div v-if="canEdit"
               class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors mb-4 cursor-pointer"
               :class="{ 'border-blue-400 bg-blue-50': isDragOver }" @dragover.prevent="isDragOver = true"
               @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop" @click="fileInput?.click()">
@@ -655,7 +655,7 @@
               </div>
             </div>
 
-            <div class="text-xs text-gray-500 mb-4">
+            <div v-if="canEdit" class="text-xs text-gray-500 mb-4">
               <p>Định dạng hỗ trợ: JPG, PNG, PDF, DOC, DOCX</p>
               <p>Kích thước tối đa: 10MB mỗi file</p>
             </div>
@@ -678,7 +678,7 @@
                         </p>
                       </div>
                       
-                      <Button variant="outline" size="sm" @click="removeFile(index)"
+                      <Button v-if="canEdit" variant="outline" size="sm" @click="removeFile(index)"
                         class="text-red-600 hover:text-red-700 flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -711,7 +711,7 @@
                     <!-- Attachment Type -->
                     <div>
                       <label class="block text-xs font-medium text-gray-700 mb-1">Loại tài liệu</label>
-                      <select v-model="file.attachment_type"
+                      <select v-model="file.attachment_type" :disabled="!canEdit"
                         class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Chọn loại</option>
                         <option value="x_ray">📷 Chụp X-quang</option>
@@ -727,7 +727,7 @@
                     <!-- Title -->
                     <div>
                       <label class="block text-xs font-medium text-gray-700 mb-1">Tiêu đề</label>
-                      <input v-model="file.title" type="text"
+                      <input v-model="file.title" type="text" :disabled="!canEdit"
                         class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Nhập tiêu đề..." />
                     </div>
@@ -735,7 +735,7 @@
                     <!-- Department -->
                     <div>
                       <label class="block text-xs font-medium text-gray-700 mb-1">Khoa</label>
-                      <select v-model="file.department"
+                      <select v-model="file.department" :disabled="!canEdit"
                         class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Chọn khoa</option>
                         <option value="cardiology">Tim mạch</option>
@@ -750,14 +750,14 @@
                     <!-- Date Taken -->
                     <div>
                       <label class="block text-xs font-medium text-gray-700 mb-1">Ngày thực hiện</label>
-                      <input v-model="file.date_taken" type="date"
+                      <input v-model="file.date_taken" type="date" :disabled="!canEdit"
                         class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
 
                     <!-- Description (Full Width) -->
                     <div class="md:col-span-2">
                       <label class="block text-xs font-medium text-gray-700 mb-1">Mô tả</label>
-                      <textarea v-model="file.description" rows="2"
+                      <textarea v-model="file.description" rows="2" :disabled="!canEdit"
                         class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Nhập mô tả chi tiết..."></textarea>
                     </div>
@@ -765,7 +765,7 @@
                     <!-- Physician Notes (Full Width) -->
                     <div class="md:col-span-2">
                       <label class="block text-xs font-medium text-gray-700 mb-1">Ghi chú bác sĩ</label>
-                      <textarea v-model="file.physician_notes" rows="2"
+                      <textarea v-model="file.physician_notes" rows="2" :disabled="!canEdit"
                         class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Ghi chú của bác sĩ..."></textarea>
                     </div>
@@ -773,7 +773,7 @@
                     <!-- Is Confidential -->
                     <div class="md:col-span-2">
                       <label class="flex items-center space-x-2 cursor-pointer">
-                        <input v-model="file.is_confidential" type="checkbox"
+                        <input v-model="file.is_confidential" type="checkbox" :disabled="!canEdit"
                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                         <span class="text-xs font-medium text-gray-700">Tài liệu bảo mật</span>
                         <span class="text-xs text-gray-500">(Chỉ giảng viên xem được)</span>

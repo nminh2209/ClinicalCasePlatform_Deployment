@@ -593,29 +593,122 @@
             </CardDescription>
           </CardHeader>
           <CardContent class="space-y-6">
-            <!-- Score Input -->
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-800">
-                Điểm số (0-100) <span class="text-red-500">*</span>
-              </label>
-              <div class="grid grid-cols-5">
-                <div class="col-span-2">
+            <!-- Detailed Rubric Criteria -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <label class="text-sm font-medium text-gray-800">
+                  Tiêu chí đánh giá chi tiết <span class="text-red-500">*</span>
+                </label>
+                <p class="text-sm text-gray-600">
+                  Tổng: <span class="text-lg font-bold text-blue-600">{{ totalRubricScore }}/100</span>
+                </p>
+              </div>
+              
+              <div class="grid gap-3">
+                <!-- History -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div class="flex-1">
+                    <label class="text-sm font-medium text-gray-700">Tiền sử & Bệnh sử</label>
+                  </div>
                   <Input
-                    v-model.number="gradingForm.score"
+                    v-model.number="gradingForm.criteria.history"
                     type="number"
                     min="0"
-                    max="100"
-                    placeholder="Nhập điểm số..."
-                    class="text-2xl font-bold text-center"
+                    max="25"
+                    placeholder="0"
+                    class="w-14 text-center font-bold"
                   />
+                  <span class="text-sm text-gray-500">/25</span>
+                </div>
+                
+                <!-- Examination -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div class="flex-1">
+                    <label class="text-sm font-medium text-gray-700">Khám lâm sàng</label>
+                  </div>
+                  <Input
+                    v-model.number="gradingForm.criteria.examination"
+                    type="number"
+                    min="0"
+                    max="25"
+                    placeholder="0"
+                    class="w-14 text-center font-bold"
+                  />
+                  <span class="text-sm text-gray-500">/25</span>
+                </div>
+                
+                <!-- Differential Diagnosis -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div class="flex-1">
+                    <label class="text-sm font-medium text-gray-700">Chẩn đoán phân biệt</label>
+                  </div>
+                  <Input
+                    v-model.number="gradingForm.criteria.differential"
+                    type="number"
+                    min="0"
+                    max="20"
+                    placeholder="0"
+                    class="w-14 text-center font-bold"
+                  />
+                  <span class="text-sm text-gray-500">/20</span>
+                </div>
+                
+                <!-- Treatment -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div class="flex-1">
+                    <label class="text-sm font-medium text-gray-700">Kế hoạch điều trị</label>
+                  </div>
+                  <Input
+                    v-model.number="gradingForm.criteria.treatment"
+                    type="number"
+                    min="0"
+                    max="20"
+                    placeholder="0"
+                    class="w-14 text-center font-bold"
+                  />
+                  <span class="text-sm text-gray-500">/20</span>
+                </div>
+                
+                <!-- Presentation -->
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div class="flex-1">
+                    <label class="text-sm font-medium text-gray-700">Trình bày ca bệnh</label>
+                  </div>
+                  <Input
+                    v-model.number="gradingForm.criteria.presentation"
+                    type="number"
+                    min="0"
+                    max="10"
+                    placeholder="0"
+                    class="w-14 text-center font-bold"
+                  />
+                  <span class="text-sm text-gray-500">/10</span>
                 </div>
               </div>
-              <p class="text-sm text-gray-500 text-left">
-                Xếp loại:
-                <span class="font-semibold">{{
-                  getLetterGrade(gradingForm.score)
-                }}</span>
-              </p>
+            </div>
+
+            <!-- Total Score Display -->
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-800">
+                Điểm tổng <span class="text-red-500">*</span>
+              </label>
+              <div :class="[
+                'p-4 border-2 rounded-lg text-center',
+                totalRubricScore > 100 ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'
+              ]">
+                <p :class="[
+                  'text-4xl font-bold',
+                  totalRubricScore > 100 ? 'text-red-600' : 'text-blue-600'
+                ]">{{ totalRubricScore }}/100</p>
+                <p class="text-sm text-gray-600 mt-1">
+                  <span v-if="totalRubricScore <= 100">
+                    Xếp loại: <span class="font-semibold">{{ getLetterGrade(totalRubricScore) }}</span>
+                  </span>
+                  <span v-else class="text-red-600 font-medium">
+                    ⚠ Tổng điểm vượt quá 100
+                  </span>
+                </p>
+              </div>
             </div>
 
             <!-- Evaluation Notes -->
@@ -754,6 +847,7 @@
                 @click="saveGrade"
                 :disabled="!canSaveGrade || saving"
                 class="w-full bg-blue-600 hover:bg-blue-700"
+                :title="rubricValidationMessage || 'Lưu đánh giá dạng nháp'"
               >
                 <Save class="h-4 w-4 mr-2" />
                 {{ saving ? "Đang lưu..." : "Lưu đánh giá" }}
@@ -762,6 +856,7 @@
                 @click="submitGrade"
                 :disabled="!canSaveGrade || submitting"
                 class="w-full bg-green-600 hover:bg-green-700"
+                :title="rubricValidationMessage || 'Nộp điểm chính thức'"
               >
                 <CheckCircle class="h-4 w-4 mr-2" />
                 {{ submitting ? "Đang gửi..." : "Nộp chấm điểm" }}
@@ -1044,13 +1139,34 @@ const gradingForm = ref<GradingForm>({
   },
 });
 
+const totalRubricScore = computed(() => {
+  const criteria = gradingForm.value.criteria;
+  return (
+    Number(criteria.history || 0) +
+    Number(criteria.examination || 0) +
+    Number(criteria.differential || 0) +
+    Number(criteria.treatment || 0) +
+    Number(criteria.presentation || 0)
+  );
+});
+
 const canSaveGrade = computed(() => {
   return (
     !isFinalGrade.value &&
-    gradingForm.value.score >= 0 &&
-    gradingForm.value.score <= 100 &&
+    totalRubricScore.value >= 0 &&
+    totalRubricScore.value <= 100 &&
     gradingForm.value.evaluation_notes.trim() !== ""
   );
+});
+
+const rubricValidationMessage = computed(() => {
+  if (totalRubricScore.value > 100) {
+    return `Tổng điểm vượt quá 100 (hiện tại: ${totalRubricScore.value}). Vui lòng điều chỉnh.`;
+  }
+  if (totalRubricScore.value < 0) {
+    return "Điểm không thể âm.";
+  }
+  return "";
 });
 
 // === Helper Functions ===
@@ -1207,6 +1323,14 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
 
 // === Save / Submit Grade ===
 async function saveGrade() {
+  if (totalRubricScore.value > 100) {
+    toast.error(`Tổng điểm vượt quá 100 (hiện tại: ${totalRubricScore.value}). Vui lòng điều chỉnh.`);
+    return;
+  }
+  if (totalRubricScore.value < 0) {
+    toast.error("Điểm không thể âm.");
+    return;
+  }
   if (!canSaveGrade.value) {
     toast.error("Vui lòng nhập điểm số và nhận xét");
     return;
@@ -1224,8 +1348,8 @@ async function saveGrade() {
 
     const payload: GradeSubmission = {
       grade_scale: "percentage",
-      score: Number(gradingForm.value.score) || 0,
-      letter_grade: getLetterGrade(gradingForm.value.score),
+      score: totalRubricScore.value,
+      letter_grade: getLetterGrade(totalRubricScore.value),
       evaluation_notes: gradingForm.value.evaluation_notes || "",
       strengths: gradingForm.value.strengths || "",
       weaknesses: gradingForm.value.weaknesses || "",
@@ -1262,6 +1386,14 @@ async function submitGrade() {
     toast.error("Điểm đã được nộp. Không thể thay đổi.");
     return;
   }
+  if (totalRubricScore.value > 100) {
+    toast.error(`Tổng điểm vượt quá 100 (hiện tại: ${totalRubricScore.value}). Vui lòng điều chỉnh.`);
+    return;
+  }
+  if (totalRubricScore.value < 0) {
+    toast.error("Điểm không thể âm.");
+    return;
+  }
   if (!canSaveGrade.value) {
     toast.error("Vui lòng nhập điểm số và nhận xét");
     return;
@@ -1279,8 +1411,8 @@ async function submitGrade() {
 
     const payload: GradeSubmission = {
       grade_scale: "percentage",
-      score: Number(gradingForm.value.score) || 0,
-      letter_grade: getLetterGrade(gradingForm.value.score),
+      score: totalRubricScore.value,
+      letter_grade: getLetterGrade(totalRubricScore.value),
       evaluation_notes: gradingForm.value.evaluation_notes || "",
       strengths: gradingForm.value.strengths || "",
       weaknesses: gradingForm.value.weaknesses || "",
@@ -1309,6 +1441,11 @@ async function submitGrade() {
     caseData.value.case_status = 'reviewed';
     
     toast.success("Chấm điểm hoàn tất!");
+    
+    // Refresh cases store before navigating
+    const { useCasesStore } = await import('@/stores/cases');
+    await useCasesStore().fetchCases();
+    
     setTimeout(() => emit("navigate", "dashboard"), 1500);
   } catch (error: unknown) {
     const err = error as import("axios").AxiosError<{ [k: string]: string[] }>;
@@ -1340,32 +1477,35 @@ onMounted(async () => {
       console.log("No student notes");
     }
 
-    // Load existing grade
-    if (apiCase.has_grade) {
-      try {
-        const grade = await gradesService.getGrade(props.caseId);
-        if (grade) {
-          existingGradeId.value = grade.id;
-          isFinalGrade.value = grade.is_final || false;
-          
-          gradingForm.value = {
-            score: grade.score ?? 0,
-            evaluation_notes: grade.evaluation_notes || "",
-            strengths: grade.strengths || "",
-            weaknesses: grade.weaknesses || "",
-            recommendations: grade.recommendations || "",
-            criteria: {
-              history: grade.grading_criteria?.history ?? 0,
-              examination: grade.grading_criteria?.examination ?? 0,
-              differential: grade.grading_criteria?.differential ?? 0,
-              treatment: grade.grading_criteria?.treatment ?? 0,
-              presentation: grade.grading_criteria?.presentation ?? 0,
-            },
-          };
-        }
-      } catch (err) {
-        console.log("No grade loaded");
+    // Always try to load existing grade (don't rely on has_grade flag)
+    try {
+      console.log("Fetching grade for case:", props.caseId);
+      const grade = await gradesService.getGrade(props.caseId);
+      console.log("Grade API response:", grade);
+      if (grade) {
+        existingGradeId.value = grade.id;
+        isFinalGrade.value = grade.is_final || false;
+        
+        gradingForm.value = {
+          score: grade.score ?? 0,
+          evaluation_notes: grade.evaluation_notes || "",
+          strengths: grade.strengths || "",
+          weaknesses: grade.weaknesses || "",
+          recommendations: grade.recommendations || "",
+          criteria: {
+            history: grade.grading_criteria?.history ?? 0,
+            examination: grade.grading_criteria?.examination ?? 0,
+            differential: grade.grading_criteria?.differential ?? 0,
+            treatment: grade.grading_criteria?.treatment ?? 0,
+            presentation: grade.grading_criteria?.presentation ?? 0,
+          },
+        };
+        console.log("Loaded existing grade with criteria:", gradingForm.value.criteria);
+      } else {
+        console.log("No grade found in API response");
       }
+    } catch (err) {
+      console.log("Error fetching grade:", err);
     }
   } catch (error) {
     console.error("Load failed:", error);
