@@ -9,6 +9,10 @@ echo "Installing Python dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
+echo "Setting Django settings module..."
+export DJANGO_SETTINGS_MODULE=clinical_case_platform.settings
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+
 echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
