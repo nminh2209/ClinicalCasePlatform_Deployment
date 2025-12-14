@@ -131,6 +131,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { useCasesStore } from "@/stores/cases";
 import { useLanguage } from "@/composables/useLanguage";
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import Button from "@/components/ui/Button.vue";
@@ -141,6 +142,7 @@ import EyeOff from "@/components/icons/EyeOff.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const casesStore = useCasesStore();
 const { t } = useLanguage();
 
 const email = ref("");
@@ -159,6 +161,7 @@ const handleSubmit = async () => {
 
   try {
     await authStore.login(email.value, password.value);
+    
     // Redirect to home to show role-based dashboard
     router.push("/home");
   } catch (err: any) {

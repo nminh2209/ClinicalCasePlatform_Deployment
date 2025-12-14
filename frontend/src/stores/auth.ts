@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { authService } from "@/services/auth";
+import { useCasesStore } from "@/stores/cases";
 
 export const useAuthStore = defineStore("auth", () => {
   const user = ref(authService.getCurrentUser());
@@ -46,6 +47,10 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       await authService.logout();
       user.value = null;
+      
+      // Clear cases store to prevent showing previous user's cases
+      const casesStore = useCasesStore();
+      casesStore.$reset();
     } catch (err: any) {
       console.warn("Logout error:", err);
     } finally {

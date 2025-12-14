@@ -92,22 +92,40 @@ TEMPLATES = [
 WSGI_APPLICATION = "clinical_case_platform.wsgi.application"
 
 # Database - Enhanced with connection pooling and optimization
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME", default="clinical_case_platform_test"),
-        "USER": config("DB_USER", default="postgres"),
-        "PASSWORD": config("DB_PASSWORD", default="postgres"),
-        "HOST": config("DB_HOST", default="localhost"),
-        "PORT": config("DB_PORT", default="5432"),
-        "CONN_MAX_AGE": 600,  # 10 minutes persistent connections
-        "OPTIONS": {
-            "connect_timeout": 10,
-            "options": "-c statement_timeout=30000",  # 30 seconds query timeout
-        },
-        "ATOMIC_REQUESTS": True,  # Wrap each request in a transaction
+# Use DATABASE_URL if available (Render.com), otherwise use individual env vars (local dev)
+try:
+    import dj_database_url
+    DATABASE_URL = config("DATABASE_URL", default=None)
+except ImportError:
+    DATABASE_URL = None
+
+if DATABASE_URL:
+    # Production: Use DATABASE_URL from Render.com
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Local development: Use individual environment variables
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("DB_NAME", default="clinical_case_platform_test"),
+            "USER": config("DB_USER", default="postgres"),
+            "PASSWORD": config("DB_PASSWORD", default="postgres"),
+            "HOST": config("DB_HOST", default="localhost"),
+            "PORT": config("DB_PORT", default="5432"),
+            "CONN_MAX_AGE": 600,  # 10 minutes persistent connections
+            "OPTIONS": {
+                "connect_timeout": 10,
+                "options": "-c statement_timeout=30000",  # 30 seconds query timeout
+            },
+            "ATOMIC_REQUESTS": True,  # Wrap each request in a transaction
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -205,6 +223,21 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'cache-control',
+    'pragma',
+    'expires',
+]
 
 # Redis settings
 REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')

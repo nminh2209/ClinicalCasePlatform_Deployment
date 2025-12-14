@@ -92,6 +92,15 @@ class CaseListCreateView(generics.ListCreateAPIView):
     ]
     ordering = ["-created_at"]
 
+    def list(self, request, *args, **kwargs):
+        """Override list to add cache-control headers"""
+        response = super().list(request, *args, **kwargs)
+        # Prevent browser caching to avoid showing wrong user's data
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
+
     def get_queryset(self):
         # Check cache first for common queries
         cache_key = None
@@ -212,11 +221,11 @@ class CaseListCreateView(generics.ListCreateAPIView):
         if is_public is not None:
             queryset = queryset.filter(is_public=is_public.lower() == "true")
 
-        # Cache case IDs for future requests
-        if cache_key:
-            case_ids = list(queryset.values_list('id', flat=True)[:100])  # Cache first 100
-            from django.conf import settings
-            cache.set(cache_key, case_ids, settings.CACHE_TTL.get("CASE_LIST", 300))
+        # Disable cache to prevent cross-user data leakage
+        # if cache_key:
+        #     case_ids = list(queryset.values_list('id', flat=True)[:100])  # Cache first 100
+        #     from django.conf import settings
+        #     cache.set(cache_key, case_ids, settings.CACHE_TTL.get("CASE_LIST", 300))
 
         return queryset
 
