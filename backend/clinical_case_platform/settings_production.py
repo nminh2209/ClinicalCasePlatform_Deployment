@@ -1,4 +1,4 @@
-from .settings import MIDDLEWARE, BASE_DIR
+from .settings import *  # noqa: F403
 import os
 import dj_database_url  # type: ignore[import]
 
