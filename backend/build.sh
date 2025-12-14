@@ -6,6 +6,7 @@ echo "Installing system dependencies..."
 apt-get update && apt-get install -y libmagic1
 
 echo "Installing Python dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
 echo "Collecting static files..."
