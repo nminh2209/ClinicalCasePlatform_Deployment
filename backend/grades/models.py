@@ -23,7 +23,7 @@ class Grade(models.Model):
         null=True,
         related_name="grades_given",
         limit_choices_to={"role": "instructor"},
-        help_text="The instructor who assigned this grade"
+        help_text="The instructor who assigned this grade",
     )
 
     # Grading details

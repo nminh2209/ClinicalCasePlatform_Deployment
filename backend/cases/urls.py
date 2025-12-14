@@ -44,6 +44,13 @@ from .feed_views import (
     feed_statistics,
 )
 
+# Case Summarization Views
+from .summary_views import (
+    case_summary_statistics,
+    case_summary_list,
+    export_case_summary,
+)
+
 # Router for ViewSets - case-groups now handled at main level
 # router = DefaultRouter()
 # router.register(r'case-groups', CaseGroupViewSet, basename='case-groups')
@@ -208,4 +215,9 @@ urlpatterns = [
     
     # Case Summary / Analytics
     path("summary/", case_summary_view, name="case-summary"),
+    
+    # Case Summarization & Aggregation API (NEW)
+    path("summary/statistics/", case_summary_statistics, name="case-summary-statistics"),
+    path("summary/list/", case_summary_list, name="case-summary-list"),
+    path("summary/export/", export_case_summary, name="case-summary-export"),
 ]

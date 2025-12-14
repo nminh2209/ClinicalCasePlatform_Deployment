@@ -27,7 +27,7 @@ class CaseTemplateListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         queryset = CaseTemplate.objects.annotate(case_count=Count("cases"))
 
-        if user.is_instructor:
+        if user.is_instructor:  # type: ignore[attr-defined]
             # Instructors can see all templates
             return queryset
         else:
@@ -52,7 +52,7 @@ class CaseTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_instructor:
+        if user.is_instructor:  # type: ignore[attr-defined]
             return CaseTemplate.objects.all()
         else:
             # Students see active templates or templates they created
@@ -64,7 +64,7 @@ class CaseTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
         from rest_framework import serializers
 
         class CaseTemplateSerializer(serializers.ModelSerializer):
-            class Meta:
+            class Meta:  # type: ignore[misc, assignment]
                 model = CaseTemplate
                 fields = "__all__"
                 read_only_fields = ("created_by", "created_at", "updated_at")

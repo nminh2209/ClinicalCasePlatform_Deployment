@@ -48,8 +48,8 @@ class Repository(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.name} ({self.get_access_level_display()})"
+        return f"{self.name} ({self.get_access_level_display()})"  # type: ignore[attr-defined]
 
     @property
     def case_count(self):
-        return self.cases.count()
+        return self.cases.count()  # type: ignore[attr-defined]

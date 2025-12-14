@@ -25,7 +25,7 @@ class ExportTemplate(models.Model):
     template_type = models.CharField(
         max_length=50, choices=TemplateType.choices, default=TemplateType.STANDARD
     )
-    
+
     # Template configuration
     include_patient_details = models.BooleanField(default=True)
     include_medical_history = models.BooleanField(default=True)
@@ -37,7 +37,7 @@ class ExportTemplate(models.Model):
     include_comments = models.BooleanField(default=False)
     include_attachments = models.BooleanField(default=True)
     include_grades = models.BooleanField(default=False)
-    
+
     # Formatting options
     anonymize_patient = models.BooleanField(default=False)
     add_watermark = models.BooleanField(default=False)
@@ -45,7 +45,7 @@ class ExportTemplate(models.Model):
     header_text = models.TextField(blank=True, help_text="Custom header content")
     footer_text = models.TextField(blank=True, help_text="Custom footer content")
     logo_url = models.URLField(blank=True, help_text="Institution logo URL")
-    
+
     # Template metadata
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -67,7 +67,7 @@ class ExportTemplate(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return f"{self.name} ({self.get_template_type_display()})"
+        return f"{self.name} ({self.get_template_type_display()})"  # type: ignore[attr-defined]
 
 
 class CaseExport(models.Model):
@@ -99,7 +99,7 @@ class CaseExport(models.Model):
     status = models.CharField(
         max_length=20, choices=ExportStatus.choices, default=ExportStatus.PENDING
     )
-    
+
     # File information
     file_path = models.FileField(
         upload_to="exports/%Y/%m/%d/",
@@ -113,7 +113,7 @@ class CaseExport(models.Model):
     file_hash = models.CharField(
         max_length=64, blank=True, help_text="SHA-256 hash of the file"
     )
-    
+
     # Template and settings
     template_used = models.ForeignKey(
         ExportTemplate,
@@ -126,7 +126,7 @@ class CaseExport(models.Model):
         default=dict,
         help_text="Settings used during export (e.g., include comments, anonymize)",
     )
-    
+
     # Export metadata
     exported_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -135,11 +135,11 @@ class CaseExport(models.Model):
     expires_at = models.DateTimeField(
         null=True, blank=True, help_text="When this export file should be deleted"
     )
-    
+
     # Error handling
     error_message = models.TextField(blank=True, help_text="Error message if failed")
     retry_count = models.PositiveIntegerField(default=0)
-    
+
     # Audit trail
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.CharField(max_length=500, blank=True)
@@ -222,14 +222,14 @@ class BatchExport(models.Model):
         blank=True,
         related_name="batch_exports",
     )
-    
+
     # Batch configuration
     batch_name = models.CharField(max_length=200, blank=True)
     export_settings = models.JSONField(default=dict)
     compress_output = models.BooleanField(
         default=True, help_text="Compress exports into a ZIP file"
     )
-    
+
     # Status tracking
     status = models.CharField(
         max_length=20, choices=BatchStatus.choices, default=BatchStatus.QUEUED
@@ -237,22 +237,22 @@ class BatchExport(models.Model):
     total_cases = models.PositiveIntegerField(default=0)
     processed_cases = models.PositiveIntegerField(default=0)
     failed_cases = models.PositiveIntegerField(default=0)
-    
+
     # Output file
     zip_file = models.FileField(
         upload_to="exports/batch/%Y/%m/%d/", null=True, blank=True
     )
     zip_file_size = models.PositiveIntegerField(null=True, blank=True)
-    
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Celery task tracking
     task_id = models.CharField(max_length=255, blank=True, help_text="Celery task ID")
-    
+
     # Error handling
     error_message = models.TextField(blank=True)
 
@@ -267,7 +267,7 @@ class BatchExport(models.Model):
         ]
 
     def __str__(self):
-        return f"Batch Export #{self.id} - {self.total_cases} cases - {self.status}"
+        return f"Batch Export #{self.id} - {self.total_cases} cases - {self.status}"  # type: ignore[attr-defined]
 
     def update_progress(self, processed=0, failed=0):
         """Update batch export progress"""
@@ -278,3 +278,4 @@ class BatchExport(models.Model):
     @property
     def filename(self):
         return os.path.basename(self.zip_file.name) if self.zip_file else None
+

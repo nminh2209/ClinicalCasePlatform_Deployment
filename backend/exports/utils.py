@@ -3,7 +3,7 @@ Export Utilities - Core Export Generation Logic
 
 This module handles generating case exports in multiple formats:
 - PDF: Uses WeasyPrint (HTML/CSS to PDF) for perfect Vietnamese support
-- Word: Uses python-docx for editable .docx documents  
+- Word: Uses python-docx for editable .docx documents
 - JSON: Uses Python's json module with UTF-8 encoding
 
 Key Classes:
@@ -72,27 +72,27 @@ except ImportError:
 def normalize_vietnamese_text(text: str) -> str:
     """
     Normalize Vietnamese text to NFC (precomposed) form for proper PDF rendering.
-    
+
     Vietnamese characters can be represented in two Unicode normalization forms:
-    
+
     NFD (Decomposed): base character + separate combining marks
         Example: "ố" = "o" (U+006F) + "̂" (U+0302) + "́" (U+0301)
         Problem: Some PDF renderers display these incorrectly
-    
+
     NFC (Precomposed): single combined character
         Example: "ố" = single character (U+1ED1)
         Solution: Better compatibility with PDF libraries
-    
+
     This function converts text to NFC form for ReportLab compatibility.
     Note: WeasyPrint handles both forms correctly, so this is mainly
     for the ReportLab fallback generator.
-    
+
     Args:
         text: Input text that may contain Vietnamese characters
-        
+
     Returns:
         Normalized text in NFC form
-        
+
     Example:
         >>> normalize_vietnamese_text("Suy hô hấp cấp")
         'Suy hô hấp cấp'  # All characters in precomposed form
@@ -102,7 +102,7 @@ def normalize_vietnamese_text(text: str) -> str:
     if not isinstance(text, str):
         text = str(text)
     # Normalize to NFC (Canonical Decomposition, followed by Canonical Composition)
-    return unicodedata.normalize('NFC', text)
+    return unicodedata.normalize("NFC", text)
 
 
 class ExportUtils:
@@ -111,17 +111,17 @@ class ExportUtils:
     """
 
     @staticmethod
-    def get_case_data(case: Case, template_settings: Dict = None) -> Dict[str, Any]:
+    def get_case_data(case: Case, template_settings: Dict = None) -> Dict[str, Any]:  # type: ignore[attr-defined]
         """
         Extract complete case data based on template settings
         """
         settings = template_settings or {}
 
         data = {
-            "id": case.id,
+            "id": case.id,  # type: ignore[attr-defined]
             "title": case.title,
             "exported_at": timezone.now().isoformat(),
-            "case_status": case.get_case_status_display(),
+            "case_status": case.get_case_status_display(),  # type: ignore[attr-defined]
         }
 
         # Patient information
@@ -131,7 +131,7 @@ class ExportUtils:
             data["patient"] = {
                 "name": "Bệnh nhân [Ẩn danh]" if anonymize else case.patient_name,
                 "age": case.patient_age,
-                "gender": case.get_patient_gender_display(),
+                "gender": case.get_patient_gender_display(),  # type: ignore[attr-defined]
                 "medical_record_number": (
                     "[Ẩn danh]" if anonymize else case.medical_record_number
                 ),
@@ -153,7 +153,7 @@ class ExportUtils:
         if settings.get("include_medical_history", True):
             # Use new medical models
             if hasattr(case, "clinical_history"):
-                ch = case.clinical_history
+                ch = case.clinical_history  # type: ignore[attr-defined]
                 data["clinical_history"] = {
                     "chief_complaint": ch.chief_complaint or "Không có",
                     "history_present_illness": ch.history_present_illness or "Không có",
@@ -173,7 +173,7 @@ class ExportUtils:
         if settings.get("include_examination", True):
             # Detailed physical examination if available
             if hasattr(case, "physical_examination"):
-                pe = case.physical_examination
+                pe = case.physical_examination  # type: ignore[attr-defined]
                 data["physical_examination"] = {
                     "vital_signs": {
                         "temperature": pe.vital_signs_temp or "N/A",
@@ -183,7 +183,7 @@ class ExportUtils:
                         "oxygen_saturation": pe.vital_signs_spo2 or "N/A",
                     },
                     "general_appearance": pe.general_appearance or "Không có",
-                    "head_neck": getattr(pe, 'head_neck', None) or "Không có",
+                    "head_neck": getattr(pe, "head_neck", None) or "Không có",
                     "cardiovascular": pe.cardiovascular or "Không có",
                     "respiratory": pe.respiratory or "Không có",
                     "abdominal": pe.abdominal or "Không có",
@@ -196,20 +196,23 @@ class ExportUtils:
 
         if settings.get("include_investigations", True):
             if hasattr(case, "investigations_detail"):
-                inv = case.investigations_detail
+                inv = case.investigations_detail  # type: ignore[attr-defined]
                 data["investigations_detail"] = {
                     "laboratory_results": inv.laboratory_results or "Không có",
                     "imaging_studies": inv.imaging_studies or "Không có",
                     "other_tests": inv.other_tests or "Không có",
                 }
                 # For backward compatibility
-                data["investigations"] = f"{inv.laboratory_results or ''}\n{inv.imaging_studies or ''}".strip() or "Không có thông tin"
+                data["investigations"] = (
+                    f"{inv.laboratory_results or ''}\n{inv.imaging_studies or ''}".strip()
+                    or "Không có thông tin"
+                )
             else:
                 data["investigations"] = "Không có thông tin"
 
         if settings.get("include_diagnosis", True):
             if hasattr(case, "diagnosis_management"):
-                dm = case.diagnosis_management
+                dm = case.diagnosis_management  # type: ignore[attr-defined]
                 data["diagnosis_management"] = {
                     "primary_diagnosis": dm.primary_diagnosis or "Không có",
                     "differential_diagnosis": dm.differential_diagnosis or "Không có",
@@ -227,25 +230,27 @@ class ExportUtils:
 
         if settings.get("include_learning_objectives", True):
             if hasattr(case, "learning_outcomes"):
-                lo = case.learning_outcomes
+                lo = case.learning_outcomes  # type: ignore[attr-defined]
                 data["learning_outcomes"] = {
                     "learning_objectives": lo.learning_objectives or "Không có",
                     "key_concepts": lo.key_concepts or "Không có",
                     "clinical_reasoning": lo.clinical_reasoning_points or "Không có",
                 }
                 # For backward compatibility
-                data["learning_objectives"] = lo.learning_objectives or "Không có thông tin"
+                data["learning_objectives"] = (
+                    lo.learning_objectives or "Không có thông tin"
+                )
             else:
                 data["learning_objectives"] = "Không có thông tin"
-            
-            data["learning_tags"] = getattr(case, 'learning_tags', [])
-            data["complexity_level"] = case.get_complexity_level_display()
+
+            data["learning_tags"] = getattr(case, "learning_tags", [])
+            data["complexity_level"] = case.get_complexity_level_display()  # type: ignore[attr-defined]
 
         # Metadata
         data["metadata"] = {
             "specialty": case.specialty,
-            "priority_level": case.get_priority_level_display(),
-            "complexity_level": case.get_complexity_level_display(),
+            "priority_level": case.get_priority_level_display(),  # type: ignore[attr-defined]
+            "complexity_level": case.get_complexity_level_display(),  # type: ignore[attr-defined]
             "estimated_study_hours": case.estimated_study_hours,
             "created_by": case.student.get_full_name(),
             "created_at": case.created_at.strftime("%d/%m/%Y %H:%M"),
@@ -254,7 +259,7 @@ class ExportUtils:
 
         # Comments (if requested)
         if settings.get("include_comments", False):
-            comments = case.comments.all().order_by("created_at")
+            comments = case.comments.all().order_by("created_at")  # type: ignore[attr-defined]
             data["comments"] = [
                 {
                     "author": comment.author.get_full_name(),
@@ -266,7 +271,7 @@ class ExportUtils:
 
         # Attachments metadata (if requested)
         if settings.get("include_attachments", True):
-            attachments = case.medical_attachments.all()
+            attachments = case.medical_attachments.all()  # type: ignore[attr-defined]
             data["attachments"] = [
                 {
                     "title": att.title,
@@ -280,7 +285,7 @@ class ExportUtils:
         # Grades (if requested and user has permission)
         if settings.get("include_grades", False):
             if hasattr(case, "grades"):
-                grades = case.grades.all()
+                grades = case.grades.all()  # type: ignore[attr-defined]
                 data["grades"] = [
                     {
                         "grader": grade.grader.get_full_name(),
@@ -301,7 +306,7 @@ class PDFExporter:
 
     def __init__(self, template=None):
         self.template = template
-        self.styles = getSampleStyleSheet()
+        self.styles = getSampleStyleSheet()  # type: ignore[attr-defined]
         self._setup_styles()
 
     def _setup_styles(self):
@@ -310,61 +315,77 @@ class PDFExporter:
         # These fonts support Vietnamese characters
         try:
             import os
-            
+
             # Try to register DejaVu fonts if not already registered
-            if 'DejaVuSans' not in pdfmetrics.getRegisteredFontNames():
+            if "DejaVuSans" not in pdfmetrics.getRegisteredFontNames():  # type: ignore[attr-defined]
                 # Try system fonts first
                 font_paths = [
-                    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-                    '/usr/share/fonts/dejavu/DejaVuSans.ttf',
-                    '/System/Library/Fonts/Supplemental/Arial Unicode.ttf',  # macOS
-                    'C:\\Windows\\Fonts\\Arial.ttf',  # Windows
+                    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                    "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+                    "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",  # macOS
+                    "C:\\Windows\\Fonts\\Arial.ttf",  # Windows
                 ]
-                
+
                 font_registered = False
                 for font_path in font_paths:
                     if os.path.exists(font_path):
                         try:
                             # Register fonts with subfontIndex for better Unicode support
-                            pdfmetrics.registerFont(TTFont('DejaVuSans', font_path, subfontIndex=0))
-                            bold_path = font_path.replace('DejaVuSans.ttf', 'DejaVuSans-Bold.ttf')
+                            pdfmetrics.registerFont(  # type: ignore[attr-defined]
+                                TTFont("DejaVuSans", font_path, subfontIndex=0)  # type: ignore[attr-defined]
+                            )
+                            bold_path = font_path.replace(
+                                "DejaVuSans.ttf", "DejaVuSans-Bold.ttf"
+                            )
                             if os.path.exists(bold_path):
-                                pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', bold_path, subfontIndex=0))
+                                pdfmetrics.registerFont(  # type: ignore[attr-defined]
+                                    TTFont("DejaVuSans-Bold", bold_path, subfontIndex=0)  # type: ignore[attr-defined]
+                                )
                             font_registered = True
                             break
-                        except:
+                        except Exception:
                             continue
-                
+
                 if not font_registered:
                     # Fallback: Use Helvetica (won't show Vietnamese correctly but won't crash)
                     pass
-                    
-        except Exception as e:
+
+        except Exception:
             # If font registration fails, continue with default fonts
             pass
-        
+
         # Determine which font to use
-        base_font = 'DejaVuSans' if 'DejaVuSans' in pdfmetrics.getRegisteredFontNames() else 'Helvetica'
-        bold_font = 'DejaVuSans-Bold' if 'DejaVuSans-Bold' in pdfmetrics.getRegisteredFontNames() else 'Helvetica-Bold'
-        
+        base_font = (
+            "DejaVuSans"
+            if "DejaVuSans" in pdfmetrics.getRegisteredFontNames()  # type: ignore[attr-defined]
+            else "Helvetica"
+        )
+        bold_font = (
+            "DejaVuSans-Bold"
+            if "DejaVuSans-Bold" in pdfmetrics.getRegisteredFontNames()  # type: ignore[attr-defined]
+            else "Helvetica-Bold"
+        )
+
         # Register font family for automatic bold/italic switching
-        if 'DejaVuSans' in pdfmetrics.getRegisteredFontNames():
-            registerFontFamily('DejaVuSans',
-                             normal='DejaVuSans',
-                             bold='DejaVuSans-Bold',
-                             italic='DejaVuSans',  # Use normal for italic if not available
-                             boldItalic='DejaVuSans-Bold')  # Use bold for boldItalic
-        
+        if "DejaVuSans" in pdfmetrics.getRegisteredFontNames():  # type: ignore[attr-defined]
+            registerFontFamily(  # type: ignore[attr-defined]
+                "DejaVuSans",
+                normal="DejaVuSans",
+                bold="DejaVuSans-Bold",
+                italic="DejaVuSans",  # Use normal for italic if not available
+                boldItalic="DejaVuSans-Bold",
+            )  # Use bold for boldItalic
+
         # Title style
         if "CustomTitle" not in self.styles:
             self.styles.add(
-                ParagraphStyle(
+                ParagraphStyle(  # type: ignore[attr-defined]
                     name="CustomTitle",
                     parent=self.styles["Title"],
                     fontSize=18,
-                    textColor=colors.HexColor("#1a365d"),
+                    textColor=colors.HexColor("#1a365d"),  # type: ignore[attr-defined]
                     spaceAfter=20,
-                    alignment=TA_CENTER,
+                    alignment=TA_CENTER,  # type: ignore[attr-defined]
                     fontName=bold_font,
                 )
             )
@@ -372,11 +393,11 @@ class PDFExporter:
         # Section heading style
         if "SectionHeading" not in self.styles:
             self.styles.add(
-                ParagraphStyle(
+                ParagraphStyle(  # type: ignore[attr-defined]
                     name="SectionHeading",
                     parent=self.styles["Heading2"],
                     fontSize=14,
-                    textColor=colors.HexColor("#2c5282"),
+                    textColor=colors.HexColor("#2c5282"),  # type: ignore[attr-defined]
                     spaceAfter=12,
                     spaceBefore=16,
                     fontName=bold_font,
@@ -386,12 +407,12 @@ class PDFExporter:
         # Body text style (will use font family for <b> tags)
         if "BodyText" not in self.styles:
             self.styles.add(
-                ParagraphStyle(
+                ParagraphStyle(  # type: ignore[attr-defined]
                     name="BodyText",
                     parent=self.styles["Normal"],
                     fontSize=11,
                     spaceAfter=10,
-                    alignment=TA_JUSTIFY,
+                    alignment=TA_JUSTIFY,  # type: ignore[attr-defined]
                     leading=14,
                     fontName=base_font,
                 )
@@ -400,28 +421,28 @@ class PDFExporter:
         # Info style (for metadata)
         if "InfoText" not in self.styles:
             self.styles.add(
-                ParagraphStyle(
+                ParagraphStyle(  # type: ignore[attr-defined]
                     name="InfoText",
                     parent=self.styles["Normal"],
                     fontSize=10,
-                    textColor=colors.HexColor("#4a5568"),
+                    textColor=colors.HexColor("#4a5568"),  # type: ignore[attr-defined]
                     spaceAfter=6,
                     fontName=base_font,
                 )
             )
 
-    def generate(self, case: Case, output_path: str = None) -> io.BytesIO:
+    def generate(self, case: Case, output_path: str = None) -> io.BytesIO:  # type: ignore[attr-defined]
         """
         Generate PDF export for a case
         """
         buffer = io.BytesIO()
-        doc = SimpleDocTemplate(
+        doc = SimpleDocTemplate(  # type: ignore[attr-defined]
             buffer,
-            pagesize=A4,
-            rightMargin=2 * cm,
-            leftMargin=2 * cm,
-            topMargin=2 * cm,
-            bottomMargin=2 * cm,
+            pagesize=A4,  # type: ignore[attr-defined]
+            rightMargin=2 * cm,  # type: ignore[attr-defined]
+            leftMargin=2 * cm,  # type: ignore[attr-defined]
+            topMargin=2 * cm,  # type: ignore[attr-defined]
+            bottomMargin=2 * cm,  # type: ignore[attr-defined]
         )
 
         story = []
@@ -446,64 +467,139 @@ class PDFExporter:
 
         # Add header if specified
         if self.template and self.template.header_text:
-            story.append(Paragraph(normalize_vietnamese_text(self.template.header_text), self.styles["InfoText"]))
-            story.append(Spacer(1, 0.3 * cm))
+            story.append(
+                Paragraph(  # type: ignore[attr-defined]
+                    normalize_vietnamese_text(self.template.header_text),
+                    self.styles["InfoText"],
+                )
+            )
+            story.append(Spacer(1, 0.3 * cm))  # type: ignore[attr-defined]
 
         # Add watermark text if specified
         if self.template and self.template.add_watermark:
-            watermark = normalize_vietnamese_text(self.template.watermark_text or "CONFIDENTIAL")
+            watermark = normalize_vietnamese_text(
+                self.template.watermark_text or "CONFIDENTIAL"
+            )
             story.append(
-                Paragraph(
+                Paragraph(  # type: ignore[attr-defined]
                     f"<font color='red'>{watermark}</font>",
                     self.styles["CustomTitle"],
                 )
             )
-            story.append(Spacer(1, 0.5 * cm))
+            story.append(Spacer(1, 0.5 * cm))  # type: ignore[attr-defined]
 
         # Title
-        story.append(Paragraph(normalize_vietnamese_text(case.title), self.styles["CustomTitle"]))
-        story.append(Spacer(1, 0.5 * cm))
+        story.append(
+            Paragraph(normalize_vietnamese_text(case.title), self.styles["CustomTitle"])  # type: ignore[attr-defined]
+        )
+        story.append(Spacer(1, 0.5 * cm))  # type: ignore[attr-defined]
 
         # Patient Information
         if "patient" in data:
             story.append(
-                Paragraph("THÔNG TIN BỆNH NHÂN", self.styles["SectionHeading"])
+                Paragraph("THÔNG TIN BỆNH NHÂN", self.styles["SectionHeading"])  # type: ignore[attr-defined]
             )
             patient = data["patient"]
 
             # Use Paragraphs for Vietnamese text in tables
             patient_data = [
-                [Paragraph(normalize_vietnamese_text("<b>Tên bệnh nhân:</b>"), self.styles["BodyText"]), 
-                 Paragraph(normalize_vietnamese_text(patient["name"]), self.styles["BodyText"])],
-                [Paragraph(normalize_vietnamese_text("<b>Tuổi:</b>"), self.styles["BodyText"]), 
-                 Paragraph(normalize_vietnamese_text(str(patient["age"])), self.styles["BodyText"])],
-                [Paragraph(normalize_vietnamese_text("<b>Giới tính:</b>"), self.styles["BodyText"]), 
-                 Paragraph(normalize_vietnamese_text(patient["gender"]), self.styles["BodyText"])],
-                [Paragraph(normalize_vietnamese_text("<b>Số hồ sơ:</b>"), self.styles["BodyText"]), 
-                 Paragraph(normalize_vietnamese_text(patient.get("medical_record_number", "N/A")), self.styles["BodyText"])],
-                [Paragraph(normalize_vietnamese_text("<b>Dân tộc:</b>"), self.styles["BodyText"]), 
-                 Paragraph(normalize_vietnamese_text(patient.get("ethnicity", "N/A")), self.styles["BodyText"])],
-                [Paragraph(normalize_vietnamese_text("<b>Nghề nghiệp:</b>"), self.styles["BodyText"]), 
-                 Paragraph(normalize_vietnamese_text(patient.get("occupation", "N/A")), self.styles["BodyText"])],
-                [Paragraph(normalize_vietnamese_text("<b>Ngày nhập viện:</b>"), self.styles["BodyText"]), 
-                 Paragraph(normalize_vietnamese_text(patient.get("admission_date", "N/A")), self.styles["BodyText"])],
-                [Paragraph(normalize_vietnamese_text("<b>Ngày xuất viện:</b>"), self.styles["BodyText"]), 
-                 Paragraph(normalize_vietnamese_text(patient.get("discharge_date", "N/A")), self.styles["BodyText"])],
+                [
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text("<b>Tên bệnh nhân:</b>"),
+                        self.styles["BodyText"],
+                    ),
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(patient["name"]),
+                        self.styles["BodyText"],
+                    ),
+                ],
+                [
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text("<b>Tuổi:</b>"),
+                        self.styles["BodyText"],
+                    ),
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(str(patient["age"])),
+                        self.styles["BodyText"],
+                    ),
+                ],
+                [
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text("<b>Giới tính:</b>"),
+                        self.styles["BodyText"],
+                    ),
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(patient["gender"]),
+                        self.styles["BodyText"],
+                    ),
+                ],
+                [
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text("<b>Số hồ sơ:</b>"),
+                        self.styles["BodyText"],
+                    ),
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(
+                            patient.get("medical_record_number", "N/A")
+                        ),
+                        self.styles["BodyText"],
+                    ),
+                ],
+                [
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text("<b>Dân tộc:</b>"),
+                        self.styles["BodyText"],
+                    ),
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(patient.get("ethnicity", "N/A")),
+                        self.styles["BodyText"],
+                    ),
+                ],
+                [
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text("<b>Nghề nghiệp:</b>"),
+                        self.styles["BodyText"],
+                    ),
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(patient.get("occupation", "N/A")),
+                        self.styles["BodyText"],
+                    ),
+                ],
+                [
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text("<b>Ngày nhập viện:</b>"),
+                        self.styles["BodyText"],
+                    ),
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(patient.get("admission_date", "N/A")),
+                        self.styles["BodyText"],
+                    ),
+                ],
+                [
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text("<b>Ngày xuất viện:</b>"),
+                        self.styles["BodyText"],
+                    ),
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(patient.get("discharge_date", "N/A")),
+                        self.styles["BodyText"],
+                    ),
+                ],
             ]
 
-            table = Table(patient_data, colWidths=[4 * cm, 12 * cm])
+            table = Table(patient_data, colWidths=[4 * cm, 12 * cm])  # type: ignore[attr-defined]
             table.setStyle(
-                TableStyle(
+                TableStyle(  # type: ignore[attr-defined]
                     [
-                        ("TEXTCOLOR", (0, 0), (0, -1), colors.HexColor("#2c5282")),
+                        ("TEXTCOLOR", (0, 0), (0, -1), colors.HexColor("#2c5282")),  # type: ignore[attr-defined]
                         ("VALIGN", (0, 0), (-1, -1), "TOP"),
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-                        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),  # type: ignore[attr-defined]
                     ]
                 )
             )
             story.append(table)
-            story.append(Spacer(1, 0.5 * cm))
+            story.append(Spacer(1, 0.5 * cm))  # type: ignore[attr-defined]
 
         # Clinical sections
         sections = []
@@ -533,46 +629,75 @@ class PDFExporter:
             sections.append(("MỤC TIÊU HỌC TẬP", data["learning_objectives"]))
 
         for section_title, content in sections:
-            story.append(Paragraph(normalize_vietnamese_text(section_title), self.styles["SectionHeading"]))
-            story.append(Paragraph(normalize_vietnamese_text(content or "Không có thông tin"), self.styles["BodyText"]))
-            story.append(Spacer(1, 0.3 * cm))
+            story.append(
+                Paragraph(  # type: ignore[attr-defined]
+                    normalize_vietnamese_text(section_title),
+                    self.styles["SectionHeading"],
+                )
+            )
+            story.append(
+                Paragraph(  # type: ignore[attr-defined]
+                    normalize_vietnamese_text(content or "Không có thông tin"),
+                    self.styles["BodyText"],
+                )
+            )
+            story.append(Spacer(1, 0.3 * cm))  # type: ignore[attr-defined]
 
         # Attachments
         if "attachments" in data and data["attachments"]:
-            story.append(Paragraph(normalize_vietnamese_text("TÀI LIỆU ĐÍNH KÈM"), self.styles["SectionHeading"]))
+            story.append(
+                Paragraph(  # type: ignore[attr-defined]
+                    normalize_vietnamese_text("TÀI LIỆU ĐÍNH KÈM"),
+                    self.styles["SectionHeading"],
+                )
+            )
             for att in data["attachments"]:
-                att_text = f"• {att['title']} ({att['file_type']}) - {att['uploaded_at']}"
-                story.append(Paragraph(normalize_vietnamese_text(att_text), self.styles["BodyText"]))
-            story.append(Spacer(1, 0.5 * cm))
+                att_text = (
+                    f"• {att['title']} ({att['file_type']}) - {att['uploaded_at']}"
+                )
+                story.append(
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(att_text), self.styles["BodyText"]
+                    )
+                )
+            story.append(Spacer(1, 0.5 * cm))  # type: ignore[attr-defined]
 
         # Comments
         if "comments" in data and data["comments"]:
-            story.append(Paragraph(normalize_vietnamese_text("NHẬN XÉT"), self.styles["SectionHeading"]))
+            story.append(
+                Paragraph(  # type: ignore[attr-defined]
+                    normalize_vietnamese_text("NHẬN XÉT"), self.styles["SectionHeading"]
+                )
+            )
             for comment in data["comments"]:
                 comment_text = f"<b>{comment['author']}</b> ({comment['created_at']}): {comment['content']}"
-                story.append(Paragraph(normalize_vietnamese_text(comment_text), self.styles["BodyText"]))
-            story.append(Spacer(1, 0.3 * cm))
+                story.append(
+                    Paragraph(  # type: ignore[attr-defined]
+                        normalize_vietnamese_text(comment_text), self.styles["BodyText"]
+                    )
+                )
+            story.append(Spacer(1, 0.3 * cm))  # type: ignore[attr-defined]
 
         # Metadata footer
-        story.append(PageBreak())
-        story.append(Paragraph("THÔNG TIN CA BỆNH", self.styles["SectionHeading"]))
+        story.append(PageBreak())  # type: ignore[attr-defined]
+        story.append(Paragraph("THÔNG TIN CA BỆNH", self.styles["SectionHeading"]))  # type: ignore[attr-defined]
         metadata = data["metadata"]
         metadata_text = f"""
-        <b>Chuyên khoa:</b> {metadata['specialty']}<br/>
-        <b>Mức độ ưu tiên:</b> {metadata['priority_level']}<br/>
-        <b>Mức độ phức tạp:</b> {metadata['complexity_level']}<br/>
-        <b>Thời gian học tập ước tính:</b> {metadata.get('estimated_study_hours', 'N/A')} giờ<br/>
-        <b>Người tạo:</b> {metadata['created_by']}<br/>
-        <b>Ngày tạo:</b> {metadata['created_at']}<br/>
-        <b>Cập nhật lần cuối:</b> {metadata['updated_at']}<br/>
-        <b>Xuất file:</b> {timezone.now().strftime('%d/%m/%Y %H:%M')}
+        <b>Chuyên khoa:</b> {metadata["specialty"]}<br/>
+        <b>Mức độ ưu tiên:</b> {metadata["priority_level"]}<br/>
+        <b>Mức độ phức tạp:</b> {metadata["complexity_level"]}<br/>
+        <b>Thời gian học tập ước tính:</b> {metadata.get("estimated_study_hours", "N/A")} giờ<br/>
+        <b>Người tạo:</b> {metadata["created_by"]}<br/>
+        <b>Ngày tạo:</b> {metadata["created_at"]}<br/>
+        <b>Cập nhật lần cuối:</b> {metadata["updated_at"]}<br/>
+        <b>Xuất file:</b> {timezone.now().strftime("%d/%m/%Y %H:%M")}
         """
-        story.append(Paragraph(metadata_text, self.styles["InfoText"]))
+        story.append(Paragraph(metadata_text, self.styles["InfoText"]))  # type: ignore[attr-defined]
 
         # Add footer if specified
         if self.template and self.template.footer_text:
-            story.append(Spacer(1, 0.5 * cm))
-            story.append(Paragraph(self.template.footer_text, self.styles["InfoText"]))
+            story.append(Spacer(1, 0.5 * cm))  # type: ignore[attr-defined]
+            story.append(Paragraph(self.template.footer_text, self.styles["InfoText"]))  # type: ignore[attr-defined]
 
         # Build PDF
         doc.build(story)
@@ -584,71 +709,71 @@ class PDFExporter:
 class PDFExporterHTML:
     """
     Primary PDF Generator - Uses WeasyPrint (HTML/CSS to PDF) ⭐
-    
+
     This is the MAIN PDF export class with perfect Vietnamese support.
-    
+
     Why WeasyPrint?
     - Browser-grade HTML/CSS rendering
     - Excellent Unicode support (all Vietnamese characters work perfectly)
     - Proper font subsetting with Vietnamese glyphs
     - Smaller file sizes (~17KB vs ~49KB with ReportLab)
     - CSS-based styling for professional documents
-    
+
     How it works:
     1. Prepare case data from database
     2. Build HTML template with patient info, clinical data, etc.
     3. Apply CSS styling for medical document formatting
     4. WeasyPrint converts HTML→PDF with proper font embedding
     5. Return PDF buffer ready for download/save
-    
+
     Vietnamese Support:
     - All Vietnamese characters (á, ă, â, đ, etc.) render perfectly
     - No special font registration needed
     - No Unicode normalization required
     - Works with both NFD and NFC character forms
-    
+
     Fallback:
     - If WeasyPrint is not installed, automatically falls back to PDFExporter
     - This ensures exports still work even without WeasyPrint dependencies
-    
+
     Usage:
         exporter = PDFExporterHTML(template=my_template)
         pdf_buffer = exporter.generate(case)
         with open('output.pdf', 'wb') as f:
             f.write(pdf_buffer.getvalue())
     """
-    
+
     def __init__(self, template=None):
         """
         Initialize PDF exporter with optional template
-        
+
         Args:
             template: ExportTemplate instance defining what to include
                      If None, includes all case sections
         """
         self.template = template
-    
-    def generate(self, case: Case, output_path: str = None) -> io.BytesIO:
+
+    def generate(self, case: Case, output_path: str = None) -> io.BytesIO:  # type: ignore[attr-defined]
         """
         Generate PDF export from HTML template with Vietnamese support
-        
+
         This is the main export function that:
         1. Checks if WeasyPrint is available (falls back to ReportLab if not)
         2. Prepares case data based on template settings
         3. Builds HTML content with CSS styling
         4. Converts HTML to PDF with proper font embedding
         5. Returns PDF as BytesIO buffer
-        
+
         Args:
             case: Case instance to export
             output_path: Optional file path to save PDF (for debugging)
-            
+
         Returns:
             io.BytesIO: PDF file buffer ready for download or saving
-            
+
         Raises:
             ImportError: If WeasyPrint not available (handled with fallback)
-            
+
         Example:
             >>> from cases.models import Case
             >>> case = Case.objects.get(id=1)
@@ -665,7 +790,7 @@ class PDFExporterHTML:
             # Fallback to ReportLab if WeasyPrint not available or not working
             fallback = PDFExporter(template=self.template)
             return fallback.generate(case, output_path)
-        
+
         # Get case data based on template settings
         template_settings = {}
         if self.template:
@@ -681,22 +806,22 @@ class PDFExporterHTML:
                 "include_attachments": self.template.include_attachments,
                 "anonymize_patient": self.template.anonymize_patient,
             }
-        
+
         data = ExportUtils.get_case_data(case, template_settings)
-        
+
         # Build HTML content
         html_content = self._build_html(case, data)
-        
+
         # Configure fonts
         font_config = FontConfiguration()
-        
+
         # Generate PDF
         buffer = io.BytesIO()
         HTML(string=html_content).write_pdf(buffer, font_config=font_config)
         buffer.seek(0)
-        
+
         return buffer
-    
+
     def _build_html(self, case: Case, data: dict) -> str:
         """
         Build HTML content for PDF generation
@@ -706,7 +831,7 @@ class PDFExporterHTML:
         if self.template and self.template.add_watermark:
             watermark = self.template.watermark_text or "CONFIDENTIAL"
             watermark_html = f'<div class="watermark">{watermark}</div>'
-        
+
         # Build patient info table
         patient_info_html = ""
         if "patient" in data:
@@ -716,43 +841,43 @@ class PDFExporterHTML:
             <table class="info-table">
                 <tr>
                     <td><strong>Tên bệnh nhân:</strong></td>
-                    <td>{patient['name']}</td>
+                    <td>{patient["name"]}</td>
                 </tr>
                 <tr>
                     <td><strong>Tuổi:</strong></td>
-                    <td>{patient['age']}</td>
+                    <td>{patient["age"]}</td>
                 </tr>
                 <tr>
                     <td><strong>Giới tính:</strong></td>
-                    <td>{patient['gender']}</td>
+                    <td>{patient["gender"]}</td>
                 </tr>
                 <tr>
                     <td><strong>Số hồ sơ:</strong></td>
-                    <td>{patient.get('medical_record_number', 'N/A')}</td>
+                    <td>{patient.get("medical_record_number", "N/A")}</td>
                 </tr>
                 <tr>
                     <td><strong>Dân tộc:</strong></td>
-                    <td>{patient.get('ethnicity', 'Không xác định')}</td>
+                    <td>{patient.get("ethnicity", "Không xác định")}</td>
                 </tr>
                 <tr>
                     <td><strong>Nghề nghiệp:</strong></td>
-                    <td>{patient.get('occupation', 'Không xác định')}</td>
+                    <td>{patient.get("occupation", "Không xác định")}</td>
                 </tr>
                 <tr>
                     <td><strong>Ngày nhập viện:</strong></td>
-                    <td>{patient.get('admission_date', 'N/A')}</td>
+                    <td>{patient.get("admission_date", "N/A")}</td>
                 </tr>
                 <tr>
                     <td><strong>Ngày xuất viện:</strong></td>
-                    <td>{patient.get('discharge_date', 'N/A')}</td>
+                    <td>{patient.get("discharge_date", "N/A")}</td>
                 </tr>
             </table>
             """
-        
+
         # Build clinical sections
         sections_html = ""
         sections = []
-        
+
         if "chief_complaint" in data:
             sections.append(("LÝ DO KHÁM", data["chief_complaint"]))
         if "history" in data:
@@ -769,13 +894,13 @@ class PDFExporterHTML:
             sections.append(("THEO DÕI VÀ KẾT QUẢ", data["follow_up"]))
         if "learning_objectives" in data:
             sections.append(("MỤC TIÊU HỌC TẬP", data["learning_objectives"]))
-        
+
         for title, content in sections:
             sections_html += f"""
             <h2>{title}</h2>
-            <p class="content">{content or 'Không có thông tin'}</p>
+            <p class="content">{content or "Không có thông tin"}</p>
             """
-        
+
         # Build attachments
         attachments_html = ""
         if "attachments" in data and data["attachments"]:
@@ -783,7 +908,7 @@ class PDFExporterHTML:
             for att in data["attachments"]:
                 attachments_html += f"<li>{att['title']} ({att['file_type']}) - {att['uploaded_at']}</li>"
             attachments_html += "</ul>"
-        
+
         # Complete HTML
         html = f"""
         <!DOCTYPE html>
@@ -858,7 +983,7 @@ class PDFExporterHTML:
         </body>
         </html>
         """
-        
+
         return html
 
 
@@ -870,11 +995,11 @@ class WordExporter:
     def __init__(self, template=None):
         self.template = template
 
-    def generate(self, case: Case, output_path: str = None) -> io.BytesIO:
+    def generate(self, case: Case, output_path: str = None) -> io.BytesIO:  # type: ignore[attr-defined]
         """
         Generate Word document export for a case
         """
-        doc = Document()
+        doc = Document()  # type: ignore[attr-defined]
 
         # Set document properties
         doc.core_properties.title = case.title
@@ -902,24 +1027,24 @@ class WordExporter:
         # Add header
         if self.template and self.template.header_text:
             header_para = doc.add_paragraph(self.template.header_text)
-            header_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            header_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # type: ignore[attr-defined]
             run = header_para.runs[0]
-            run.font.size = Pt(9)
-            run.font.color.rgb = RGBColor(128, 128, 128)
+            run.font.size = Pt(9)  # type: ignore[attr-defined]
+            run.font.color.rgb = RGBColor(128, 128, 128)  # type: ignore[attr-defined]
 
         # Add watermark if specified
         if self.template and self.template.add_watermark:
             watermark = self.template.watermark_text or "CONFIDENTIAL"
             watermark_para = doc.add_paragraph(watermark)
-            watermark_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            watermark_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # type: ignore[attr-defined]
             run = watermark_para.runs[0]
-            run.font.size = Pt(24)
+            run.font.size = Pt(24)  # type: ignore[attr-defined]
             run.font.bold = True
-            run.font.color.rgb = RGBColor(255, 0, 0)
+            run.font.color.rgb = RGBColor(255, 0, 0)  # type: ignore[attr-defined]
 
         # Title
         title = doc.add_heading(case.title, level=0)
-        title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # type: ignore[attr-defined]
 
         # Patient Information
         if "patient" in data:
@@ -1025,10 +1150,10 @@ class WordExporter:
         if self.template and self.template.footer_text:
             doc.add_paragraph()
             footer_para = doc.add_paragraph(self.template.footer_text)
-            footer_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            footer_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # type: ignore[attr-defined]
             run = footer_para.runs[0]
-            run.font.size = Pt(9)
-            run.font.color.rgb = RGBColor(128, 128, 128)
+            run.font.size = Pt(9)  # type: ignore[attr-defined]
+            run.font.color.rgb = RGBColor(128, 128, 128)  # type: ignore[attr-defined]
 
         # Save to buffer
         buffer = io.BytesIO()
@@ -1046,7 +1171,7 @@ class JSONExporter:
     def __init__(self, template=None):
         self.template = template
 
-    def generate(self, case: Case, output_path: str = None) -> io.BytesIO:
+    def generate(self, case: Case, output_path: str = None) -> io.BytesIO:  # type: ignore[attr-defined]
         """
         Generate JSON export for a case
         """

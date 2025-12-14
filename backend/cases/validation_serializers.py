@@ -20,7 +20,7 @@ class CaseValidationRuleSerializer(serializers.ModelSerializer):
     )
     template_names = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseValidationRule
         fields = [
             "id",
@@ -54,7 +54,7 @@ class CaseValidationResultSerializer(serializers.ModelSerializer):
         source="validated_by.get_full_name", read_only=True
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseValidationResult
         fields = [
             "id",
@@ -91,7 +91,7 @@ class CaseSubmissionWorkflowSerializer(serializers.ModelSerializer):
         source="approved_by.get_full_name", read_only=True
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseSubmissionWorkflow
         fields = [
             "id",
@@ -143,7 +143,7 @@ class WorkflowTransitionSerializer(serializers.Serializer):
 class MedicalTerminologyCheckSerializer(serializers.ModelSerializer):
     """Serializer for medical terminology"""
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = MedicalTerminologyCheck
         fields = [
             "id",
@@ -165,7 +165,7 @@ class CaseQualityMetricsSerializer(serializers.ModelSerializer):
 
     case_title = serializers.CharField(source="case.title", read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseQualityMetrics
         fields = [
             "id",

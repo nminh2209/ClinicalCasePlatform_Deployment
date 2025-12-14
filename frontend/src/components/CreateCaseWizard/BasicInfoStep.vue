@@ -9,7 +9,6 @@
             <Label for="title">{{ t('createCase.caseTitle') }} *</Label>
             <Input id="title" v-model="localData.title" :placeholder="t('createCase.enterCaseTitle')"
               :error="getTranslatedError('title')" />
-            <p class="text-xs text-gray-500 mt-1">{{ t('createCase.focusOnDiseasesAndSymptoms') }}</p>
           </div>
 
           <!-- Patient name hidden - auto-generated from title -->
@@ -17,8 +16,33 @@
 
           <div class="space-y-2">
             <Label for="specialty">{{ t('createCase.specialty') }} *</Label>
-            <Input id="specialty" v-model="localData.specialty" :placeholder="t('createCase.specialtyExample')"
-              :error="getTranslatedError('specialty')" />
+            <select id="specialty" v-model="localData.specialty"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md"
+              :class="{ 'border-red-500': getTranslatedError('specialty') }">
+              <option value="">{{ t('createCase.selectSpecialty') }}</option>
+              <option value="Cardiology">Cardiology (Tim mạch)</option>
+              <option value="Neurology">Neurology (Thần kinh)</option>
+              <option value="Gastroenterology">Gastroenterology (Tiêu hóa)</option>
+              <option value="Pulmonology">Pulmonology (Hô hấp)</option>
+              <option value="Nephrology">Nephrology (Thận)</option>
+              <option value="Endocrinology">Endocrinology (Nội tiết)</option>
+              <option value="Rheumatology">Rheumatology (Khớp)</option>
+              <option value="Hematology">Hematology (Huyết học)</option>
+              <option value="Oncology">Oncology (Ung bướu)</option>
+              <option value="Infectious Disease">Infectious Disease (Nhiễm khuẩn)</option>
+              <option value="Emergency Medicine">Emergency Medicine (Cấp cứu)</option>
+              <option value="Internal Medicine">Internal Medicine (Nội khoa)</option>
+              <option value="Surgery">Surgery (Ngoại khoa)</option>
+              <option value="Pediatrics">Pediatrics (Nhi khoa)</option>
+              <option value="Obstetrics & Gynecology">Obstetrics & Gynecology (Sản phụ khoa)</option>
+              <option value="Orthopedics">Orthopedics (Chỉnh hình)</option>
+              <option value="Dermatology">Dermatology (Da liễu)</option>
+              <option value="Ophthalmology">Ophthalmology (Nhãn khoa)</option>
+              <option value="ENT">ENT (Tai mũi họng)</option>
+              <option value="Psychiatry">Psychiatry (Tâm thần)</option>
+              <option value="Other">Other (Khác)</option>
+            </select>
+            <p v-if="getTranslatedError('specialty')" class="text-sm text-red-600">{{ getTranslatedError('specialty') }}</p>
           </div>
 
           <div class="space-y-2">
@@ -31,6 +55,24 @@
               <option value="expert">{{ t('createCase.complexityExpert') }}</option>
             </select>
           </div>
+
+          <div class="space-y-2">
+            <Label for="priority">Mức độ ưu tiên</Label>
+            <select id="priority" v-model="localData.priority_level"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md">
+              <option value="low">Thấp</option>
+              <option value="medium" selected>Trung bình</option>
+              <option value="high">Cao</option>
+              <option value="urgent">Khẩn cấp</option>
+            </select>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="keywords">Từ khóa (Keywords)</Label>
+            <Input id="keywords" v-model="localData.keywords"
+              placeholder="Ví dụ: acute, myocardial, infarction" />
+            <p class="text-xs text-gray-500 mt-1">Từ khóa tìm kiếm, phân cách bằng dấu phẩy</p>
+          </div>
         </div>
       </div>
     </Card>
@@ -42,8 +84,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2">
             <Label for="age">{{ t('createCase.age') }} *</Label>
-            <Input id="age" type="number" v-model.number="localData.patient_age" :placeholder="t('createCase.patientAge')"
-              :error="getTranslatedError('patient_age')" min="0" max="150" />
+            <Input id="age" type="number" v-model.number="localData.patient_age"
+              :placeholder="t('createCase.patientAge')" :error="getTranslatedError('patient_age')" min="0" max="150" />
           </div>
 
           <div class="space-y-2">
@@ -56,7 +98,8 @@
               <option value="female">{{ t('createCase.female') }}</option>
               <option value="other">{{ t('createCase.other') }}</option>
             </select>
-            <p v-if="getTranslatedError('patient_gender')" class="text-sm text-red-600">{{ getTranslatedError('patient_gender') }}</p>
+            <p v-if="getTranslatedError('patient_gender')" class="text-sm text-red-600">{{
+              getTranslatedError('patient_gender') }}</p>
           </div>
 
           <div class="space-y-2">
@@ -71,7 +114,8 @@
 
           <div class="space-y-2">
             <Label for="occupation">{{ t('createCase.occupation') }}</Label>
-            <Input id="occupation" v-model="localData.patient_occupation" :placeholder="t('createCase.enterOccupation')" />
+            <Input id="occupation" v-model="localData.patient_occupation"
+              :placeholder="t('createCase.enterOccupation')" />
           </div>
 
           <div class="space-y-2">
@@ -90,7 +134,8 @@
           <div class="space-y-2">
             <Label for="chief_complaint">{{ t('createCase.chief_complaint') }} *</Label>
             <Textarea id="chief_complaint" v-model="localData.clinical_history.chief_complaint"
-              :placeholder="t('createCase.describe_chief_complaint')" :error="getTranslatedError('chief_complaint')" rows="3" />
+              :placeholder="t('createCase.describe_chief_complaint')" :error="getTranslatedError('chief_complaint')"
+              rows="3" />
           </div>
 
           <div class="space-y-2">
@@ -127,20 +172,31 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="space-y-2">
               <Label for="symptom_duration">Thời gian có triệu chứng (ngày)</Label>
-              <Input id="symptom_duration" type="number" v-model.number="localData.clinical_history.symptom_duration_days"
-                placeholder="Ví dụ: 7" min="0" />
+              <Input id="symptom_duration" type="number"
+                v-model.number="localData.clinical_history.symptom_duration_days" placeholder="Ví dụ: 7" min="0" />
             </div>
 
             <div class="space-y-2">
               <Label for="symptom_onset">Khởi phát triệu chứng</Label>
-              <Input id="symptom_onset" v-model="localData.clinical_history.symptom_onset"
-                placeholder="Ví dụ: Đột ngột, Từ từ" />
+              <select id="symptom_onset" v-model="localData.clinical_history.symptom_onset"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Chọn</option>
+                <option value="sudden">Đột ngột</option>
+                <option value="gradual">Từ từ</option>
+                <option value="chronic">Mạn tính</option>
+              </select>
             </div>
 
             <div class="space-y-2">
               <Label for="symptom_progression">Diễn biến triệu chứng</Label>
-              <Input id="symptom_progression" v-model="localData.clinical_history.symptom_progression"
-                placeholder="Ví dụ: Tiến triển, Ổn định, Giảm dần" />
+              <select id="symptom_progression" v-model="localData.clinical_history.symptom_progression"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Chọn</option>
+                <option value="improving">Cải thiện</option>
+                <option value="worsening">Xấu đi</option>
+                <option value="stable">Ổn định</option>
+                <option value="fluctuating">Biến đổi</option>
+              </select>
             </div>
           </div>
 
@@ -228,7 +284,7 @@ const errors = ref<Record<string, string>>({})
 
 const getTranslatedError = (field: string): string | undefined => {
   if (!errors.value[field]) return undefined
-  
+
   // Map field names to i18n keys for error messages
   const errorKeyMap: Record<string, string> = {
     title: 'createCase.caseTitleRequired',
@@ -238,7 +294,7 @@ const getTranslatedError = (field: string): string | undefined => {
     patient_gender: 'createCase.genderRequired',
     chief_complaint: 'createCase.chief_complaintRequired',
   }
-  
+
   const keyForError = errorKeyMap[field]
   if (keyForError) {
     return t(keyForError)

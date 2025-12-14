@@ -7,7 +7,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     time_ago = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = Notification
         fields = [
             "id",

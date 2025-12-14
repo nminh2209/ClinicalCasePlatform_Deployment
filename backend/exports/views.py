@@ -25,6 +25,7 @@ from .utils import PDFExporter, PDFExporterHTML, WordExporter, JSONExporter
 
 try:
     from .tasks import process_case_export, process_batch_export
+
     CELERY_AVAILABLE = True
 except ImportError:
     CELERY_AVAILABLE = False
@@ -44,7 +45,7 @@ class IsOwnerOrInstructor(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Admins and instructors can access any export
-        if request.user.role in ["admin", "instructor"]:
+        if request.user.role in ["admin", "instructor"]:  # type: ignore[attr-defined]
             return True
 
         # Users can access their own exports
@@ -62,7 +63,7 @@ def can_export_case(user, case):
     """Check if user has permission to export a case"""
     if not user:
         return False
-        
+
     if user.role in ["admin", "instructor"]:
         return True
 
@@ -81,16 +82,16 @@ def sanitize_filename(filename: str) -> str:
 
     # Allow all Unicode letters (including Vietnamese), numbers, spaces, hyphens, and underscores
     # Replace other characters with underscores
-    sanitized = re.sub(r'[^\w\s\-]', '_', filename, flags=re.UNICODE)
+    sanitized = re.sub(r"[^\w\s\-]", "_", filename, flags=re.UNICODE)
 
     # Replace multiple consecutive underscores with single underscore
-    sanitized = re.sub(r'_+', '_', sanitized)
+    sanitized = re.sub(r"_+", "_", sanitized)
 
     # Remove leading/trailing underscores
-    sanitized = sanitized.strip('_')
+    sanitized = sanitized.strip("_")
 
     # Limit length to prevent filesystem issues
-    return sanitized[:100] if sanitized else 'export'
+    return sanitized[:100] if sanitized else "export"
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -109,7 +110,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 class ExportTemplateViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing export templates
-    
+
     Lists, creates, retrieves, updates, and deletes export templates.
     Instructors and admins can manage templates, students can view.
     """
@@ -128,7 +129,7 @@ class ExportTemplateViewSet(viewsets.ModelViewSet):
         queryset = ExportTemplate.objects.all()
 
         # Students only see active templates
-        if self.request.user.role == "student":
+        if self.request.user.role == "student":  # type: ignore[attr-defined]
             queryset = queryset.filter(is_active=True)
 
         # Filter by type if specified
@@ -141,8 +142,8 @@ class ExportTemplateViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Set created_by to current user"""
         # Only instructors and admins can create templates
-        if self.request.user.role not in ["admin", "instructor"]:
-            raise permissions.PermissionDenied(
+        if self.request.user.role not in ["admin", "instructor"]:  # type: ignore[attr-defined]
+            raise permissions.PermissionDenied(  # type: ignore[attr-defined]
                 "Only instructors and admins can create templates"
             )
 
@@ -151,14 +152,14 @@ class ExportTemplateViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         """Prevent deletion of system templates"""
         if instance.is_system_template:
-            raise permissions.PermissionDenied("Cannot delete system templates")
+            raise permissions.PermissionDenied("Cannot delete system templates")  # type: ignore[attr-defined]
 
         # Only creator, instructors, or admins can delete
-        if (
-            instance.created_by != self.request.user
-            and self.request.user.role not in ["admin", "instructor"]
-        ):
-            raise permissions.PermissionDenied(
+        if instance.created_by != self.request.user and self.request.user.role not in [  # type: ignore[attr-defined]
+            "admin",
+            "instructor",
+        ]:
+            raise permissions.PermissionDenied(  # type: ignore[attr-defined]
                 "You don't have permission to delete this template"
             )
 
@@ -173,7 +174,7 @@ class ExportTemplateViewSet(viewsets.ModelViewSet):
 class CaseExportViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing case exports
-    
+
     Supports creating, listing, retrieving, and deleting case exports.
     Provides filtering, search, and download functionality.
     """
@@ -197,10 +198,10 @@ class CaseExportViewSet(viewsets.ModelViewSet):
         ).all()
 
         # Students can only see their own exports
-        if user.role == "student":
+        if user.role == "student":  # type: ignore[attr-defined]
             queryset = queryset.filter(Q(exported_by=user) | Q(case__student=user))
         # Instructors can see exports from their department
-        elif user.role == "instructor" and hasattr(user, "department"):
+        elif user.role == "instructor" and hasattr(user, "department"):  # type: ignore[attr-defined]
             # Can add department filtering here
             pass
         # Admins can see all exports
@@ -240,10 +241,10 @@ class CaseExportViewSet(viewsets.ModelViewSet):
 
         if use_async and CELERY_AVAILABLE:
             # Queue the export task
-            process_case_export.delay(export.id)
+            process_case_export.delay(export.id)  # type: ignore[attr-defined]
         elif CELERY_AVAILABLE:
             # Process synchronously (for small exports)
-            process_case_export(export.id)
+            process_case_export(export.id)  # type: ignore[attr-defined]
         else:
             # Celery not available, mark as pending
             export.status = CaseExport.ExportStatus.PENDING
@@ -290,10 +291,12 @@ class CaseExportViewSet(viewsets.ModelViewSet):
     def stats(self, request):
         """Get export statistics for current user"""
         user = request.user
-        
+
         # Build query based on user role
         if user.role == "student":
-            exports = CaseExport.objects.filter(Q(exported_by=user) | Q(case__student=user))
+            exports = CaseExport.objects.filter(
+                Q(exported_by=user) | Q(case__student=user)
+            )
         else:
             exports = CaseExport.objects.all()
 
@@ -312,10 +315,10 @@ class CaseExportViewSet(viewsets.ModelViewSet):
             .values_list("status", "count")
         )
 
-        total_downloads = exports.aggregate(Sum("download_count"))[
-            "download_count__sum"
-        ] or 0
-        
+        total_downloads = (
+            exports.aggregate(Sum("download_count"))["download_count__sum"] or 0
+        )
+
         total_file_size = exports.aggregate(Sum("file_size"))["file_size__sum"] or 0
 
         recent_exports = exports.order_by("-exported_at")[:5]
@@ -352,7 +355,7 @@ class CaseExportViewSet(viewsets.ModelViewSet):
 class BatchExportViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing batch exports
-    
+
     Allows exporting multiple cases at once, with progress tracking.
     """
 
@@ -372,7 +375,7 @@ class BatchExportViewSet(viewsets.ModelViewSet):
         queryset = BatchExport.objects.prefetch_related("cases").all()
 
         # Students can only see their own batch exports
-        if user.role == "student":
+        if user.role == "student":  # type: ignore[attr-defined]
             queryset = queryset.filter(user=user)
 
         # Filter by status
@@ -388,7 +391,7 @@ class BatchExportViewSet(viewsets.ModelViewSet):
 
         if CELERY_AVAILABLE:
             # Queue the batch export task
-            task = process_batch_export.delay(batch.id)
+            task = process_batch_export.delay(batch.id)  # type: ignore[attr-defined]
             batch.task_id = task.id
             batch.save()
         else:
@@ -448,7 +451,8 @@ class BatchExportViewSet(viewsets.ModelViewSet):
         if batch.task_id and CELERY_AVAILABLE:
             try:
                 from celery import current_app
-                current_app.control.revoke(batch.task_id, terminate=True)
+
+                current_app.control.revoke(batch.task_id, terminate=True)  # type: ignore[attr-defined]
             except ImportError:
                 pass
 
@@ -504,9 +508,9 @@ def quick_export_pdf(request, case_id):
         # Return response
         buffer.seek(0)
         response = HttpResponse(buffer.read(), content_type="application/pdf")
-        
+
         # Safely encode filename for Content-Disposition header
-        safe_filename = case.title.replace('"', '').replace('\\', '')[:100] + '.pdf'
+        safe_filename = case.title.replace('"', "").replace("\\", "")[:100] + ".pdf"
         response["Content-Disposition"] = f'attachment; filename="{safe_filename}"'
 
         return response
@@ -514,9 +518,10 @@ def quick_export_pdf(request, case_id):
     except Exception as e:
         # Log the error for debugging
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"PDF export failed for case {case_id}: {str(e)}", exc_info=True)
-        
+
         return Response(
             {"error": f"Export failed: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -563,7 +568,7 @@ def export_case_word(request, case_id):
             buffer.read(),
             content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         )
-        safe_filename = case.title.replace('"', '').replace('\\', '')[:100] + '.docx'
+        safe_filename = case.title.replace('"', "").replace("\\", "")[:100] + ".docx"
         response["Content-Disposition"] = f'attachment; filename="{safe_filename}"'
 
         return response
@@ -615,7 +620,7 @@ def export_case_json(request, case_id):
             buffer.read(),
             content_type="application/json; charset=utf-8",
         )
-        safe_filename = case.title.replace('"', '').replace('\\', '')[:100] + '.json'
+        safe_filename = case.title.replace('"', "").replace("\\", "")[:100] + ".json"
         response["Content-Disposition"] = f'attachment; filename="{safe_filename}"'
 
         return response
@@ -669,3 +674,4 @@ def export_formats(request):
 # ============================================================================
 # Export Format Utility Views
 # ============================================================================
+

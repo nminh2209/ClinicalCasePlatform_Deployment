@@ -200,14 +200,14 @@ class CaseExportAdmin(admin.ModelAdmin):
         url = reverse("admin:cases_case_change", args=[obj.case.id])
         return format_html('<a href="{}">{}</a>', url, obj.case.title[:50])
 
-    case_link.short_description = "Case"
+    case_link.short_description = "Case"  # type: ignore[attr-defined]
 
     def user_link(self, obj):
         """Link to the user"""
         url = reverse("admin:accounts_user_change", args=[obj.user.id])
         return format_html('<a href="{}">{}</a>', url, obj.user.username)
 
-    user_link.short_description = "User"
+    user_link.short_description = "User"  # type: ignore[attr-defined]
 
     def file_size_display(self, obj):
         """Display file size in human-readable format"""
@@ -220,7 +220,7 @@ class CaseExportAdmin(admin.ModelAdmin):
             return f"{size:.1f} TB"
         return "-"
 
-    file_size_display.short_description = "File Size"
+    file_size_display.short_description = "File Size"  # type: ignore[attr-defined]
 
     def download_link(self, obj):
         """Display download link if file is available"""
@@ -230,7 +230,7 @@ class CaseExportAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    download_link.short_description = "Download"
+    download_link.short_description = "Download"  # type: ignore[attr-defined]
 
     actions = ["mark_expired", "recalculate_hash"]
 
@@ -239,7 +239,7 @@ class CaseExportAdmin(admin.ModelAdmin):
         count = queryset.update(status=CaseExport.ExportStatus.EXPIRED)
         self.message_user(request, f"{count} exports marked as expired.")
 
-    mark_expired.short_description = "Mark selected exports as expired"
+    mark_expired.short_description = "Mark selected exports as expired"  # type: ignore[attr-defined]
 
     def recalculate_hash(self, request, queryset):
         """Recalculate file hash for selected exports"""
@@ -249,7 +249,7 @@ class CaseExportAdmin(admin.ModelAdmin):
                 count += 1
         self.message_user(request, f"Recalculated hash for {count} exports.")
 
-    recalculate_hash.short_description = "Recalculate file hash"
+    recalculate_hash.short_description = "Recalculate file hash"  # type: ignore[attr-defined]
 
 
 @admin.register(BatchExport)
@@ -307,9 +307,7 @@ class BatchExportAdmin(admin.ModelAdmin):
         ),
         (
             "Cases",
-            {
-                "fields": ("cases",)
-            },
+            {"fields": ("cases",)},
         ),
         (
             "Configuration",
@@ -367,7 +365,7 @@ class BatchExportAdmin(admin.ModelAdmin):
         url = reverse("admin:accounts_user_change", args=[obj.user.id])
         return format_html('<a href="{}">{}</a>', url, obj.user.username)
 
-    user_link.short_description = "User"
+    user_link.short_description = "User"  # type: ignore[attr-defined]
 
     def progress_display(self, obj):
         """Display progress bar"""
@@ -384,7 +382,7 @@ class BatchExportAdmin(admin.ModelAdmin):
             '<div style="width:100px; background-color:#f0f0f0;">'
             '<div style="width:{}%; background-color:{}; height:20px;"></div>'
             "</div>"
-            '<small>{}/{} ({}%)</small>',
+            "<small>{}/{} ({}%)</small>",
             percentage,
             color,
             obj.processed_cases,
@@ -392,7 +390,7 @@ class BatchExportAdmin(admin.ModelAdmin):
             round(percentage, 1),
         )
 
-    progress_display.short_description = "Progress"
+    progress_display.short_description = "Progress"  # type: ignore[attr-defined]
 
     def download_link(self, obj):
         """Display download link if ZIP file is available"""
@@ -402,18 +400,21 @@ class BatchExportAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    download_link.short_description = "Download"
+    download_link.short_description = "Download"  # type: ignore[attr-defined]
 
     actions = ["cancel_batch", "retry_batch"]
 
     def cancel_batch(self, request, queryset):
         """Cancel selected batch exports"""
         count = queryset.filter(
-            status__in=[BatchExport.BatchStatus.QUEUED, BatchExport.BatchStatus.PROCESSING]
+            status__in=[
+                BatchExport.BatchStatus.QUEUED,
+                BatchExport.BatchStatus.PROCESSING,
+            ]
         ).update(status=BatchExport.BatchStatus.CANCELLED)
         self.message_user(request, f"{count} batch exports cancelled.")
 
-    cancel_batch.short_description = "Cancel selected batch exports"
+    cancel_batch.short_description = "Cancel selected batch exports"  # type: ignore[attr-defined]
 
     def retry_batch(self, request, queryset):
         """Retry failed batch exports"""
@@ -424,11 +425,12 @@ class BatchExportAdmin(admin.ModelAdmin):
             batch.status = BatchExport.BatchStatus.QUEUED
             batch.error_message = ""
             batch.save()
-            task = process_batch_export.delay(batch.id)
+            task = process_batch_export.delay(batch.id)  # type: ignore[attr-defined]
             batch.task_id = task.id
             batch.save()
             count += 1
 
         self.message_user(request, f"{count} batch exports queued for retry.")
 
-    retry_batch.short_description = "Retry failed batch exports"
+    retry_batch.short_description = "Retry failed batch exports"  # type: ignore[attr-defined]
+

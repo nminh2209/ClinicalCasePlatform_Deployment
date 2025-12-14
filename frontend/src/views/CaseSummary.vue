@@ -157,7 +157,7 @@
                 </Badge>
                 <span class="text-sm font-medium text-gray-700">{{ count }} ca</span>
               </div>
-              <div v-if="Object.keys(summary.by_priority).length === 0" class="text-center text-gray-500 py-4">
+              <div v-if="!summary.by_priority || Object.keys(summary.by_priority).length === 0" class="text-center text-gray-500 py-4">
                 Chưa có dữ liệu mức độ ưu tiên
               </div>
             </div>
@@ -177,7 +177,7 @@
                 </Badge>
                 <span class="text-sm font-medium text-gray-700">{{ count }} ca</span>
               </div>
-              <div v-if="Object.keys(summary.by_complexity).length === 0" class="text-center text-gray-500 py-4">
+              <div v-if="!summary.by_complexity || Object.keys(summary.by_complexity).length === 0" class="text-center text-gray-500 py-4">
                 Chưa có dữ liệu mức độ phức tạp
               </div>
             </div>
@@ -247,38 +247,7 @@ const loading = ref(true)
 const error = ref('')
 const summary = ref<any>(null)
 
-const fetchSummary = async () => {
-  loading.value = true
-  error.value = ''
-  
-  try {
-    const response = await casesService.getCaseSummary()
-    summary.value = response
-  } catch (err: any) {
-    error.value = err.response?.data?.detail || 'Không thể tải dữ liệu tổng hợp'
-    console.error('Error fetching case summary:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-const refreshData = () => {
-  fetchSummary()
-}
-
-const viewCase = (caseId: number) => {
-  router.push(`/cases/${caseId}`)
-}
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('vi-VN', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
-}
-
+// Helper functions for labels and styling
 const getStatusLabel = (status: string | number) => {
   const statusStr = String(status)
   const labels: Record<string, string> = {
@@ -354,6 +323,96 @@ const getComplexityBadgeClass = (complexity: string | number) => {
     expert: 'bg-red-500 text-white'
   }
   return classes[complexityStr] || 'bg-gray-500 text-white'
+}
+
+const fetchSummary = async () => {
+  loading.value = true
+  error.value = ''
+  
+  try {
+    // Use the new backend statistics API
+    const response = await casesService.getCaseSummaryStatistics()
+    
+    // Extract daily trends data from backend response
+    const dailyTrends = response.trends?.last_30_days?.daily || []
+    const recentWeekCount = dailyTrends.slice(-7).reduce((sum: number, day: any) => sum + (day.count || 0), 0)
+    
+    // Convert status distribution to object format with percentage calculation
+    const statusObj: any = {}
+    const totalCases = response.summary?.total_cases || 1
+    response.distributions?.by_status?.forEach((item: any) => {
+      const percentage = Math.round((item.count / totalCases) * 100)
+      statusObj[item.case_status] = { 
+        count: item.count, 
+        label: getStatusLabel(item.case_status),
+        percentage: percentage
+      }
+    })
+    
+    // Convert priority distribution to object format
+    const priorityObj: any = {}
+    response.distributions?.by_priority?.forEach((item: any) => {
+      priorityObj[item.priority_level] = item.count
+    })
+    
+    // Convert complexity distribution to object format
+    const complexityObj: any = {}
+    response.distributions?.by_complexity?.forEach((item: any) => {
+      complexityObj[item.complexity_level] = item.count
+    })
+    
+    // Get top specialties (sorted by count, limit to 5)
+    const topSpecialties = (response.distributions?.by_specialty || [])
+      .sort((a: any, b: any) => b.count - a.count)
+      .slice(0, 5)
+      .map((item: any) => ({ specialty: item.specialty, count: item.count }))
+    
+    // Transform backend response to match component expectations
+    summary.value = {
+      total_cases: response.summary?.total_cases || 0,
+      completion_stats: {
+        completion_rate: Math.round((response.distributions?.by_status?.find((s: any) => s.case_status === 'reviewed')?.count || 0) / (response.summary?.total_cases || 1) * 100)
+      },
+      learning_metrics: {
+        total_study_hours: Math.round((response.summary?.total_cases || 0) * 2.5), // Estimate
+        cases_created_this_week: recentWeekCount
+      },
+      by_status: statusObj,
+      by_priority: priorityObj,
+      by_complexity: complexityObj,
+      top_specialties: topSpecialties,
+      status_distribution: response.distributions?.by_status || [],
+      specialty_distribution: response.distributions?.by_specialty || [],
+      priority_distribution: response.distributions?.by_priority || [],
+      complexity_distribution: response.distributions?.by_complexity || [],
+      department_performance: response.distributions?.by_department || [],
+      recent_cases: [] // Will fetch separately if needed
+    }
+    
+    console.log('Case summary loaded:', summary.value)
+  } catch (err: any) {
+    error.value = err.response?.data?.detail || 'Không thể tải dữ liệu tổng hợp'
+    console.error('Error fetching case summary:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const refreshData = () => {
+  fetchSummary()
+}
+
+const viewCase = (caseId: number) => {
+  router.push(`/cases/${caseId}`)
+}
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('vi-VN', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
 }
 
 onMounted(() => {

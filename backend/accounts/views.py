@@ -23,7 +23,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             # Get user data with department
-            user = User.objects.select_related('department').get(pk=request.user.pk)
+            user = User.objects.select_related("department").get(pk=request.user.pk)
             user_serializer = UserSerializer(user)
             response.data["user"] = user_serializer.data
         return response
@@ -72,7 +72,7 @@ class UserLoginView(generics.GenericAPIView):
         user = serializer.validated_data["user"]
 
         # Reload user with department data
-        user = User.objects.select_related('department').get(pk=user.pk)
+        user = User.objects.select_related("department").get(pk=user.pk)
 
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
@@ -98,7 +98,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.select_related('department')
+        return User.objects.select_related("department")
 
     def get_object(self):
         return self.get_queryset().get(pk=self.request.user.pk)
@@ -109,7 +109,7 @@ class UserListView(generics.ListAPIView):
     List all users (for instructors to see students)
     """
 
-    queryset = User.objects.all().select_related('department')
+    queryset = User.objects.all().select_related("department")
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 

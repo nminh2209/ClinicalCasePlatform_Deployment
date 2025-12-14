@@ -18,7 +18,7 @@ class ExportTemplateSerializer(serializers.ModelSerializer):
         source="get_template_type_display", read_only=True
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = ExportTemplate
         fields = [
             "id",
@@ -55,7 +55,7 @@ class ExportTemplateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at", "is_system_template"]
 
-    def validate(self, data):
+    def validate(self, data):  # type: ignore[attr-defined]
         """Validate template settings"""
         # Ensure watermark text is provided if watermark is enabled
         if data.get("add_watermark") and not data.get("watermark_text"):
@@ -73,7 +73,7 @@ class ExportTemplateListSerializer(serializers.ModelSerializer):
         source="get_template_type_display", read_only=True
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = ExportTemplate
         fields = [
             "id",
@@ -105,7 +105,7 @@ class CaseExportSerializer(serializers.ModelSerializer):
     is_expired = serializers.SerializerMethodField()
     can_download = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseExport
         fields = [
             "id",
@@ -186,7 +186,7 @@ class CaseExportListSerializer(serializers.ModelSerializer):
     )
     status_display = serializers.CharField(source="get_status_display", read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseExport
         fields = [
             "id",
@@ -208,7 +208,7 @@ class CaseExportCreateSerializer(serializers.ModelSerializer):
     Serializer for creating new exports
     """
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseExport
         fields = [
             "case",
@@ -251,7 +251,7 @@ class CaseExportCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create export record"""
         request = self.context.get("request")
-        validated_data["user"] = request.user
+        validated_data["user"] = request.user  # type: ignore[attr-defined]
 
         # Get IP address and user agent from request
         if request:
@@ -283,7 +283,7 @@ class BatchExportSerializer(serializers.ModelSerializer):
     progress_percentage = serializers.SerializerMethodField()
     zip_file_url = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = BatchExport
         fields = [
             "id",
@@ -357,7 +357,7 @@ class BatchExportCreateSerializer(serializers.ModelSerializer):
         child=serializers.IntegerField(), write_only=True, min_length=1, max_length=100
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = BatchExport
         fields = [
             "case_ids",
@@ -372,7 +372,7 @@ class BatchExportCreateSerializer(serializers.ModelSerializer):
     def validate_case_ids(self, value):
         """Validate case IDs"""
         request = self.context.get("request")
-        user = request.user
+        user = request.user  # type: ignore[attr-defined]
 
         # Check if all cases exist
         cases = Case.objects.filter(id__in=value)
@@ -397,7 +397,7 @@ class BatchExportCreateSerializer(serializers.ModelSerializer):
 
         # Create batch export
         batch_export = BatchExport.objects.create(
-            user=request.user,
+            user=request.user,  # type: ignore[attr-defined]
             export_format=validated_data["export_format"],
             template_used=validated_data.get("template_used"),
             batch_name=validated_data.get("batch_name", ""),
@@ -426,3 +426,4 @@ class ExportStatsSerializer(serializers.Serializer):
     total_file_size = serializers.IntegerField()
     recent_exports = CaseExportListSerializer(many=True)
     popular_templates = serializers.ListField()
+

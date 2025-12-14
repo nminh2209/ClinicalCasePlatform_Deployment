@@ -18,7 +18,7 @@ class CaseAnalyticsSerializer(serializers.ModelSerializer):
     case_title = serializers.CharField(source="case.title", read_only=True)
     case_id = serializers.IntegerField(source="case.id", read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseAnalytics
         fields = [
             "id",
@@ -53,7 +53,7 @@ class StudentEngagementMetricsSerializer(serializers.ModelSerializer):
         source="student.department.name", read_only=True
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = StudentEngagementMetrics
         fields = [
             "id",
@@ -87,7 +87,7 @@ class CaseViewLogSerializer(serializers.ModelSerializer):
     case_title = serializers.CharField(source="case.title", read_only=True)
     user_name = serializers.CharField(source="user.get_full_name", read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseViewLog
         fields = [
             "id",
@@ -108,7 +108,7 @@ class CaseViewLogSerializer(serializers.ModelSerializer):
 class PlatformUsageStatisticsSerializer(serializers.ModelSerializer):
     """Serializer for platform usage statistics"""
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = PlatformUsageStatistics
         fields = [
             "id",
@@ -141,7 +141,7 @@ class DepartmentAnalyticsSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="department.name", read_only=True)
     department_code = serializers.CharField(source="department.code", read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = DepartmentAnalytics
         fields = [
             "id",

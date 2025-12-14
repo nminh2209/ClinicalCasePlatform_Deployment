@@ -108,8 +108,34 @@ export const casesService = {
     return response.data;
   },
 
+  // Case Summary & Statistics (NEW - using backend API)
   async getCaseSummary() {
     const response = await api.get("/cases/summary/");
     return response.data;
+  },
+
+  async getCaseSummaryStatistics(params = {}) {
+    const response = await api.get("/cases/summary/statistics/", { params });
+    return response.data;
+  },
+
+  async getCaseSummaryList(params = {}) {
+    const response = await api.get("/cases/summary/list/", { params });
+    return response.data;
+  },
+
+  async exportCaseSummary(options: {
+    format?: 'json' | 'csv';
+    include_statistics?: boolean;
+    include_details?: boolean;
+    department?: string;
+    date_from?: string;
+    date_to?: string;
+    status?: string;
+  } = {}) {
+    const response = await api.post("/cases/summary/export/", options, {
+      responseType: options.format === 'csv' ? 'blob' : 'json'
+    });
+    return response;
   },
 };

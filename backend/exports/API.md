@@ -1,12 +1,15 @@
 # Export API Documentation
 
 ## Base URL
+
 ```
 http://your-domain.com/api/exports/
 ```
 
 ## Authentication
+
 All endpoints require authentication. Include the token in the header:
+
 ```
 Authorization: Token YOUR_AUTH_TOKEN
 ```
@@ -16,17 +19,20 @@ Authorization: Token YOUR_AUTH_TOKEN
 ## Export Templates
 
 ### List Export Templates
+
 ```
 GET /api/exports/templates/
 ```
 
 **Query Parameters:**
+
 - `type` (optional): Filter by template type
   - Values: `standard`, `academic`, `research`, `clinical`, `presentation`, `anonymized`
 - `page` (optional): Page number
 - `page_size` (optional): Results per page (max 100)
 
 **Response:**
+
 ```json
 {
   "count": 7,
@@ -47,11 +53,13 @@ GET /api/exports/templates/
 ```
 
 ### Get Template Details
+
 ```
 GET /api/exports/templates/{id}/
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -86,11 +94,13 @@ GET /api/exports/templates/{id}/
 ```
 
 ### Create Template (Instructor/Admin only)
+
 ```
 POST /api/exports/templates/
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "My Custom Template",
@@ -115,6 +125,7 @@ POST /api/exports/templates/
 **Response:** 201 Created with template details
 
 ### Update Template
+
 ```
 PUT /api/exports/templates/{id}/
 PATCH /api/exports/templates/{id}/  # Partial update
@@ -123,6 +134,7 @@ PATCH /api/exports/templates/{id}/  # Partial update
 **Request:** Same as create (all fields for PUT, partial for PATCH)
 
 ### Delete Template
+
 ```
 DELETE /api/exports/templates/{id}/
 ```
@@ -134,11 +146,13 @@ DELETE /api/exports/templates/{id}/
 ## Case Exports
 
 ### List Exports
+
 ```
 GET /api/exports/case-exports/
 ```
 
 **Query Parameters:**
+
 - `status`: Filter by status (`pending`, `processing`, `completed`, `failed`, `expired`)
 - `format`: Filter by format (`pdf`, `word`, `json`)
 - `case`: Filter by case ID
@@ -147,6 +161,7 @@ GET /api/exports/case-exports/
 - `page`, `page_size`: Pagination
 
 **Response:**
+
 ```json
 {
   "count": 50,
@@ -171,11 +186,13 @@ GET /api/exports/case-exports/
 ```
 
 ### Create Export (Async)
+
 ```
 POST /api/exports/case-exports/
 ```
 
 **Request Body:**
+
 ```json
 {
   "case": 1,
@@ -190,6 +207,7 @@ POST /api/exports/case-exports/
 ```
 
 **Response:** 201 Created
+
 ```json
 {
   "id": 123,
@@ -205,11 +223,13 @@ POST /api/exports/case-exports/
 **Note:** The export will be processed asynchronously. Check status with GET request.
 
 ### Get Export Details
+
 ```
 GET /api/exports/case-exports/{id}/
 ```
 
 **Response:**
+
 ```json
 {
   "id": 123,
@@ -242,20 +262,24 @@ GET /api/exports/case-exports/{id}/
 ```
 
 ### Download Export
+
 ```
 GET /api/exports/case-exports/{id}/download/
 ```
 
 **Response:** File download (binary data)
+
 - Content-Type: `application/pdf` | `application/vnd.openxmlformats-officedocument.wordprocessingml.document` | `application/json`
 - Content-Disposition: `attachment; filename="case_title.ext"`
 
 **Errors:**
+
 - 400: Export not ready (status != completed)
 - 404: File not found
 - 410: Export expired
 
 ### Delete Export
+
 ```
 DELETE /api/exports/case-exports/{id}/
 ```
@@ -263,11 +287,13 @@ DELETE /api/exports/case-exports/{id}/
 **Response:** 204 No Content
 
 ### Get Export Statistics
+
 ```
 GET /api/exports/case-exports/stats/
 ```
 
 **Response:**
+
 ```json
 {
   "total_exports": 150,
@@ -307,15 +333,18 @@ GET /api/exports/case-exports/stats/
 ## Batch Exports
 
 ### List Batch Exports
+
 ```
 GET /api/exports/batch-exports/
 ```
 
 **Query Parameters:**
+
 - `status`: Filter by status (`queued`, `processing`, `completed`, `failed`, `cancelled`)
 - `page`, `page_size`: Pagination
 
 **Response:**
+
 ```json
 {
   "count": 10,
@@ -342,11 +371,13 @@ GET /api/exports/batch-exports/
 ```
 
 ### Create Batch Export
+
 ```
 POST /api/exports/batch-exports/
 ```
 
 **Request Body:**
+
 ```json
 {
   "case_ids": [1, 2, 3, 4, 5],
@@ -359,6 +390,7 @@ POST /api/exports/batch-exports/
 ```
 
 **Response:** 201 Created
+
 ```json
 {
   "id": 1,
@@ -371,11 +403,13 @@ POST /api/exports/batch-exports/
 **Note:** Batch export will be processed asynchronously by Celery.
 
 ### Get Batch Details
+
 ```
 GET /api/exports/batch-exports/{id}/
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -415,6 +449,7 @@ GET /api/exports/batch-exports/{id}/
 ```
 
 ### Download Batch Export
+
 ```
 GET /api/exports/batch-exports/{id}/download/
 ```
@@ -422,15 +457,18 @@ GET /api/exports/batch-exports/{id}/download/
 **Response:** ZIP file download
 
 **Errors:**
+
 - 400: Batch not ready (status != completed)
 - 404: File not found
 
 ### Cancel Batch Export
+
 ```
 POST /api/exports/batch-exports/{id}/cancel/
 ```
 
 **Response:** 200 OK
+
 ```json
 {
   "status": "Batch export cancelled"
@@ -440,6 +478,7 @@ POST /api/exports/batch-exports/{id}/cancel/
 **Note:** Only queued or processing batches can be cancelled.
 
 ### Delete Batch Export
+
 ```
 DELETE /api/exports/batch-exports/{id}/
 ```
@@ -451,31 +490,37 @@ DELETE /api/exports/batch-exports/{id}/
 ## Quick Export (Synchronous)
 
 ### Export to PDF (Instant)
+
 ```
 GET /api/exports/quick/cases/{case_id}/pdf/
 ```
 
 **Query Parameters:**
+
 - `template` (optional): Template ID to use
 
 **Response:** Direct PDF file download
 
 ### Export to Word (Instant)
+
 ```
 GET /api/exports/quick/cases/{case_id}/word/
 ```
 
 **Query Parameters:**
+
 - `template` (optional): Template ID to use
 
 **Response:** Direct Word file download
 
 ### Export to JSON (Instant)
+
 ```
 GET /api/exports/quick/cases/{case_id}/json/
 ```
 
 **Query Parameters:**
+
 - `template` (optional): Template ID to use
 
 **Response:** Direct JSON file download
@@ -487,11 +532,13 @@ GET /api/exports/quick/cases/{case_id}/json/
 ## Utility Endpoints
 
 ### List Export Formats
+
 ```
 GET /api/exports/formats/
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -526,6 +573,7 @@ GET /api/exports/formats/
 ## Error Responses
 
 ### 400 Bad Request
+
 ```json
 {
   "error": "Invalid export format"
@@ -533,6 +581,7 @@ GET /api/exports/formats/
 ```
 
 ### 403 Forbidden
+
 ```json
 {
   "error": "Permission denied. Students can only export their own cases."
@@ -540,6 +589,7 @@ GET /api/exports/formats/
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "error": "Case not found"
@@ -547,6 +597,7 @@ GET /api/exports/formats/
 ```
 
 ### 410 Gone
+
 ```json
 {
   "error": "Export has expired"
@@ -554,6 +605,7 @@ GET /api/exports/formats/
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "error": "Export failed: [error details]"
@@ -565,6 +617,7 @@ GET /api/exports/formats/
 ## Rate Limiting
 
 Currently no rate limiting is implemented. Consider adding:
+
 - Quick exports: 10 per minute per user
 - Async exports: 50 per hour per user
 - Batch exports: 5 per hour per user
@@ -588,6 +641,7 @@ Currently no rate limiting is implemented. Consider adding:
 ### cURL Examples
 
 **Quick PDF Export:**
+
 ```bash
 curl -H "Authorization: Token YOUR_TOKEN" \
      http://localhost:8000/api/exports/quick/cases/1/pdf/ \
@@ -595,6 +649,7 @@ curl -H "Authorization: Token YOUR_TOKEN" \
 ```
 
 **Create Async Export:**
+
 ```bash
 curl -X POST \
      -H "Authorization: Token YOUR_TOKEN" \
@@ -604,6 +659,7 @@ curl -X POST \
 ```
 
 **Create Batch Export:**
+
 ```bash
 curl -X POST \
      -H "Authorization: Token YOUR_TOKEN" \
@@ -664,6 +720,7 @@ if status == "completed":
 ## Webhooks (Future Enhancement)
 
 Consider adding webhooks to notify when:
+
 - Export completes
 - Batch export completes
 - Export fails
@@ -673,3 +730,4 @@ Consider adding webhooks to notify when:
 
 **Last Updated:** November 3, 2025  
 **API Version:** 1.0.0
+

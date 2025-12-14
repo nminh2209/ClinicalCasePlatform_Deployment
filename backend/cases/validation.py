@@ -88,7 +88,7 @@ class CaseValidationRule(models.Model):
         ordering = ["severity", "name"]
 
     def __str__(self):
-        return f"{self.name} ({self.get_severity_display()})"
+        return f"{self.name} ({self.get_severity_display()})"  # type: ignore[attr-defined]
 
     def validate_case(self, case):
         """
@@ -255,7 +255,7 @@ class CaseValidationResult(models.Model):
 
     def __str__(self):
         return (
-            f"Validation for {self.case.title} - {self.get_validation_status_display()}"
+            f"Validation for {self.case.title} - {self.get_validation_status_display()}"  # type: ignore[attr-defined]
         )
 
 
@@ -368,7 +368,7 @@ class CaseSubmissionWorkflow(models.Model):
         ]
 
     def __str__(self):
-        return f"Workflow for {self.case.title} - {self.get_current_status_display()}"
+        return f"Workflow for {self.case.title} - {self.get_current_status_display()}"  # type: ignore[attr-defined]
 
     def transition_to(self, new_status, user=None, notes=""):
         """

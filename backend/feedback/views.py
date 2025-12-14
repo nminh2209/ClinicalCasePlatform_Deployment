@@ -16,7 +16,7 @@ class FeedbackListCreateView(generics.ListCreateAPIView):
         from rest_framework import serializers
 
         class FeedbackSerializer(serializers.ModelSerializer):
-            class Meta:
+            class Meta:  # type: ignore[misc, assignment]
                 model = Feedback
                 fields = "__all__"
                 read_only_fields = ("instructor", "created_at", "updated_at")
@@ -39,7 +39,7 @@ class FeedbackDetailView(generics.RetrieveUpdateDestroyAPIView):
         from rest_framework import serializers
 
         class FeedbackSerializer(serializers.ModelSerializer):
-            class Meta:
+            class Meta:  # type: ignore[misc, assignment]
                 model = Feedback
                 fields = "__all__"
                 read_only_fields = ("instructor", "created_at", "updated_at")

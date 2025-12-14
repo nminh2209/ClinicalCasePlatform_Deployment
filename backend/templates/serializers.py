@@ -16,7 +16,7 @@ class CaseTemplateSerializer(serializers.ModelSerializer):
         source="department.vietnamese_name", read_only=True
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseTemplate
         fields = [
             "id",
@@ -68,7 +68,7 @@ class CaseTemplateListSerializer(serializers.ModelSerializer):
         source="department.vietnamese_name", read_only=True
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseTemplate
         fields = [
             "id",

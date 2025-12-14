@@ -22,7 +22,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
             author_role = serializers.CharField(source="author.role", read_only=True)
             reply_count = serializers.ReadOnlyField()
 
-            class Meta:
+            class Meta:  # type: ignore[misc, assignment]
                 model = Comment
                 fields = "__all__"
                 read_only_fields = ("author", "created_at", "updated_at")
@@ -51,7 +51,7 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
             author_role = serializers.CharField(source="author.role", read_only=True)
             reply_count = serializers.ReadOnlyField()
 
-            class Meta:
+            class Meta:  # type: ignore[misc, assignment]
                 model = Comment
                 fields = "__all__"
                 read_only_fields = ("author", "created_at", "updated_at")

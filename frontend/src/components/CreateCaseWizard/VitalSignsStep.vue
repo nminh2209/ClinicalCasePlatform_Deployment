@@ -25,7 +25,7 @@
           <div class="space-y-2">
             <Label for="bloodPressure">{{ t('createCase.bloodPressure') }} {{ t('createCase.bloodPressureUnit') }}</Label>
             <div class="flex space-x-2">
-              <Input type="number" v-model.number="localData.physical_examination.vital_signs_bp" placeholder="120/80" />
+              <Input id="bloodPressure" type="text" v-model="localData.physical_examination.vital_signs_bp" placeholder="120/80" />
             </div>
             <p class="text-xs text-gray-500">{{ t('createCase.bloodPressureFormat') }}</p>
           </div>
@@ -66,7 +66,13 @@
           </div>
         </div>
 
-        <div class="mt-6">
+        <div class="mt-6 space-y-4">
+          <div class="space-y-2">
+            <Label for="generalAppearance">Ngoại hình chung (General Appearance)</Label>
+            <Textarea id="generalAppearance" v-model="localData.physical_examination.general_appearance"
+              placeholder="Mô tả ngoại hình và tình trạng chung của bệnh nhân..." rows="2" />
+          </div>
+
           <div class="space-y-2">
             <Label for="vitalSignsNotes">{{ t('createCase.generalAppearanceNotes') }}</Label>
             <Textarea id="vitalSignsNotes" v-model="localData.physical_examination.vital_signs"
@@ -119,8 +125,21 @@ const calculatedBMI = computed(() => {
     // BMI = weight (kg) / (height (m))^2
     const heightInMeters = height / 100
     const bmi = weight / (heightInMeters * heightInMeters)
-    return Math.round(bmi * 10) / 10
+    const roundedBMI = Math.round(bmi * 10) / 10
+    
+    // Save BMI to the data model
+    if (localData.value.physical_examination) {
+      localData.value.physical_examination.bmi = roundedBMI
+    }
+    
+    return roundedBMI
   }
+  
+  // Clear BMI if invalid
+  if (localData.value.physical_examination) {
+    localData.value.physical_examination.bmi = null
+  }
+  
   return null
 })
 

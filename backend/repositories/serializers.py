@@ -15,7 +15,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     )
     case_count = serializers.IntegerField(read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = Repository
         fields = [
             "id",
@@ -56,7 +56,7 @@ class RepositoryListSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="department.name", read_only=True)
     case_count = serializers.IntegerField(read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = Repository
         fields = [
             "id",

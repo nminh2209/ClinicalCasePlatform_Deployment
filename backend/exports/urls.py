@@ -24,7 +24,6 @@ router.register(r"batch-exports", BatchExportViewSet, basename="batch-export")
 urlpatterns = [
     # Router URLs
     path("", include(router.urls)),
-    
     # Quick Export APIs (Synchronous, immediate download)
     path(
         "quick/cases/<int:case_id>/pdf/",
@@ -41,7 +40,7 @@ urlpatterns = [
         export_case_json,
         name="export-case-json",
     ),
-    
     # Utility endpoints
     path("formats/", export_formats, name="export-formats"),
 ]
+

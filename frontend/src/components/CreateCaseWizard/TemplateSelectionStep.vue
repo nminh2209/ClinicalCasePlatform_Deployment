@@ -41,7 +41,8 @@
                 </div>
               </div>
 
-              <p class="text-gray-600 text-sm mb-4">{{ template.description || t('createCase.noDescriptionAvailable') }}</p>
+              <p class="text-gray-600 text-sm mb-4">{{ template.description || t('createCase.noDescriptionAvailable') }}
+              </p>
 
               <div class="flex flex-wrap gap-2 mb-3">
                 <Badge v-if="template.department_name" variant="secondary" class="text-xs">
@@ -78,11 +79,13 @@
               <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="flex flex-col">
                   <dt class="text-gray-600 text-sm">{{ t('createCase.specialty') }}</dt>
-                  <dd class="font-medium">{{ translateSpecialty(selectedTemplate.specialty) || t('createCase.notApplicable') }}</dd>
+                  <dd class="font-medium">{{ translateSpecialty(selectedTemplate.specialty) ||
+                    t('createCase.notApplicable') }}</dd>
                 </div>
                 <div class="flex flex-col">
                   <dt class="text-gray-600 text-sm">{{ t('createCase.department') }}</dt>
-                  <dd class="font-medium">{{ translateDepartment(selectedTemplate.department_name) || t('createCase.notApplicable') }}</dd>
+                  <dd class="font-medium">{{ translateDepartment(selectedTemplate.department_name) ||
+                    t('createCase.notApplicable') }}</dd>
                 </div>
                 <div class="flex flex-col">
                   <dt class="text-gray-600 text-sm">{{ t('createCase.createdBy') }}</dt>
@@ -130,9 +133,9 @@ import { ref, computed, onMounted, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
-import { 
-  Activity as ActivityIcon, 
-  CheckIcon, 
+import {
+  Activity as ActivityIcon,
+  CheckIcon,
   CheckCircleIcon,
   Stethoscope,
   FlaskConical,
@@ -151,9 +154,9 @@ const { caseTemplates, loading, error, fetchCaseTemplates } = useCaseTemplates()
 // Map specialties to icons
 const getSpecialtyIcon = (specialty: string | null | undefined): Component => {
   if (!specialty) return ActivityIcon
-  
+
   const specialtyLower = specialty.toLowerCase()
-  
+
   // Map Vietnamese specialties to icons
   if (specialtyLower.includes('tiêu hóa') || specialtyLower.includes('digestive') || specialtyLower.includes('gastro')) {
     return FlaskConical // Digestive/lab work
@@ -170,7 +173,7 @@ const getSpecialtyIcon = (specialty: string | null | undefined): Component => {
   } else if (specialtyLower.includes('nhi') || specialtyLower.includes('pediatric') || specialtyLower.includes('child')) {
     return User // Pediatrics
   }
-  
+
   return ActivityIcon // Default
 }
 
@@ -211,10 +214,10 @@ const translateFieldName = (fieldName: string): string => {
         return word.charAt(0).toUpperCase() + word.slice(1)
       })
       .join('')
-    
+
     const translationKey = `createCase.${camelCaseKey}`
     const translated = t(translationKey)
-    
+
     // If translation key exists and is different from the key itself, return translated
     if (translated !== translationKey) {
       return translated

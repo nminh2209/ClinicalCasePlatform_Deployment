@@ -26,23 +26,24 @@ class Comment(models.Model):
     is_instructor_feedback = models.BooleanField(
         default=False, help_text="Whether this comment is official instructor feedback"
     )
-    
+
     # Social Media Reaction Fields
     is_reaction = models.BooleanField(
-        default=False, help_text="True if this is a reaction/like, False if regular comment"
+        default=False,
+        help_text="True if this is a reaction/like, False if regular comment",
     )
     reaction_type = models.CharField(
         max_length=20,
         blank=True,
         choices=[
-            ('like', '👍 Thích'),
-            ('love', '❤️ Yêu thích'),
-            ('insightful', '💡 Hữu ích'),
-            ('learned', '📚 Học được nhiều'),
+            ("like", "👍 Thích"),
+            ("love", "❤️ Yêu thích"),
+            ("insightful", "💡 Hữu ích"),
+            ("learned", "📚 Học được nhiều"),
         ],
         help_text="Type of reaction if is_reaction=True",
     )
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_edited = models.BooleanField(default=False)
@@ -54,17 +55,17 @@ class Comment(models.Model):
         ordering = ["created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=['case', 'author'],
+                fields=["case", "author"],
                 condition=models.Q(is_reaction=True),
-                name='unique_reaction_per_user_per_case'
+                name="unique_reaction_per_user_per_case",
             )
         ]
 
     def __str__(self):
         if self.is_reaction:
-            return f"{self.get_reaction_type_display()} by {self.author.get_full_name()} on {self.case.title}"
+            return f"{self.get_reaction_type_display()} by {self.author.get_full_name()} on {self.case.title}"  # type: ignore[attr-defined]
         return f"Comment by {self.author.get_full_name()} on {self.case.title}"
 
     @property
     def reply_count(self):
-        return self.replies.count()
+        return self.replies.count()  # type: ignore[attr-defined]

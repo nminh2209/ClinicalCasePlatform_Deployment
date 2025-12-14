@@ -153,7 +153,7 @@ class Case(models.Model):
         blank=True,
         help_text="Từ khóa tìm kiếm, phân cách bằng dấu phẩy",
     )
-    
+
     # Social Media Feed Fields
     is_published_to_feed = models.BooleanField(
         default=False, help_text="Ca bệnh đã được xuất bản lên feed công khai"
@@ -223,7 +223,7 @@ class Case(models.Model):
         return f"{self.title} - {self.student.get_full_name()}"
 
     def get_comment_count(self):
-        return self.comments.count()
+        return self.comments.count()  # type: ignore[attr-defined]
 
     @property
     def has_grade(self):
@@ -258,26 +258,30 @@ class Case(models.Model):
             )
         if not hasattr(self, "learning_outcomes"):
             LearningOutcomes.objects.create(case=self, learning_objectives="")
-    
+
     def get_reaction_summary(self):
         """Get summary of reactions for this case"""
         from comments.models import Comment
         from django.db.models import Count
-        
-        reactions = Comment.objects.filter(
-            case=self,
-            is_reaction=True
-        ).values('reaction_type').annotate(count=Count('id'))
-        
+
+        reactions = (
+            Comment.objects.filter(case=self, is_reaction=True)
+            .values("reaction_type")
+            .annotate(count=Count("id"))
+        )
+
         summary = {
-            'total': self.reaction_count,
-            'breakdown': {r['reaction_type']: r['count'] for r in reactions}
+            "total": self.reaction_count,
+            "breakdown": {r["reaction_type"]: r["count"] for r in reactions},
         }
         return summary
-    
+
     def can_be_published(self):
         """Check if case can be published to public feed"""
-        return self.case_status == self.StatusChoices.APPROVED and not self.is_published_to_feed
+        return (
+            self.case_status == self.StatusChoices.APPROVED
+            and not self.is_published_to_feed
+        )
 
 
 class CasePermission(models.Model):
@@ -365,8 +369,9 @@ class CasePermission(models.Model):
 
     def __str__(self):
         if self.user:
-            return f"{self.user.get_full_name()} - {self.get_permission_type_display()} on {self.case.title}"
-        return f"{self.get_share_type_display()} - {self.get_permission_type_display()} on {self.case.title}"
+            return f"{self.user.get_full_name()} - {self.get_permission_type_display()} on {self.case.title}"  # type: ignore[attr-defined]
+
+        return f"{self.get_share_type_display()} - {self.get_permission_type_display()} on {self.case.title}"  # type: ignore[attr-defined]
 
     @property
     def is_expired(self):
@@ -519,7 +524,7 @@ class CaseGroup(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.name} ({self.get_group_type_display()})"
+        return f"{self.name} ({self.get_group_type_display()})"  # type: ignore[attr-defined]
 
     def add_bulk_permissions(self, users, permission_type="view"):
         """Add permissions for all cases to multiple users"""
@@ -622,7 +627,7 @@ class PermissionAuditLog(models.Model):
     def __str__(self):
         target_info = self.target_user.get_full_name() if self.target_user else "System"
         actor_info = self.actor_user.get_full_name() if self.actor_user else "System"
-        return f"{self.get_action_display()}: {target_info} by {actor_info} on {self.case.title}"
+        return f"{self.get_action_display()}: {target_info} by {actor_info} on {self.case.title}"  # type: ignore[attr-defined]
 
     @classmethod
     def log_permission_change(

@@ -19,7 +19,7 @@ class CaseCreationTest(APITestCase):
 
     def setUp(self):
         # Create test user
-        self.student = User.objects.create_user(
+        self.student = User.objects.create_user(  # type: ignore[attr-defined]
             username="teststudent@test.com",
             email="teststudent@test.com",
             password="testpass123",
@@ -47,10 +47,8 @@ class CaseCreationTest(APITestCase):
             "patient_age": 30,
             "patient_gender": "male",
             "specialty": "General",
-            "repository": self.repository.id,
-            "clinical_history": {
-                "chief_complaint": "Test complaint"
-            }
+            "repository": self.repository.id,  # type: ignore[attr-defined]
+            "clinical_history": {"chief_complaint": "Test complaint"},
         }
 
         print("=== SENDING PAYLOAD ===")
@@ -64,3 +62,4 @@ class CaseCreationTest(APITestCase):
             print(f"Error: {response.data}")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+

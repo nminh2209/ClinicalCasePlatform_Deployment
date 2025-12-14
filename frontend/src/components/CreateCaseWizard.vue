@@ -11,7 +11,7 @@
                 </div>
                 <div>
                   <CardTitle>{{ steps[currentStep]?.title }}</CardTitle>
-                  <CardDescription>{{ t('wizard.step') }} {{ currentStep + 1 }}/{{ steps.length }}</CardDescription>
+                  <CardDescription> {{ t('wizard.step') }} {{ currentStep + 1 }}/{{ steps.length }}</CardDescription>
                 </div>
               </div>
               <Button variant="ghost" size="sm" @click="$emit('close')">
@@ -22,17 +22,10 @@
             <!-- Clickable Step Navigation -->
             <div class="mt-4">
               <div class="flex gap-2">
-                <button
-                  v-for="(step, index) in steps" 
-                  :key="step.id"
-                  @click="currentStep = index"
-                  :class="`h-10 flex-1 rounded-lg transition-all flex items-center justify-center gap-2 ${
-                    currentStep === index ? 'bg-blue-500 text-white shadow-md' :
-                    currentStep > index ? 'bg-green-500 text-white hover:bg-green-600' : 
+                <button v-for="(step, index) in steps" :key="step.id" @click="currentStep = index" :class="`h-10 flex-1 rounded-lg transition-all flex items-center justify-center gap-2 ${currentStep === index ? 'bg-blue-500 text-white shadow-md' :
+                  currentStep > index ? 'bg-green-500 text-white hover:bg-green-600' :
                     'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                  }`"
-                  :title="step.title"
-                >
+                  }`" :title="step.title">
                   <component :is="step.icon" class="w-4 h-4" />
                   <span class="text-xs font-medium hidden md:inline">{{ index + 1 }}</span>
                 </button>
@@ -43,13 +36,8 @@
           <CardContent class="p-6">
             <!-- Step Content with max height -->
             <div class="max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
-              <component 
-                :is="currentStepComponent" 
-                :case-data="caseData" 
-                @update:case-data="updateCaseData"
-                @validation-changed="onValidationChanged" 
-                ref="currentStepRef" 
-              />
+              <component :is="currentStepComponent" :case-data="caseData" @update:case-data="updateCaseData"
+                @validation-changed="onValidationChanged" ref="currentStepRef" />
             </div>
 
             <!-- Navigation Buttons -->
@@ -139,6 +127,7 @@ const caseData = ref<Record<string, any>>({
   patient_name: '',
   repository: null,
   specialty: '',
+  priority_level: 'medium',
   complexity_level: 'intermediate',
   patient_age: null,
   patient_gender: '',
@@ -185,6 +174,7 @@ const caseData = ref<Record<string, any>>({
     vital_signs_spo2: null,
     weight_kg: null,
     height_cm: null,
+    bmi: null,
     head_neck: '',
     cardiovascular: '',
     respiratory: '',
@@ -348,7 +338,7 @@ onMounted(async () => {
     try {
       const existingCase = await casesService.getCase(props.caseId)
       console.log('Loading existing case:', existingCase)
-      
+
       // Populate all fields from existing case
       Object.assign(caseData.value, {
         title: existingCase.title || '',
@@ -372,11 +362,11 @@ onMounted(async () => {
         learning_tags: existingCase.learning_tags || '',
         template: existingCase.template || null
       })
-      
+
       if (existingCase.template) {
         selectedTemplate.value = existingCase.template
       }
-      
+
       // Load nested models
       if (existingCase.clinical_history) {
         Object.assign(caseData.value.clinical_history, existingCase.clinical_history)
@@ -393,7 +383,7 @@ onMounted(async () => {
       if (existingCase.learning_outcomes) {
         Object.assign(caseData.value.learning_outcomes, existingCase.learning_outcomes)
       }
-      
+
       console.log('Case data loaded successfully')
     } catch (error) {
       console.error('Error loading case:', error)
@@ -437,7 +427,7 @@ const handleSaveDraft = async () => {
     }
 
     let response
-    
+
     if (props.caseId) {
       // Update existing draft
       response = await api.put(`/cases/${props.caseId}/`, payload)
@@ -531,29 +521,29 @@ const handleComplete = async () => {
     // Add optional basic fields only if they have values
     if (caseData.value.template) {
       // If template is an object, extract the ID
-      payload.template = typeof caseData.value.template === 'object' 
-        ? caseData.value.template.id 
+      payload.template = typeof caseData.value.template === 'object'
+        ? caseData.value.template.id
         : caseData.value.template
     }
     if (caseData.value.patient_gender) payload.patient_gender = caseData.value.patient_gender
     if (caseData.value.patient_ethnicity) payload.patient_ethnicity = caseData.value.patient_ethnicity
     if (caseData.value.patient_occupation) payload.patient_occupation = caseData.value.patient_occupation
     if (caseData.value.medical_record_number) payload.medical_record_number = caseData.value.medical_record_number
-    
+
     // Format dates properly
     const admissionDate = formatDate(caseData.value.admission_date)
     if (admissionDate) payload.admission_date = admissionDate
-    
+
     const dischargeDate = formatDate(caseData.value.discharge_date)
     if (dischargeDate) payload.discharge_date = dischargeDate
-    
+
     if (caseData.value.chief_complaint_brief) payload.chief_complaint_brief = caseData.value.chief_complaint_brief
     if (caseData.value.case_summary) payload.case_summary = caseData.value.case_summary
     if (caseData.value.keywords) payload.keywords = caseData.value.keywords
     if (caseData.value.learning_tags) payload.learning_tags = caseData.value.learning_tags
     if (caseData.value.estimated_study_hours) payload.estimated_study_hours = caseData.value.estimated_study_hours
     if (caseData.value.requires_follow_up !== undefined) payload.requires_follow_up = caseData.value.requires_follow_up
-    
+
     const followUpDate = formatDate(caseData.value.follow_up_date)
     if (followUpDate) payload.follow_up_date = followUpDate
 
@@ -564,8 +554,8 @@ const handleComplete = async () => {
     const cleanedPhysicalExam = cleanObject(caseData.value.physical_examination)
     if (cleanedPhysicalExam) {
       // Ensure consciousness_level is a valid choice (alert, drowsy, stupor, coma)
-      if (cleanedPhysicalExam.consciousness_level && 
-          !['alert', 'drowsy', 'stupor', 'coma'].includes(cleanedPhysicalExam.consciousness_level)) {
+      if (cleanedPhysicalExam.consciousness_level &&
+        !['alert', 'drowsy', 'stupor', 'coma'].includes(cleanedPhysicalExam.consciousness_level)) {
         cleanedPhysicalExam.consciousness_level = 'alert' // Default to alert
       }
       payload.physical_examination = cleanedPhysicalExam

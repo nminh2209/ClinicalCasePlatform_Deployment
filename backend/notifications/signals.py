@@ -24,10 +24,10 @@ def create_comment_notification(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Case)
 def create_case_notification(sender, instance, created, **kwargs):
     """Create notification when case status changes to submitted"""
-    if not created and instance.case_status == 'submitted':
+    if not created and instance.case_status == "submitted":
         # Check if status just changed to submitted
         old_case = Case.objects.filter(pk=instance.pk).first()
-        if old_case and old_case.case_status != 'submitted':
+        if old_case and old_case.case_status != "submitted":
             Notification.create_submission_notification(instance)
 
 

@@ -17,6 +17,7 @@ from .medical_models import (
 )
 from accounts.serializers import UserSerializer
 from accounts.models import User
+
 # from templates.models import CaseTemplate
 from repositories.models import Repository
 
@@ -24,7 +25,7 @@ from repositories.models import Repository
 class DepartmentSerializer(serializers.ModelSerializer):
     """Serializer for Department model"""
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = Department
         fields = ["id", "name", "vietnamese_name", "code", "description", "is_active"]
 
@@ -32,7 +33,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class ClinicalHistorySerializer(serializers.ModelSerializer):
     """Serializer for Clinical History model"""
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = ClinicalHistory
         fields = [
             "id",
@@ -49,23 +50,23 @@ class ClinicalHistorySerializer(serializers.ModelSerializer):
             "review_systems",
         ]
         extra_kwargs = {
-            'history_present_illness': {'required': False},
-            'symptom_duration_days': {'required': False},
-            'symptom_onset': {'required': False},
-            'symptom_progression': {'required': False},
-            'past_medical_history': {'required': False},
-            'family_history': {'required': False},
-            'social_history': {'required': False},
-            'allergies': {'required': False},
-            'medications': {'required': False},
-            'review_systems': {'required': False},
+            "history_present_illness": {"required": False},
+            "symptom_duration_days": {"required": False},
+            "symptom_onset": {"required": False},
+            "symptom_progression": {"required": False},
+            "past_medical_history": {"required": False},
+            "family_history": {"required": False},
+            "social_history": {"required": False},
+            "allergies": {"required": False},
+            "medications": {"required": False},
+            "review_systems": {"required": False},
         }
 
 
 class PhysicalExaminationSerializer(serializers.ModelSerializer):
     """Serializer for Physical Examination model"""
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = PhysicalExamination
         fields = [
             "id",
@@ -90,32 +91,32 @@ class PhysicalExaminationSerializer(serializers.ModelSerializer):
             "other_systems",
         ]
         extra_kwargs = {
-            'general_appearance': {'required': False},
-            'consciousness_level': {'required': False},
-            'vital_signs': {'required': False},
-            'vital_signs_bp': {'required': False},
-            'vital_signs_hr': {'required': False},
-            'vital_signs_rr': {'required': False},
-            'vital_signs_temp': {'required': False},
-            'vital_signs_spo2': {'required': False},
-            'height_cm': {'required': False},
-            'weight_kg': {'required': False},
-            'bmi': {'required': False},
-            'head_neck': {'required': False},
-            'cardiovascular': {'required': False},
-            'respiratory': {'required': False},
-            'abdominal': {'required': False},
-            'neurological': {'required': False},
-            'musculoskeletal': {'required': False},
-            'skin': {'required': False},
-            'other_systems': {'required': False},
+            "general_appearance": {"required": False},
+            "consciousness_level": {"required": False},
+            "vital_signs": {"required": False},
+            "vital_signs_bp": {"required": False},
+            "vital_signs_hr": {"required": False},
+            "vital_signs_rr": {"required": False},
+            "vital_signs_temp": {"required": False},
+            "vital_signs_spo2": {"required": False},
+            "height_cm": {"required": False},
+            "weight_kg": {"required": False},
+            "bmi": {"required": False},
+            "head_neck": {"required": False},
+            "cardiovascular": {"required": False},
+            "respiratory": {"required": False},
+            "abdominal": {"required": False},
+            "neurological": {"required": False},
+            "musculoskeletal": {"required": False},
+            "skin": {"required": False},
+            "other_systems": {"required": False},
         }
 
 
 class InvestigationsSerializer(serializers.ModelSerializer):
     """Serializer for Investigations model"""
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = Investigations
         fields = [
             "id",
@@ -142,34 +143,34 @@ class InvestigationsSerializer(serializers.ModelSerializer):
             "hematology",
         ]
         extra_kwargs = {
-            'laboratory_results': {'required': False},
-            'hemoglobin_level': {'required': False},
-            'white_cell_count': {'required': False},
-            'platelet_count': {'required': False},
-            'sodium_level': {'required': False},
-            'potassium_level': {'required': False},
-            'glucose_level': {'required': False},
-            'creatinine_level': {'required': False},
-            'imaging_studies': {'required': False},
-            'ecg_findings': {'required': False},
-            'ecg_rhythm': {'required': False},
-            'ecg_rate': {'required': False},
-            'pathology_results': {'required': False},
-            'microbiology_results': {'required': False},
-            'other_investigations': {'required': False},
-            'arterial_blood_gas': {'required': False},
-            'ph_level': {'required': False},
-            'special_tests': {'required': False},
-            'microbiology': {'required': False},
-            'biochemistry': {'required': False},
-            'hematology': {'required': False},
+            "laboratory_results": {"required": False},
+            "hemoglobin_level": {"required": False},
+            "white_cell_count": {"required": False},
+            "platelet_count": {"required": False},
+            "sodium_level": {"required": False},
+            "potassium_level": {"required": False},
+            "glucose_level": {"required": False},
+            "creatinine_level": {"required": False},
+            "imaging_studies": {"required": False},
+            "ecg_findings": {"required": False},
+            "ecg_rhythm": {"required": False},
+            "ecg_rate": {"required": False},
+            "pathology_results": {"required": False},
+            "microbiology_results": {"required": False},
+            "other_investigations": {"required": False},
+            "arterial_blood_gas": {"required": False},
+            "ph_level": {"required": False},
+            "special_tests": {"required": False},
+            "microbiology": {"required": False},
+            "biochemistry": {"required": False},
+            "hematology": {"required": False},
         }
 
 
 class DiagnosisManagementSerializer(serializers.ModelSerializer):
     """Serializer for Diagnosis and Management model"""
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = DiagnosisManagement
         fields = [
             "id",
@@ -184,22 +185,22 @@ class DiagnosisManagementSerializer(serializers.ModelSerializer):
             "complications",
         ]
         extra_kwargs = {
-            'primary_diagnosis': {'required': False},
-            'differential_diagnosis': {'required': False},
-            'icd10_codes': {'required': False},
-            'treatment_plan': {'required': False},
-            'medications_prescribed': {'required': False},
-            'procedures_performed': {'required': False},
-            'follow_up_plan': {'required': False},
-            'prognosis': {'required': False},
-            'complications': {'required': False},
+            "primary_diagnosis": {"required": False},
+            "differential_diagnosis": {"required": False},
+            "icd10_codes": {"required": False},
+            "treatment_plan": {"required": False},
+            "medications_prescribed": {"required": False},
+            "procedures_performed": {"required": False},
+            "follow_up_plan": {"required": False},
+            "prognosis": {"required": False},
+            "complications": {"required": False},
         }
 
 
 class LearningOutcomesSerializer(serializers.ModelSerializer):
     """Serializer for Learning Outcomes model"""
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = LearningOutcomes
         fields = [
             "id",
@@ -211,12 +212,12 @@ class LearningOutcomesSerializer(serializers.ModelSerializer):
             "assessment_criteria",
         ]
         extra_kwargs = {
-            'learning_objectives': {'required': False},
-            'key_concepts': {'required': False},
-            'clinical_pearls': {'required': False},
-            'references': {'required': False},
-            'discussion_points': {'required': False},
-            'assessment_criteria': {'required': False},
+            "learning_objectives": {"required": False},
+            "key_concepts": {"required": False},
+            "clinical_pearls": {"required": False},
+            "references": {"required": False},
+            "discussion_points": {"required": False},
+            "assessment_criteria": {"required": False},
         }
 
 
@@ -239,7 +240,7 @@ class CaseListSerializer(serializers.ModelSerializer):
     template_name = serializers.CharField(source="template.name", read_only=True)
     comment_count = serializers.IntegerField(read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = Case
         fields = [
             "id",
@@ -285,7 +286,7 @@ class MedicalAttachmentSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = MedicalAttachment
         fields = [
             "id",
@@ -373,7 +374,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     # Medical attachments
     medical_attachments = MedicalAttachmentSerializer(many=True, read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = Case
         fields = [
             "id",
@@ -429,7 +430,7 @@ class CaseCreateUpdateSerializer(serializers.ModelSerializer):
     diagnosis_management = DiagnosisManagementSerializer(required=False)
     learning_outcomes = LearningOutcomesSerializer(required=False)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = Case
         fields = [
             "title",
@@ -472,30 +473,41 @@ class CaseCreateUpdateSerializer(serializers.ModelSerializer):
 
         # Set the student to the current user
         validated_data["student"] = self.context["request"].user
-        
+
         # Auto-public for instructor cases
         user = self.context["request"].user
-        if hasattr(user, 'is_instructor') and user.is_instructor:
+        if hasattr(user, "is_instructor") and user.is_instructor:
             validated_data["is_public"] = True
 
         # Create the case
         case = super().create(validated_data)
 
-        # Create detailed medical sections if provided
-        if clinical_history_data:
-            ClinicalHistory.objects.create(case=case, **clinical_history_data)
+        # ALWAYS create detailed medical sections (even if empty) so they exist for later editing
+        # This ensures the serializer returns objects instead of null
+        ClinicalHistory.objects.create(
+            case=case, 
+            **(clinical_history_data or {})
+        )
 
-        if physical_examination_data:
-            PhysicalExamination.objects.create(case=case, **physical_examination_data)
+        PhysicalExamination.objects.create(
+            case=case, 
+            **(physical_examination_data or {})
+        )
 
-        if investigations_data:
-            Investigations.objects.create(case=case, **investigations_data)
+        Investigations.objects.create(
+            case=case, 
+            **(investigations_data or {})
+        )
 
-        if diagnosis_management_data:
-            DiagnosisManagement.objects.create(case=case, **diagnosis_management_data)
+        DiagnosisManagement.objects.create(
+            case=case, 
+            **(diagnosis_management_data or {})
+        )
 
-        if learning_outcomes_data:
-            LearningOutcomes.objects.create(case=case, **learning_outcomes_data)
+        LearningOutcomes.objects.create(
+            case=case, 
+            **(learning_outcomes_data or {})
+        )
 
         return case
 
@@ -552,7 +564,7 @@ class CaseCreateUpdateSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError("No public repository available")
             except Repository.DoesNotExist:
                 raise serializers.ValidationError("No repository available")
-        
+
         user = self.context["request"].user
         if value.owner != user and not value.is_public:
             raise serializers.ValidationError(
@@ -581,7 +593,7 @@ class CasePermissionSerializer(serializers.ModelSerializer):
     expires_at_display = serializers.SerializerMethodField()
     share_description = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CasePermission
         fields = [
             "id",
@@ -689,7 +701,7 @@ class GuestAccessSerializer(serializers.ModelSerializer):
         write_only=True, required=False, default=72
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = GuestAccess
         fields = [
             "id",
@@ -777,7 +789,7 @@ class CaseGroupSerializer(serializers.ModelSerializer):
         help_text="Danh sách ID ca bệnh để loại khỏi nhóm",
     )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = CaseGroup
         fields = [
             "id",
@@ -833,7 +845,7 @@ class CaseGroupSerializer(serializers.ModelSerializer):
 
 
 class MedicalTermSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = MedicalTerm
         fields = [
             "id",
@@ -848,7 +860,7 @@ class MedicalTermSerializer(serializers.ModelSerializer):
 
 
 class ICD10Serializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = ICD10Code
         fields = [
             "id",
@@ -862,7 +874,7 @@ class ICD10Serializer(serializers.ModelSerializer):
 
 
 class AbbreviationSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = MedicalAbbreviation
         fields = ["id", "abbr", "expansion", "description", "specialty", "is_active"]
 
@@ -903,7 +915,7 @@ class PermissionAuditLogSerializer(serializers.ModelSerializer):
     )
     created_at_display = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = PermissionAuditLog
         fields = [
             "id",
@@ -992,7 +1004,7 @@ class StudentNotesSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source="student.get_full_name", read_only=True)
     completion_percentage = serializers.IntegerField(read_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = StudentNotes
         fields = [
             "id",
@@ -1012,7 +1024,13 @@ class StudentNotesSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["case", "student", "submitted_at", "created_at", "updated_at"]
+        read_only_fields = [
+            "case",
+            "student",
+            "submitted_at",
+            "created_at",
+            "updated_at",
+        ]
 
     def create(self, validated_data):
         validated_data["student"] = self.context["request"].user
@@ -1021,13 +1039,13 @@ class StudentNotesSerializer(serializers.ModelSerializer):
 
 class PublicFeedSerializer(serializers.ModelSerializer):
     """Serializer for cases in the public social feed"""
-    
+
     student = serializers.SerializerMethodField()
     published_by = serializers.SerializerMethodField()
     reactions = serializers.SerializerMethodField()
     user_reaction = serializers.SerializerMethodField()
     comments_count = serializers.IntegerField(read_only=True)
-    
+
     # Medical sections - use related serializers
     clinical_history = ClinicalHistorySerializer(read_only=True)
     physical_examination = PhysicalExaminationSerializer(read_only=True)
@@ -1037,8 +1055,8 @@ class PublicFeedSerializer(serializers.ModelSerializer):
     diagnosis_management = DiagnosisManagementSerializer(read_only=True)
     learning_outcomes = LearningOutcomesSerializer(read_only=True)
     student_notes = StudentNotesSerializer(read_only=True)
-    
-    class Meta:
+
+    class Meta:  # type: ignore[misc, assignment]
         model = Case
         fields = [
             "id",
@@ -1074,55 +1092,58 @@ class PublicFeedSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-    
+
     def get_student(self, obj):
         """Get student info including department"""
         if not obj.student:
             return None
-        
+
         full_name = f"{obj.student.first_name} {obj.student.last_name}".strip()
         if not full_name:
             full_name = obj.student.username
-            
+
         return {
             "id": obj.student.id,
             "username": obj.student.username,
             "full_name": full_name,
-            "department_name": obj.student.department.name if obj.student.department else None,
+            "department_name": obj.student.department.name
+            if obj.student.department
+            else None,
         }
-    
+
     def get_published_by(self, obj):
         """Get instructor who published this case"""
         if not obj.published_by:
             return None
-            
-        full_name = f"{obj.published_by.first_name} {obj.published_by.last_name}".strip()
+
+        full_name = (
+            f"{obj.published_by.first_name} {obj.published_by.last_name}".strip()
+        )
         if not full_name:
             full_name = obj.published_by.username
-            
+
         return {
             "id": obj.published_by.id,
             "username": obj.published_by.username,
             "full_name": full_name,
         }
-    
+
     def get_reactions(self, obj):
         """Get reaction summary"""
         try:
             return obj.get_reaction_summary()
         except Exception:
             return {"like": 0, "love": 0, "insightful": 0, "learned": 0}
-    
+
     def get_user_reaction(self, obj):
         """Get current user's reaction to this case"""
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             from comments.models import Comment
+
             try:
                 reaction = Comment.objects.filter(
-                    case=obj,
-                    user=request.user,
-                    is_reaction=True
+                    case=obj, user=request.user, is_reaction=True
                 ).first()
                 return reaction.reaction_type if reaction else None
             except Exception:
@@ -1135,7 +1156,7 @@ class CaseSummarySerializer(serializers.Serializer):
     Serializer for comprehensive case summary statistics
     Provides overview of all cases with analytics and metrics
     """
-    
+
     total_cases = serializers.IntegerField()
     by_status = serializers.DictField()
     by_specialty = serializers.DictField()

@@ -8,6 +8,7 @@
 import { useRouter } from 'vue-router'
 import CreateCaseWizard from '@/components/CreateCaseWizard.vue'
 import { requireRoles } from '@/composables/useAuthorize'
+import { useCasesStore } from '@/stores/cases'
 
 const router = useRouter()
 requireRoles(['student', 'instructor'])
@@ -16,8 +17,11 @@ const handleClose = () => {
   router.push('/cases')
 }
 
-const handleComplete = (result: { caseId: number; caseData: any }) => {
+const handleComplete = async (result: { caseId: number; caseData: any }) => {
   console.log('Case created:', result)
+  // Fetch updated cases list to ensure the new case appears
+  const casesStore = useCasesStore()
+  await casesStore.fetchCases()
   // Navigate to the newly created case
   if (result.caseId) {
     router.push(`/cases/${result.caseId}`)

@@ -44,13 +44,13 @@ class CaseAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
 
         # Students can only see analytics for their own cases
-        if user.role == "student":
+        if user.role == "student":  # type: ignore[attr-defined]
             queryset = queryset.filter(case__student=user)
         # Instructors can see analytics for cases in their department
-        elif user.role == "instructor" and user.department:
+        elif user.role == "instructor" and user.department:  # type: ignore[attr-defined]
             queryset = queryset.filter(
-                Q(case__student__department=user.department)
-                | Q(case__repository__department=user.department)
+                Q(case__student__department=user.department)  # type: ignore[attr-defined]
+                | Q(case__repository__department=user.department)  # type: ignore[attr-defined]
             )
 
         return queryset
@@ -120,11 +120,11 @@ class StudentEngagementViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
 
         # Students can only see their own metrics
-        if user.role == "student":
+        if user.role == "student":  # type: ignore[attr-defined]
             queryset = queryset.filter(student=user)
         # Instructors can see metrics for students in their department
-        elif user.role == "instructor" and user.department:
-            queryset = queryset.filter(student__department=user.department)
+        elif user.role == "instructor" and user.department:  # type: ignore[attr-defined]
+            queryset = queryset.filter(student__department=user.department)  # type: ignore[attr-defined]
 
         return queryset
 
@@ -146,8 +146,8 @@ class StudentEngagementViewSet(viewsets.ReadOnlyModelViewSet):
         grades = Grade.objects.filter(case__student=student).order_by("created_at")
         grade_history = [
             {
-                "date": g.created_at.date().isoformat(),
-                "score": g.total_score,
+                "date": g.created_at.date().isoformat(),  # type: ignore[attr-defined]
+                "score": g.total_score,  # type: ignore[attr-defined]
                 "case_title": g.case.title,
             }
             for g in grades
@@ -212,7 +212,7 @@ class StudentEngagementViewSet(viewsets.ReadOnlyModelViewSet):
             "engagement_metrics": StudentEngagementMetricsSerializer(metrics).data,
             "recent_cases": [
                 {
-                    "id": c.id,
+                    "id": c.id,  # type: ignore[attr-defined]
                     "title": c.title,
                     "status": c.case_status,
                     "created_at": c.created_at.isoformat(),

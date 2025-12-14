@@ -93,9 +93,30 @@ class CaseListCreateView(generics.ListCreateAPIView):
     ordering = ["-created_at"]
 
     def get_queryset(self):
+        # Check cache first for common queries
+        cache_key = None
+        if self.request.query_params.get("use_cache") != "false":
+            user = self.request.user
+            query_params_str = str(sorted(self.request.query_params.items()))
+            cache_key = f"case_list_{user.id}_{hash(query_params_str)}"
+            cached_ids = cache.get(cache_key)
+            
+            if cached_ids is not None:
+                # Return queryset from cached IDs
+                return Case.objects.filter(id__in=cached_ids).select_related(
+                    "student", "student__department", "repository", "repository__department", "template"
+                ).prefetch_related("medical_attachments", "permissions")
+        
         queryset = Case.objects.annotate(
-            comment_count=Count("comments")
-        ).select_related("student", "repository")
+            comment_count=Count("comments", filter=Q(comments__is_reaction=False))
+        ).select_related(
+            "student", "student__department", 
+            "repository", "repository__department",
+            "template"
+        ).prefetch_related(
+            "medical_attachments",
+            "permissions"
+        )
 
         user = self.request.user
 
@@ -104,7 +125,7 @@ class CaseListCreateView(generics.ListCreateAPIView):
         # department-shared (target_department), or public-share_type permissions.
         # Students: only their own, public, or shared cases
         if user.is_authenticated and getattr(user, "is_instructor", False):
-            department_id = user.department_id
+            department_id = user.department_id  # type: ignore[attr-defined]
             # Active (and not expired) permission-based access
             permission_active_q = Q(permissions__is_active=True) & (
                 Q(permissions__expires_at__isnull=True)
@@ -128,7 +149,7 @@ class CaseListCreateView(generics.ListCreateAPIView):
 
         # Students: only their own cases, public cases, or cases shared to them/department/public
         elif user.is_authenticated and getattr(user, "is_student", False):
-            department_id = user.department_id
+            department_id = user.department_id  # type: ignore[attr-defined]
             permission_active_q = Q(permissions__is_active=True) & (
                 Q(permissions__expires_at__isnull=True)
                 | Q(permissions__expires_at__gte=timezone.now())
@@ -191,6 +212,12 @@ class CaseListCreateView(generics.ListCreateAPIView):
         if is_public is not None:
             queryset = queryset.filter(is_public=is_public.lower() == "true")
 
+        # Cache case IDs for future requests
+        if cache_key:
+            case_ids = list(queryset.values_list('id', flat=True)[:100])  # Cache first 100
+            from django.conf import settings
+            cache.set(cache_key, case_ids, settings.CACHE_TTL.get("CASE_LIST", 300))
+
         return queryset
 
     def get_serializer_class(self):
@@ -203,31 +230,32 @@ class CaseListCreateView(generics.ListCreateAPIView):
         Handle case creation with potential file uploads
         """
         # If request has multipart data with 'data' field, parse it
-        if hasattr(request, 'data') and 'data' in request.data:
+        if hasattr(request, "data") and "data" in request.data:
             import json
+
             try:
-                case_data = json.loads(request.data['data'])
+                case_data = json.loads(request.data["data"])
                 # Create a new request-like object with parsed data
                 from django.http import QueryDict
                 from django.utils.datastructures import MultiValueDict
-                
+
                 # Create a mutable copy of request.data
                 mutable_data = MultiValueDict()
                 for key, value in request.data.items():
-                    if key != 'data':
+                    if key != "data":
                         mutable_data[key] = value
-                
+
                 # Add parsed JSON data
                 for key, value in case_data.items():
                     mutable_data[key] = value
-                
+
                 # Replace request.data with the combined data
-                request._full_data = mutable_data
-                request._data = mutable_data
-                
+                request._full_data = mutable_data  # type: ignore[attr-defined]
+                request._data = mutable_data  # type: ignore[attr-defined]
+
             except (json.JSONDecodeError, KeyError):
                 pass
-        
+
         return super().create(request, *args, **kwargs)
 
 
@@ -264,18 +292,16 @@ class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
             return case  # Owner has full access
 
         # Check if user has permission to view this case (with expiry check)
-        if user.is_instructor and case.repository.is_public:
+        if user.is_instructor and case.repository.is_public:  # type: ignore[attr-defined]
             return case
 
         # Check active permissions with expiry
-        active_permission = CasePermission.objects.filter(
-            case=case, 
-            user=user, 
-            is_active=True
-        ).filter(
-            Q(expires_at__isnull=True) | Q(expires_at__gte=timezone.now())
-        ).exists()
-        
+        active_permission = (
+            CasePermission.objects.filter(case=case, user=user, is_active=True)
+            .filter(Q(expires_at__isnull=True) | Q(expires_at__gte=timezone.now()))
+            .exists()
+        )
+
         if active_permission:
             return case
 
@@ -287,30 +313,32 @@ class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
         from django.core.exceptions import PermissionDenied
 
         raise PermissionDenied("You don't have permission to access this case")
-    
+
     def perform_update(self, serializer):
         """Only owner can update their own draft cases"""
         case = self.get_object()
         user = self.request.user
-        
+
         # Only the case owner can update
         if case.student != user:
             raise PermissionDenied("Only the case owner can update this case")
-        
+
         # Only drafts can be updated
-        if case.case_status != 'draft':
+        if case.case_status != "draft":
             raise PermissionDenied("Only draft cases can be updated")
-        
+
         serializer.save()
-    
+
     def perform_destroy(self, instance):
         """Only owner can delete their own cases"""
         user = self.request.user
-        
+
         # Only the case owner or instructors can delete
-        if instance.student != user and not user.is_instructor:
-            raise PermissionDenied("Only the case owner or instructors can delete this case")
-        
+        if instance.student != user and not user.is_instructor:  # type: ignore[attr-defined]
+            raise PermissionDenied(
+                "Only the case owner or instructors can delete this case"
+            )
+
         instance.delete()
 
 
@@ -345,7 +373,7 @@ class CasePermissionListCreateView(generics.ListCreateAPIView):
         case = Case.objects.get(id=case_id)
 
         # Only case owner or instructors can grant permissions
-        if case.student != self.request.user and not self.request.user.is_instructor:
+        if case.student != self.request.user and not self.request.user.is_instructor:  # type: ignore[attr-defined]
             raise PermissionDenied(
                 "Only the case owner or instructors can grant permissions"
             )
@@ -360,7 +388,7 @@ class CasePermissionListCreateView(generics.ListCreateAPIView):
         case = Case.objects.get(id=case_id)
 
         # Check if case owner or instructor
-        if case.student != request.user and not request.user.is_instructor:
+        if case.student != request.user and not request.user.is_instructor:  # type: ignore[attr-defined]
             raise PermissionDenied(
                 "Only the case owner or instructors can grant permissions"
             )
@@ -553,7 +581,7 @@ def submit_case_for_review(request, pk):
         else:
             return Response(
                 {
-                    "error": f"Case must be in draft status. Current status: {case.get_case_status_display()}"
+                    "error": f"Case must be in draft status. Current status: {case.get_case_status_display()}"  # type: ignore[attr-defined]
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -598,7 +626,7 @@ def review_case(request, pk):
         else:
             return Response(
                 {
-                    "error": f"Case must be submitted for review. Current status: {case.get_case_status_display()}"
+                    "error": f"Case must be submitted for review. Current status: {case.get_case_status_display()}"  # type: ignore[attr-defined]
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -649,7 +677,7 @@ def approve_case(request, pk):
         else:
             return Response(
                 {
-                    "error": f"Case must be submitted or reviewed to approve. Current status: {case.get_case_status_display()}"
+                    "error": f"Case must be submitted or reviewed to approve. Current status: {case.get_case_status_display()}"  # type: ignore[attr-defined]
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -704,7 +732,7 @@ def reject_case(request, pk):
         else:
             return Response(
                 {
-                    "error": f"Case must be submitted or reviewed to reject. Current status: {case.get_case_status_display()}"
+                    "error": f"Case must be submitted or reviewed to reject. Current status: {case.get_case_status_display()}"  # type: ignore[attr-defined]
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -722,7 +750,7 @@ class MedicalAttachmentListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
-    def get_queryset(self):
+    def get_queryset(self):  # type: ignore[attr-defined]
         user = self.request.user
         case_id = self.kwargs.get("case_pk")
         attachments = MedicalAttachment.objects.filter(case_id=case_id).select_related(
@@ -736,18 +764,18 @@ class MedicalAttachmentListCreateView(generics.ListCreateAPIView):
             if level == MedicalAttachment.ConfidentialityLevel.PUBLIC:
                 allowed.append(att)
             elif level == MedicalAttachment.ConfidentialityLevel.CONFIDENTIAL:
-                if user == att.case.student or user.is_instructor:
+                if user == att.case.student or user.is_instructor:  # type: ignore[attr-defined]
                     allowed.append(att)
             elif level == MedicalAttachment.ConfidentialityLevel.RESTRICTED:
                 if user == att.case.student or (
-                    user.is_instructor and user in att.allowed_instructors.all()
+                    user.is_instructor and user in att.allowed_instructors.all()  # type: ignore[attr-defined]
                 ):
                     allowed.append(att)
             elif level == MedicalAttachment.ConfidentialityLevel.DEPARTMENT:
                 if (
-                    user.department
+                    user.department  # type: ignore[attr-defined]
                     and att.department
-                    and user.department == att.department
+                    and user.department == att.department  # type: ignore[attr-defined]
                 ):
                     allowed.append(att)
 
@@ -759,7 +787,7 @@ class MedicalAttachmentListCreateView(generics.ListCreateAPIView):
 
         # Check permissions
         user = self.request.user
-        if case.student != user and not user.is_instructor:
+        if case.student != user and not user.is_instructor:  # type: ignore[attr-defined]
             raise PermissionDenied(
                 "You don't have permission to upload attachments to this case"
             )
@@ -825,7 +853,7 @@ class MedicalTermAutocompleteView(generics.ListAPIView):
         candidates = list(icontains_qs)
         # If too few candidates, expand search by all terms in specialty (limit 500)
         if len(candidates) < 10:
-            extra_qs = qs.exclude(id__in=[c.id for c in candidates])[:500]
+            extra_qs = qs.exclude(id__in=[c.id for c in candidates])[:500]  # type: ignore[attr-defined]
             candidates.extend(list(extra_qs))
 
         scored = []
@@ -890,8 +918,8 @@ class MedicalAttachmentDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
 
         # Check permissions
-        if attachment.case.student != user and not user.is_instructor:
-            if attachment.is_confidential and not user.is_instructor:
+        if attachment.case.student != user and not user.is_instructor:  # type: ignore[attr-defined]
+            if attachment.is_confidential and not user.is_instructor:  # type: ignore[attr-defined]
                 raise PermissionDenied(
                     "You don't have permission to access this confidential attachment"
                 )
@@ -912,7 +940,7 @@ class StudentNotesListCreateView(generics.ListCreateAPIView):
         case_id = self.kwargs.get("case_id")
 
         # Students can only see their own notes
-        if user.role == "student":
+        if user.role == "student":  # type: ignore[attr-defined]
             return StudentNotes.objects.filter(case_id=case_id, student=user)
 
         # Instructors can see all notes for a case
@@ -923,10 +951,12 @@ class StudentNotesListCreateView(generics.ListCreateAPIView):
         # Use update_or_create to handle both creation and updates
         # This prevents duplicate key errors when notes already exist
         student = self.request.user
-        
+
         # Check if notes already exist for this case and student
-        existing_notes = StudentNotes.objects.filter(case_id=case_id, student=student).first()
-        
+        existing_notes = StudentNotes.objects.filter(
+            case_id=case_id, student=student
+        ).first()
+
         if existing_notes:
             # Update existing notes
             for key, value in serializer.validated_data.items():
@@ -951,7 +981,7 @@ class StudentNotesDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
 
         # Students can only access their own notes
-        if user.role == "student":
+        if user.role == "student":  # type: ignore[attr-defined]
             return StudentNotes.objects.filter(student=user)
 
         # Instructors can access all notes
@@ -962,7 +992,7 @@ class StudentNotesDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
 
         # Check permissions - students can only edit their own unsubmitted notes
-        if user.role == "student":
+        if user.role == "student":  # type: ignore[attr-defined]
             if notes.student != user:
                 raise PermissionDenied(
                     "You don't have permission to access these notes"
@@ -990,7 +1020,7 @@ class DepartmentListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         # Only instructors can create departments
-        if not self.request.user.is_instructor:
+        if not self.request.user.is_instructor:  # type: ignore[attr-defined]
             raise PermissionDenied("Only instructors can create departments")
         serializer.save()
 
@@ -1006,13 +1036,13 @@ class DepartmentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         # Only instructors can update departments
-        if not self.request.user.is_instructor:
+        if not self.request.user.is_instructor:  # type: ignore[attr-defined]
             raise PermissionDenied("Only instructors can update departments")
         serializer.save()
 
     def perform_destroy(self, instance):
         # Only instructors can delete departments
-        if not self.request.user.is_instructor:
+        if not self.request.user.is_instructor:  # type: ignore[attr-defined]
             raise PermissionDenied("Only instructors can delete departments")
         instance.delete()
 
@@ -1035,8 +1065,8 @@ class CaseSharingPermission(permissions.BasePermission):
         if hasattr(obj, "student"):  # This is a Case object
             return (
                 obj.student == request.user
-                or request.user.is_instructor
-                or request.user.is_admin_user
+                or request.user.is_instructor  # type: ignore[attr-defined]
+                or request.user.is_admin_user  # type: ignore[attr-defined]
             )
 
         # For permission objects, check if user can modify
@@ -1044,8 +1074,8 @@ class CaseSharingPermission(permissions.BasePermission):
             case = obj.case
             return (
                 case.student == request.user
-                or request.user.is_instructor
-                or request.user.is_admin_user
+                or request.user.is_instructor  # type: ignore[attr-defined]
+                or request.user.is_admin_user  # type: ignore[attr-defined]
                 or obj.granted_by == request.user
             )
 
@@ -1091,8 +1121,8 @@ class EnhancedCasePermissionViewSet(viewsets.ModelViewSet):
         # Check if user has permission to view case permissions
         if not (
             case.student == self.request.user
-            or self.request.user.is_instructor
-            or self.request.user.is_admin_user
+            or self.request.user.is_instructor  # type: ignore[attr-defined]
+            or self.request.user.is_admin_user  # type: ignore[attr-defined]
         ):
             raise PermissionDenied(
                 "Bạn không có quyền xem danh sách chia sẻ của ca bệnh này"
@@ -1375,8 +1405,8 @@ class GuestAccessViewSet(viewsets.ModelViewSet):
         # Check permissions
         if not (
             case.student == self.request.user
-            or self.request.user.is_instructor
-            or self.request.user.is_admin_user
+            or self.request.user.is_instructor  # type: ignore[attr-defined]
+            or self.request.user.is_admin_user  # type: ignore[attr-defined]
         ):
             raise PermissionDenied(
                 "Bạn không có quyền xem guest access của ca bệnh này"
@@ -1485,19 +1515,19 @@ class CaseGroupViewSet(viewsets.ModelViewSet):
         queryset = CaseGroup.objects.select_related("created_by", "department")
 
         # Filter based on user role and access
-        if user.is_admin_user:
+        if user.is_admin_user:  # type: ignore[attr-defined]
             return queryset.all()
-        elif user.is_instructor:
+        elif user.is_instructor:  # type: ignore[attr-defined]
             # Instructors can see their own groups and public ones in their department
             return queryset.filter(
                 Q(created_by=user)
-                | Q(is_public=True, department=user.department)
+                | Q(is_public=True, department=user.department)  # type: ignore[attr-defined]
                 | Q(is_public=True, department=None)
             )
         else:
             # Students can only see public groups they have access to
             return queryset.filter(
-                Q(is_public=True) | Q(department=user.department, is_public=True)
+                Q(is_public=True) | Q(department=user.department, is_public=True)  # type: ignore[attr-defined]
             )
 
     def perform_create(self, serializer):
@@ -1794,7 +1824,7 @@ def accessible_cases(request):
 
     # Add own cases
     for case in own_cases:
-        accessible_case_ids.add(case.id)
+        accessible_case_ids.add(case.id)  # type: ignore[attr-defined]
 
     # Add shared cases (filter expired)
     for perm in direct_permissions:
@@ -1815,7 +1845,7 @@ def accessible_cases(request):
     )
 
     # Serialize cases
-    from .serializers import CaseSerializer
+    from .serializers import CaseSerializer  # type: ignore[import]
 
     serializer = CaseSerializer(accessible_cases, many=True)
 
@@ -1887,7 +1917,7 @@ def case_summary_view(request):
     Returns statistics and analytics for all cases
     """
     user: User = request.user  # type: ignore
-    
+
     # Get all cases accessible to user
     if user.role == "instructor":
         # Instructors see all cases
@@ -1895,14 +1925,17 @@ def case_summary_view(request):
     else:
         # Students see their own cases and shared cases
         cases = Case.objects.filter(
-            Q(student=user) | 
-            Q(permissions__user=user, permissions__is_active=True) |
-            Q(permissions__share_type=CasePermission.ShareTypeChoices.PUBLIC, permissions__is_active=True)
+            Q(student=user)
+            | Q(permissions__user=user, permissions__is_active=True)
+            | Q(
+                permissions__share_type=CasePermission.ShareTypeChoices.PUBLIC,
+                permissions__is_active=True,
+            )
         ).distinct()
-    
+
     # Total cases
     total_cases = cases.count()
-    
+
     # Cases by status
     by_status = {}
     for status_choice in Case.StatusChoices.choices:
@@ -1911,66 +1944,88 @@ def case_summary_view(request):
         by_status[status_value] = {
             "count": count,
             "label": status_choice[1],
-            "percentage": round((count / total_cases * 100) if total_cases > 0 else 0, 1)
+            "percentage": round(
+                (count / total_cases * 100) if total_cases > 0 else 0, 1
+            ),
         }
-    
+
     # Cases by specialty
-    specialty_data = cases.values('specialty').annotate(count=Count('id')).order_by('-count')
+    specialty_data = (
+        cases.values("specialty").annotate(count=Count("id")).order_by("-count")
+    )
     by_specialty = {
-        item['specialty']: item['count'] 
-        for item in specialty_data if item['specialty']
+        item["specialty"]: item["count"] for item in specialty_data if item["specialty"]
     }
-    
+
     # Cases by priority
-    priority_data = cases.values('priority_level').annotate(count=Count('id'))
+    priority_data = cases.values("priority_level").annotate(count=Count("id"))
     by_priority = {
-        item['priority_level']: item['count'] 
-        for item in priority_data if item['priority_level']
+        item["priority_level"]: item["count"]
+        for item in priority_data
+        if item["priority_level"]
     }
-    
+
     # Cases by complexity
-    complexity_data = cases.values('complexity_level').annotate(count=Count('id'))
+    complexity_data = cases.values("complexity_level").annotate(count=Count("id"))
     by_complexity = {
-        item['complexity_level']: item['count'] 
-        for item in complexity_data if item['complexity_level']
+        item["complexity_level"]: item["count"]
+        for item in complexity_data
+        if item["complexity_level"]
     }
-    
+
     # Completion statistics
     completion_stats = {
-        "total_submitted": cases.filter(case_status__in=['submitted', 'reviewed', 'approved']).count(),
-        "total_drafts": cases.filter(case_status='draft').count(),
+        "total_submitted": cases.filter(
+            case_status__in=["submitted", "reviewed", "approved"]
+        ).count(),
+        "total_drafts": cases.filter(case_status="draft").count(),
         "completion_rate": round(
-            (cases.filter(case_status__in=['submitted', 'reviewed', 'approved']).count() / total_cases * 100)
-            if total_cases > 0 else 0, 1
+            (
+                cases.filter(
+                    case_status__in=["submitted", "reviewed", "approved"]
+                ).count()
+                / total_cases
+                * 100
+            )
+            if total_cases > 0
+            else 0,
+            1,
         ),
         "approval_rate": round(
-            (cases.filter(case_status='approved').count() / total_cases * 100)
-            if total_cases > 0 else 0, 1
-        )
+            (cases.filter(case_status="approved").count() / total_cases * 100)
+            if total_cases > 0
+            else 0,
+            1,
+        ),
     }
-    
+
     # Recent cases (last 10)
-    recent_cases = cases.order_by('-created_at')[:10]
-    recent_cases_data = CaseListSerializer(recent_cases, many=True, context={'request': request}).data
-    
+    recent_cases = cases.order_by("-created_at")[:10]
+    recent_cases_data = CaseListSerializer(
+        recent_cases, many=True, context={"request": request}
+    ).data
+
     # Top specialties (top 5)
     top_specialties = [
-        {"specialty": item['specialty'], "count": item['count']}
+        {"specialty": item["specialty"], "count": item["count"]}
         for item in specialty_data[:5]
     ]
-    
+
     # Learning metrics
     total_study_hours = sum([case.estimated_study_hours or 0 for case in cases])
-    avg_study_hours = round(total_study_hours / total_cases, 1) if total_cases > 0 else 0
-    
+    avg_study_hours = (
+        round(total_study_hours / total_cases, 1) if total_cases > 0 else 0
+    )
+
     # Count cases with learning outcomes (using filter instead of exclude)
     cases_with_outcomes = 0
     try:
         from .medical_models import LearningOutcomes
+
         cases_with_outcomes = LearningOutcomes.objects.filter(case__in=cases).count()
     except Exception:
         pass
-    
+
     learning_metrics = {
         "total_study_hours": total_study_hours,
         "average_study_hours_per_case": avg_study_hours,
@@ -1980,9 +2035,9 @@ def case_summary_view(request):
         ).count(),
         "cases_created_this_week": cases.filter(
             created_at__gte=timezone.now() - timedelta(days=7)
-        ).count()
+        ).count(),
     }
-    
+
     # Prepare summary data
     summary_data = {
         "total_cases": total_cases,
@@ -1993,8 +2048,8 @@ def case_summary_view(request):
         "completion_stats": completion_stats,
         "recent_cases": recent_cases_data,
         "top_specialties": top_specialties,
-        "learning_metrics": learning_metrics
+        "learning_metrics": learning_metrics,
     }
-    
+
     serializer = CaseSummarySerializer(summary_data)
     return Response(serializer.data)

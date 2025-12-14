@@ -137,6 +137,7 @@ const messages = {
       next: "Next",
       createCase: "Create Case",
       goTo: "Go to: {step}",
+      step: "Step",
 
       // Messages
       completionRequired:
@@ -209,6 +210,7 @@ const messages = {
       enterAge: "Enter age",
       gender: "Gender",
       selectGender: "Select gender",
+      selectSpecialty: "Select specialty",
       male: "Male",
       female: "Female",
       other: "Other",
@@ -242,6 +244,9 @@ const messages = {
       listMedications: "List current medications",
       allergies: "Allergies",
       enterAllergies: "Known allergies",
+      describeFamilyHistory: "Provide a brief overview of any health conditions or diseases that run in your family.",
+      describeSocialHistory: "Provide details about your lifestyle, living situation, and any social factors that may affect your health.",
+      describeSystemsReview: "Describe any symptoms or health issues you've experienced in different parts of your body (e.g., respiratory, cardiovascular, digestive, etc.).",
 
       // Vital Signs
       vitalSigns: "Vital Signs",
@@ -534,6 +539,7 @@ const messages = {
       next: "Tiếp Theo",
       createCase: "Tạo Hồ Sơ",
       goTo: "Đi tới: {step}",
+      step: "Bước",
 
       // Messages
       completionRequired:
@@ -586,6 +592,9 @@ const messages = {
 
       // Basic Information
       basicInformation: "Thông Tin Cơ Bản",
+      describeFamilyHistory: "Mô tả tình trạng sức khỏe của gia đình bạn, bao gồm các bệnh lý hoặc tình trạng sức khỏe có thể di truyền.",
+      describeSocialHistory: "Cung cấp thông tin về lối sống, hoàn cảnh sống và các yếu tố xã hội có thể ảnh hưởng đến sức khỏe của bạn.",
+      describeSystemsReview: "Mô tả các triệu chứng hoặc vấn đề sức khỏe bạn đã gặp phải ở các hệ thống cơ thể khác nhau (ví dụ: hô hấp, tim mạch, tiêu hóa, v.v.).",
       basicInfoDescription: "Nhập thông tin nhân khẩu học và triệu chứng chính",
       caseInformation: "Thông Tin Hồ Sơ",
       caseTitle: "Tiêu Đề Hồ Sơ",
@@ -606,6 +615,7 @@ const messages = {
       enterAge: "Nhập tuổi",
       gender: "Giới Tính",
       selectGender: "Chọn giới tính",
+      selectSpecialty: "Chọn chuyên khoa",
       male: "Nam",
       female: "Nữ",
       other: "Khác",

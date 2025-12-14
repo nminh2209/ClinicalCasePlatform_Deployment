@@ -187,4 +187,7 @@ template7, created = ExportTemplate.objects.get_or_create(
 print(f"{'Created' if created else 'Found'}: {template7.name}")
 
 print("\n✅ System templates created successfully!")
-print(f"Total templates: {ExportTemplate.objects.filter(is_system_template=True).count()}")
+print(
+    f"Total templates: {ExportTemplate.objects.filter(is_system_template=True).count()}"
+)
+

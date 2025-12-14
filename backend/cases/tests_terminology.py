@@ -9,7 +9,7 @@ from .medical_models import MedicalTerm, ICD10Code, MedicalAbbreviation
 class TerminologyTests(TestCase):
     def setUp(self):
         User = get_user_model()
-        self.user = User.objects.create_superuser(
+        self.user = User.objects.create_superuser(  # type: ignore[attr-defined]
             email="admin@example.com", username="admin", password="pass"
         )
         self.client = APIClient()

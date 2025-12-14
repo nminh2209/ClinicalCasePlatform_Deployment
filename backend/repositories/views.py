@@ -29,7 +29,7 @@ class RepositoryListCreateView(generics.ListCreateAPIView):
             case_count=Count("cases")
         ).select_related("owner", "department")
 
-        if user.is_instructor:
+        if user.is_instructor:  # type: ignore[attr-defined]
             # Instructors can see all repositories
             return queryset
         else:
@@ -59,7 +59,7 @@ class RepositoryDetailView(generics.RetrieveUpdateDestroyAPIView):
             case_count=Count("cases")
         ).select_related("owner", "department")
 
-        if user.is_instructor:
+        if user.is_instructor:  # type: ignore[attr-defined]
             return queryset
         else:
             return queryset.filter(models.Q(is_public=True) | models.Q(owner=user))

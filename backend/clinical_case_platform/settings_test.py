@@ -59,12 +59,16 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "clinical_case_platform.middleware.ResponseCompressionMiddleware",  # Gzip compression
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "clinical_case_platform.middleware.CacheControlMiddleware",  # Smart caching
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "clinical_case_platform.middleware.SecurityHeadersMiddleware",  # Security headers
+    "clinical_case_platform.middleware.RequestTimingMiddleware",  # Performance monitoring
 ]
 
 ROOT_URLCONF = "clinical_case_platform.urls"
@@ -87,7 +91,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "clinical_case_platform.wsgi.application"
 
-# Database - Test database configuration
+# Database - Test database configuration with optimization
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -99,6 +103,14 @@ DATABASES = {
         # "PASSWORD": config("DB_PASSWORD", default="martelle123"),
         "HOST": config("DB_HOST", default="localhost"),
         "PORT": config("DB_PORT", default="5432"),
+        # Connection pooling for better performance
+        "CONN_MAX_AGE": 300,  # 5 minutes - shorter for testing
+        "OPTIONS": {
+            "connect_timeout": 30,
+            "options": "-c statement_timeout=30000",  # 30 second query timeout
+        },
+        # Enable atomic requests for data integrity
+        "ATOMIC_REQUESTS": True,
     }
 }
 
@@ -157,6 +169,18 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Rate limiting / throttling for test environment
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "200/hour",  # More lenient for testing
+        "user": "2000/hour",  # More lenient for testing
+        "login": "10/minute",  # Login attempts
+        "export": "20/hour",  # Export operations
+        "upload": "50/hour",  # File uploads
+    },
 }
 
 # JWT Settings
@@ -194,12 +218,48 @@ CORS_ALLOW_CREDENTIALS = True
 # Redis settings (temporarily disabled for development)
 # REDIS_URL = config('REDIS_URL', default='redis://localhost:6379')
 
-# Caching - using default cache for development
+# Cache configuration for test environment - Using LocMemCache (no Redis required)
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",
+        "LOCATION": "test-clinical-case-platform",
+        "TIMEOUT": 300,  # 5 minutes default
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,
+        }
     }
+}
+
+# For production, uncomment below to use Redis:
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/2",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#             "CONNECTION_POOL_KWARGS": {
+#                 "max_connections": 30,
+#                 "retry_on_timeout": True,
+#                 "socket_keepalive": True,
+#                 "socket_connect_timeout": 5,
+#             },
+#             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+#             "SOCKET_CONNECT_TIMEOUT": 5,
+#             "SOCKET_TIMEOUT": 5,
+#         },
+#         "KEY_PREFIX": "test_ccp",
+#         "TIMEOUT": 300,
+#     }
+# }
+
+# Cache TTL settings for different data types (test environment)
+CACHE_TTL = {
+    "case_list": 180,  # 3 minutes for testing
+    "case_detail": 120,  # 2 minutes
+    "user_data": 180,  # 3 minutes
+    "statistics": 120,  # 2 minutes for faster test iterations
+    "notifications": 30,  # 30 seconds
+    "static_data": 600,  # 10 minutes
 }
 
 # Email settings
@@ -220,7 +280,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-# Logging for test environment
+# Logging for test environment - Enhanced with rotation and error tracking
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -229,13 +289,27 @@ LOGGING = {
             "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
             "style": "{",
         },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
     },
     "handlers": {
         "file": {
             "level": "DEBUG",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": BASE_DIR / "logs" / "django_test.log",
             "formatter": "verbose",
+            "maxBytes": 10485760,  # 10MB
+            "backupCount": 5,
+        },
+        "error_file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "django_test_errors.log",
+            "formatter": "verbose",
+            "maxBytes": 10485760,  # 10MB
+            "backupCount": 5,
         },
         "console": {
             "level": "DEBUG",
@@ -243,9 +317,55 @@ LOGGING = {
             "formatter": "verbose",
         },
     },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console", "error_file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "cases": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "accounts": {
+            "handlers": ["console", "file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
     "root": {
         "handlers": ["console", "file"],
         "level": "DEBUG",
+    },
+}
+
+# Celery configuration for test environment (optional - only if Redis is running)
+# CELERY_BROKER_URL = "redis://127.0.0.1:6379/2"
+# CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/2"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes for testing
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes soft limit
+
+# Celery Beat Schedule - Test environment (optional, can be disabled)
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    "cleanup-old-case-data": {
+        "task": "cases.tasks.cleanup_old_case_data",
+        "schedule": crontab(hour=3, minute=0),  # 3 AM daily
+    },
+    "generate-department-analytics": {
+        "task": "cases.tasks.generate_department_analytics",
+        "schedule": crontab(hour=4, minute=0),  # 4 AM daily
     },
 }
 

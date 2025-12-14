@@ -30,8 +30,8 @@
         </div>
 
         <div class="mt-4 text-sm text-gray-500">
-          <p>{{ t('createCase.supportedFormats')}}: JPG, PNG, PDF, DOC, DOCX</p>
-          <p>{{ t('createCase.maxFileSize')}}: 10MB/file</p>
+          <p>{{ t('createCase.supportedFormats') }}: JPG, PNG, PDF, DOC, DOCX</p>
+          <p>{{ t('createCase.maxFileSize') }}: 10MB/file</p>
         </div>
       </div>
     </Card>
@@ -49,13 +49,14 @@
             <div class="flex items-start justify-between mb-4">
               <div class="flex items-center space-x-4 flex-1">
                 <!-- Image Preview or Icon -->
-                <div v-if="isImageFile(file)" class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                <div v-if="isImageFile(file)"
+                  class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
                   <img :src="file.url" :alt="file.name" class="w-full h-full object-cover" />
                 </div>
                 <div v-else class="w-24 h-24 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
                   <DocumentIcon class="w-12 h-12 text-blue-600" />
                 </div>
-                
+
                 <div class="flex-1 min-w-0">
                   <p class="font-medium text-gray-900 truncate">{{ file.name }}</p>
                   <p class="text-sm text-gray-500">
@@ -82,7 +83,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-1">
                     {{ t('createCase.attachmentType') }}
                   </label>
-                  <select v-model="file.attachment_type" 
+                  <select v-model="file.attachment_type"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">{{ t('createCase.selectType') }}</option>
                     <option value="x_ray">📷 {{ t('createCase.xRay') }}</option>
@@ -109,7 +110,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-1">
                     {{ t('createCase.title') }}
                   </label>
-                  <input v-model="file.title" type="text" 
+                  <input v-model="file.title" type="text"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     :placeholder="t('createCase.enterTitle')" />
                 </div>
@@ -127,7 +128,7 @@
                 <!-- Is Confidential -->
                 <div class="md:col-span-2">
                   <label class="flex items-center space-x-2 cursor-pointer">
-                    <input v-model="file.is_confidential" type="checkbox" 
+                    <input v-model="file.is_confidential" type="checkbox"
                       class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                     <span class="text-sm font-medium text-gray-700">
                       {{ t('createCase.isConfidential') }}

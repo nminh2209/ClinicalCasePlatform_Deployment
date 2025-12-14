@@ -37,7 +37,7 @@ class CasePermissionModelTests(TestCase):
             name="Cardiology", code="CARD", vietnamese_name="Khoa Tim mạch"
         )
 
-        self.instructor = User.objects.create_user(
+        self.instructor = User.objects.create_user(  # type: ignore[attr-defined]
             username="instructor@test.com",
             email="instructor@test.com",
             password="testpass123",
@@ -47,7 +47,7 @@ class CasePermissionModelTests(TestCase):
             department=self.department,
         )
 
-        self.student1 = User.objects.create_user(
+        self.student1 = User.objects.create_user(  # type: ignore[attr-defined]
             username="student1@test.com",
             email="student1@test.com",
             password="testpass123",
@@ -57,7 +57,7 @@ class CasePermissionModelTests(TestCase):
             department=self.department,
         )
 
-        self.student2 = User.objects.create_user(
+        self.student2 = User.objects.create_user(  # type: ignore[attr-defined]
             username="student2@test.com",
             email="student2@test.com",
             password="testpass123",
@@ -168,7 +168,7 @@ class GuestAccessModelTests(TestCase):
     """Test guest access model functionality"""
 
     def setUp(self):
-        self.instructor = User.objects.create_user(
+        self.instructor = User.objects.create_user(  # type: ignore[attr-defined]
             username="instructor@test.com",
             email="instructor@test.com",
             password="testpass123",
@@ -242,7 +242,7 @@ class CaseGroupModelTests(TestCase):
     def setUp(self):
         self.department = Department.objects.create(name="Surgery", code="SURG")
 
-        self.instructor = User.objects.create_user(
+        self.instructor = User.objects.create_user(  # type: ignore[attr-defined]
             username="instructor@test.com",
             email="instructor@test.com",
             password="testpass123",
@@ -279,7 +279,7 @@ class CaseGroupModelTests(TestCase):
 
         self.students = []
         for i in range(3):
-            student = User.objects.create_user(
+            student = User.objects.create_user(  # type: ignore[attr-defined]
                 username=f"student{i}@test.com",
                 email=f"student{i}@test.com",
                 password="testpass123",
@@ -341,14 +341,14 @@ class PermissionAuditLogTests(TestCase):
     """Test permission audit logging"""
 
     def setUp(self):
-        self.instructor = User.objects.create_user(
+        self.instructor = User.objects.create_user(  # type: ignore[attr-defined]
             username="instructor@test.com",
             email="instructor@test.com",
             password="testpass123",
             role="instructor",
         )
 
-        self.student = User.objects.create_user(
+        self.student = User.objects.create_user(  # type: ignore[attr-defined]
             username="student@test.com",
             email="student@test.com",
             password="testpass123",
@@ -383,11 +383,11 @@ class PermissionAuditLogTests(TestCase):
 
         # Verify log entry
         log_entry = PermissionAuditLog.objects.first()
-        self.assertEqual(log_entry.case, self.case)
-        self.assertEqual(log_entry.target_user, self.student)
-        self.assertEqual(log_entry.actor_user, self.instructor)
-        self.assertEqual(log_entry.action, "granted")
-        self.assertEqual(log_entry.additional_data["assignment_id"], "WEEK5")
+        self.assertEqual(log_entry.case, self.case)  # type: ignore[attr-defined]
+        self.assertEqual(log_entry.target_user, self.student)  # type: ignore[attr-defined]
+        self.assertEqual(log_entry.actor_user, self.instructor)  # type: ignore[attr-defined]
+        self.assertEqual(log_entry.action, "granted")  # type: ignore[attr-defined]
+        self.assertEqual(log_entry.additional_data["assignment_id"], "WEEK5")  # type: ignore[attr-defined]
 
 
 class CasePermissionAPITests(APITestCase):
@@ -395,7 +395,7 @@ class CasePermissionAPITests(APITestCase):
 
     def setUp(self):
         # Create test users
-        self.instructor = User.objects.create_user(
+        self.instructor = User.objects.create_user(  # type: ignore[attr-defined]
             username="instructor@test.com",
             email="instructor@test.com",
             password="testpass123",
@@ -404,7 +404,7 @@ class CasePermissionAPITests(APITestCase):
             last_name="Smith",
         )
 
-        self.student1 = User.objects.create_user(
+        self.student1 = User.objects.create_user(  # type: ignore[attr-defined]
             username="student1@test.com",
             email="student1@test.com",
             password="testpass123",
@@ -413,7 +413,7 @@ class CasePermissionAPITests(APITestCase):
             last_name="Doe",
         )
 
-        self.student2 = User.objects.create_user(
+        self.student2 = User.objects.create_user(  # type: ignore[attr-defined]
             username="student2@test.com",
             email="student2@test.com",
             password="testpass123",
@@ -449,7 +449,9 @@ class CasePermissionAPITests(APITestCase):
         }
 
         response = self.client.post(
-            f"/api/cases/{self.case.id}/permissions/", data, format="json"
+            f"/api/cases/{self.case.id}/permissions/",  # type: ignore[attr-defined]
+            data,
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -473,7 +475,9 @@ class CasePermissionAPITests(APITestCase):
         }
 
         response = self.client.post(
-            f"/api/cases/{self.case.id}/permissions/bulk-grant/", data, format="json"
+            f"/api/cases/{self.case.id}/permissions/bulk-grant/",  # type: ignore[attr-defined]
+            data,
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -490,7 +494,7 @@ class CasePermissionAPITests(APITestCase):
         """Test access denied for unauthorized users"""
         self.client.force_authenticate(user=self.student2)
 
-        response = self.client.get(f"/api/cases/{self.case.id}/permissions/")
+        response = self.client.get(f"/api/cases/{self.case.id}/permissions/")  # type: ignore[attr-defined]
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -506,7 +510,7 @@ class CasePermissionAPITests(APITestCase):
 
         self.client.force_authenticate(user=self.student1)  # Case owner
 
-        response = self.client.get(f"/api/cases/{self.case.id}/permissions/")
+        response = self.client.get(f"/api/cases/{self.case.id}/permissions/")  # type: ignore[attr-defined]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
@@ -516,7 +520,7 @@ class GuestAccessAPITests(APITestCase):
     """Test guest access API endpoints"""
 
     def setUp(self):
-        self.instructor = User.objects.create_user(
+        self.instructor = User.objects.create_user(  # type: ignore[attr-defined]
             username="instructor@test.com",
             email="instructor@test.com",
             password="testpass123",
@@ -549,7 +553,9 @@ class GuestAccessAPITests(APITestCase):
         }
 
         response = self.client.post(
-            f"/api/cases/{self.case.id}/guest-access/", data, format="json"
+            f"/api/cases/{self.case.id}/guest-access/",  # type: ignore[attr-defined]
+            data,
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -574,7 +580,7 @@ class GuestAccessAPITests(APITestCase):
         )
 
         # Access case without authentication
-        response = self.client.get(f"/api/guest-access/test_token_123/")
+        response = self.client.get("/api/guest-access/test_token_123/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("case", response.data)
@@ -596,7 +602,7 @@ class GuestAccessAPITests(APITestCase):
             expires_at=timezone.now() - timedelta(hours=1),  # Expired
         )
 
-        response = self.client.get(f"/api/guest-access/expired_token_123/")
+        response = self.client.get("/api/guest-access/expired_token_123/")
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn("expired", response.data["error"].lower())
@@ -618,7 +624,7 @@ class GuestAccessAPITests(APITestCase):
 
         data = {"additional_hours": 24}
         response = self.client.post(
-            f"/api/cases/{self.case.id}/guest-access/{guest_access.id}/extend/",
+            f"/api/cases/{self.case.id}/guest-access/{guest_access.id}/extend/",  # type: ignore[attr-defined]
             data,
             format="json",
         )
@@ -635,7 +641,7 @@ class CaseGroupAPITests(APITestCase):
     def setUp(self):
         self.department = Department.objects.create(name="Pediatrics", code="PED")
 
-        self.instructor = User.objects.create_user(
+        self.instructor = User.objects.create_user(  # type: ignore[attr-defined]
             username="instructor@test.com",
             email="instructor@test.com",
             password="testpass123",
@@ -669,7 +675,7 @@ class CaseGroupAPITests(APITestCase):
             "name": "Pediatric Assignment Week 3",
             "description": "Common pediatric conditions",
             "group_type": "assignment",
-            "department": self.department.id,
+            "department": self.department.id,  # type: ignore[attr-defined]
             "class_identifier": "K15PED",
             "add_cases_ids": [case.id for case in self.cases[:2]],
         }
@@ -697,7 +703,7 @@ class CaseGroupAPITests(APITestCase):
         # Create target students
         students = []
         for i in range(2):
-            student = User.objects.create_user(
+            student = User.objects.create_user(  # type: ignore[attr-defined]
                 username=f"student{i}@test.com",
                 email=f"student{i}@test.com",
                 password="testpass123",
@@ -714,7 +720,9 @@ class CaseGroupAPITests(APITestCase):
         }
 
         response = self.client.post(
-            f"/api/case-groups/{case_group.id}/grant-permissions/", data, format="json"
+            f"/api/case-groups/{case_group.id}/grant-permissions/",  # type: ignore[attr-defined]
+            data,
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -735,14 +743,14 @@ class UtilityAPITests(APITestCase):
     """Test utility API endpoints"""
 
     def setUp(self):
-        self.instructor = User.objects.create_user(
+        self.instructor = User.objects.create_user(  # type: ignore[attr-defined]
             username="instructor@test.com",
             email="instructor@test.com",
             password="testpass123",
             role="instructor",
         )
 
-        self.student = User.objects.create_user(
+        self.student = User.objects.create_user(  # type: ignore[attr-defined]
             username="student@test.com",
             email="student@test.com",
             password="testpass123",
@@ -811,4 +819,3 @@ class UtilityAPITests(APITestCase):
         response = self.client.post("/api/cleanup-expired-permissions/")
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-

@@ -9,7 +9,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = User
         fields = [
             "email",
@@ -55,9 +55,11 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source="department.name", read_only=True)
-    department_vietnamese_name = serializers.CharField(source="department.vietnamese_name", read_only=True)
-    
-    class Meta:
+    department_vietnamese_name = serializers.CharField(
+        source="department.vietnamese_name", read_only=True
+    )
+
+    class Meta:  # type: ignore[misc, assignment]
         model = User
         fields = [
             "id",
@@ -80,9 +82,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source="get_full_name", read_only=True)
     department_name = serializers.CharField(source="department.name", read_only=True)
-    department_vietnamese_name = serializers.CharField(source="department.vietnamese_name", read_only=True)
+    department_vietnamese_name = serializers.CharField(
+        source="department.vietnamese_name", read_only=True
+    )
 
-    class Meta:
+    class Meta:  # type: ignore[misc, assignment]
         model = User
         fields = [
             "id",

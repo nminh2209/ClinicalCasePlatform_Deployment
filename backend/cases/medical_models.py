@@ -264,9 +264,7 @@ class Investigations(models.Model):
     platelet_count = models.FloatField(
         null=True, blank=True, help_text="Tiểu cầu (10^9/L)"
     )
-    sodium_level = models.FloatField(
-        null=True, blank=True, help_text="Natri (mmol/L)"
-    )
+    sodium_level = models.FloatField(null=True, blank=True, help_text="Natri (mmol/L)")
     potassium_level = models.FloatField(
         null=True, blank=True, help_text="Kali (mmol/L)"
     )
@@ -521,7 +519,7 @@ class MedicalAttachment(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.title} - {self.get_attachment_type_display()}"
+        return f"{self.title} - {self.get_attachment_type_display()}"  # type: ignore[attr-defined]
 
     # def save(self, *args, **kwargs):
     #     # Trigger validation automatically

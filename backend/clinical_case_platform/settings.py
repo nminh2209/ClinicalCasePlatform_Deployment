@@ -59,12 +59,16 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "clinical_case_platform.middleware.ResponseCompressionMiddleware",  # Compress responses
+    "clinical_case_platform.middleware.SecurityHeadersMiddleware",  # Add security headers
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "clinical_case_platform.middleware.CacheControlMiddleware",  # Smart caching
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "clinical_case_platform.middleware.RequestTimingMiddleware",  # Performance monitoring (last)
 ]
 
 ROOT_URLCONF = "clinical_case_platform.urls"
@@ -87,7 +91,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "clinical_case_platform.wsgi.application"
 
-# Database - Use test database configuration
+# Database - Enhanced with connection pooling and optimization
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -96,6 +100,12 @@ DATABASES = {
         "PASSWORD": config("DB_PASSWORD", default="postgres"),
         "HOST": config("DB_HOST", default="localhost"),
         "PORT": config("DB_PORT", default="5432"),
+        "CONN_MAX_AGE": 600,  # 10 minutes persistent connections
+        "OPTIONS": {
+            "connect_timeout": 10,
+            "options": "-c statement_timeout=30000",  # 30 seconds query timeout
+        },
+        "ATOMIC_REQUESTS": True,  # Wrap each request in a transaction
     }
 }
 
@@ -152,6 +162,17 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",  # Anonymous users
+        "user": "1000/hour",  # Authenticated users
+        "login": "5/minute",  # Login endpoint
+        "exports": "10/hour",  # Export generation
+        "uploads": "30/hour",  # File uploads
+    },
 }
 
 # JWT Settings
@@ -185,27 +206,35 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Redis settings (temporarily disabled for development)
-# REDIS_URL = config('REDIS_URL', default='redis://localhost:6379')
+# Redis settings
+REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 
-# Caching - using default cache for development
+# Caching - Redis configuration for production-ready caching
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {"max_connections": 50},
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            "IGNORE_EXCEPTIONS": True,  # Fail gracefully if Redis is down
+        },
+        "KEY_PREFIX": "clinical_case",
+        "TIMEOUT": 300,  # 5 minutes default
     }
 }
 
-# Original Redis cache configuration (commented out)
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django_redis.cache.RedisCache',
-#         'LOCATION': REDIS_URL,
-#         'OPTIONS': {
-#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#         }
-#     }
-# }
+# Cache key timeouts for different data types
+CACHE_TTL = {
+    "CASE_LIST": 60 * 5,  # 5 minutes
+    "CASE_DETAIL": 60 * 10,  # 10 minutes
+    "USER_PROFILE": 60 * 15,  # 15 minutes
+    "DEPARTMENT_LIST": 60 * 30,  # 30 minutes
+    "NOTIFICATION_COUNT": 60,  # 1 minute
+}
 
 # Email settings
 EMAIL_BACKEND = config(
@@ -232,10 +261,20 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 # Celery Beat Schedule (for periodic tasks)
 try:
     from celery.schedules import crontab
+
     CELERY_BEAT_SCHEDULE = {
         "cleanup-expired-exports": {
             "task": "exports.tasks.cleanup_expired_exports",
             "schedule": crontab(hour=2, minute=0),  # Run daily at 2 AM
+        },
+        "cleanup-old-case-data": {
+            "task": "cases.tasks.cleanup_old_case_data",
+            "schedule": crontab(hour=3, minute=0),  # Run daily at 3 AM
+            "kwargs": {"days": 365},  # Keep data for 1 year
+        },
+        "cleanup-expired-permissions": {
+            "task": "cases.views.cleanup_expired_permissions",
+            "schedule": crontab(hour=4, minute=0),  # Run daily at 4 AM
         },
     }
 except ImportError:
@@ -250,7 +289,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-# Logging
+# Logging - Enhanced with rotation and separate error tracking
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -259,22 +298,72 @@ LOGGING = {
             "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
             "style": "{",
         },
+        "simple": {
+            "format": "{levelname} {asctime} {message}",
+            "style": "{",
+        },
     },
     "handlers": {
         "file": {
             "level": "INFO",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": BASE_DIR / "logs" / "django.log",
             "formatter": "verbose",
+            "maxBytes": 1024 * 1024 * 10,  # 10 MB
+            "backupCount": 5,
+        },
+        "error_file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "errors.log",
+            "formatter": "verbose",
+            "maxBytes": 1024 * 1024 * 10,  # 10 MB
+            "backupCount": 5,
+        },
+        "performance_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "performance.log",
+            "formatter": "verbose",
+            "maxBytes": 1024 * 1024 * 10,  # 10 MB
+            "backupCount": 3,
         },
         "console": {
             "level": "INFO",
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "simple",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["performance_file"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "cases": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "grades": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "exports": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
     "root": {
-        "handlers": ["console", "file"],
+        "handlers": ["console", "file", "error_file"],
         "level": "INFO",
     },
 }
+

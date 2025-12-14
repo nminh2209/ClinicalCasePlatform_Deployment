@@ -444,7 +444,7 @@ class PlatformUsageStatistics(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.get_period_type_display()} stats for {self.period_start}"
+        return f"{self.get_period_type_display()} stats for {self.period_start}"  # type: ignore[attr-defined]
 
 
 class DepartmentAnalytics(models.Model):

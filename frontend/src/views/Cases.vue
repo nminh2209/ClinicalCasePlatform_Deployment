@@ -804,6 +804,17 @@ async function viewCase(case_: any) {
     // Fetch full case details instead of using list data
     await casesStore.fetchCase(case_.id)
     selectedCase.value = casesStore.currentCase
+    
+    // DEBUG: Log the case data to see what's being returned
+    console.log('=== CASE DATA DEBUG ===')
+    console.log('Full case:', selectedCase.value)
+    console.log('Has clinical_history?', !!selectedCase.value?.clinical_history)
+    console.log('clinical_history:', selectedCase.value?.clinical_history)
+    console.log('Has physical_examination?', !!selectedCase.value?.physical_examination)
+    console.log('physical_examination:', selectedCase.value?.physical_examination)
+    console.log('Has detailed_investigations?', !!selectedCase.value?.detailed_investigations)
+    console.log('Has diagnosis_management?', !!selectedCase.value?.diagnosis_management)
+    console.log('Has learning_outcomes?', !!selectedCase.value?.learning_outcomes)
   } catch (error) {
     console.error('Failed to load case details:', error)
     // Fallback to list data if detail fetch fails

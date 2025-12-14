@@ -4,16 +4,20 @@ Celery tasks for asynchronous export processing
 
 try:
     from celery import shared_task
+
     CELERY_AVAILABLE = True
 except ImportError:
     # Celery not installed, create a dummy decorator
     CELERY_AVAILABLE = False
+
     def shared_task(*args, **kwargs):
         def decorator(func):
             return func
+
         if len(args) == 1 and callable(args[0]):
             return args[0]
         return decorator
+
 
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -41,15 +45,15 @@ def process_case_export(self, export_id):
 
         # Generate export based on format
         if export.export_format == CaseExport.ExportFormat.PDF:
-            exporter = PDFExporterHTML(template=template)  # HTML-based for better Vietnamese support
+            exporter = PDFExporterHTML(
+                template=template
+            )  # HTML-based for better Vietnamese support
             file_extension = "pdf"
             content_type = "application/pdf"
         elif export.export_format == CaseExport.ExportFormat.WORD:
             exporter = WordExporter(template=template)
             file_extension = "docx"
-            content_type = (
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
+            content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         elif export.export_format == CaseExport.ExportFormat.JSON:
             exporter = JSONExporter(template=template)
             file_extension = "json"
@@ -83,21 +87,21 @@ def process_case_export(self, export_id):
 
         return {
             "status": "success",
-            "export_id": export.id,
+            "export_id": export.id,  # type: ignore[attr-defined]
             "file_size": export.file_size,
         }
 
     except CaseExport.DoesNotExist:
         return {"status": "error", "message": "Export not found"}
     except Exception as exc:
-        export.status = CaseExport.ExportStatus.FAILED
-        export.error_message = str(exc)
-        export.retry_count += 1
-        export.save()
+        export.status = CaseExport.ExportStatus.FAILED  # type: ignore[attr-defined]
+        export.error_message = str(exc)  # type: ignore[attr-defined]
+        export.retry_count += 1  # type: ignore[attr-defined]
+        export.save()  # type: ignore[attr-defined]
 
         # Retry if not exceeded max retries
-        if export.retry_count < 3:
-            raise self.retry(exc=exc, countdown=60 * export.retry_count)
+        if export.retry_count < 3:  # type: ignore[attr-defined]
+            raise self.retry(exc=exc, countdown=60 * export.retry_count)  # type: ignore[attr-defined]
 
         return {"status": "error", "message": str(exc)}
 
@@ -130,7 +134,9 @@ def process_batch_export(self, batch_export_id):
                     template = batch.template_used
 
                     if batch.export_format == CaseExport.ExportFormat.PDF:
-                        exporter = PDFExporterHTML(template=template)  # HTML-based for better Vietnamese support
+                        exporter = PDFExporterHTML(
+                            template=template
+                        )  # HTML-based for better Vietnamese support
                         file_extension = "pdf"
                     elif batch.export_format == CaseExport.ExportFormat.WORD:
                         exporter = WordExporter(template=template)
@@ -165,9 +171,13 @@ def process_batch_export(self, batch_export_id):
 
         # Save ZIP file
         zip_buffer.seek(0)
-        zip_filename = f"batch_export_{batch.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        zip_filename = (
+            f"batch_export_{batch.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.zip"  # type: ignore[attr-defined]
+        )
 
-        batch.zip_file.save(zip_filename, ContentFile(zip_buffer.getvalue()), save=False)
+        batch.zip_file.save(
+            zip_filename, ContentFile(zip_buffer.getvalue()), save=False
+        )
         batch.zip_file_size = zip_buffer.getbuffer().nbytes
         batch.status = BatchExport.BatchStatus.COMPLETED
         batch.completed_at = timezone.now()
@@ -180,7 +190,7 @@ def process_batch_export(self, batch_export_id):
 
         return {
             "status": "success",
-            "batch_id": batch.id,
+            "batch_id": batch.id,  # type: ignore[attr-defined]
             "processed": processed,
             "failed": failed,
             "total": batch.total_cases,
@@ -189,9 +199,9 @@ def process_batch_export(self, batch_export_id):
     except BatchExport.DoesNotExist:
         return {"status": "error", "message": "Batch export not found"}
     except Exception as exc:
-        batch.status = BatchExport.BatchStatus.FAILED
-        batch.error_message = str(exc)
-        batch.save()
+        batch.status = BatchExport.BatchStatus.FAILED  # type: ignore[attr-defined]
+        batch.error_message = str(exc)  # type: ignore[attr-defined]
+        batch.save()  # type: ignore[attr-defined]
         return {"status": "error", "message": str(exc)}
 
 
@@ -219,7 +229,7 @@ def cleanup_expired_exports():
             export.save()
             count += 1
         except Exception as e:
-            print(f"Error cleaning up export {export.id}: {str(e)}")
+            print(f"Error cleaning up export {export.id}: {str(e)}")  # type: ignore[attr-defined]
 
     # Clean up expired batch exports
     expired_batches = BatchExport.objects.filter(
@@ -237,7 +247,7 @@ def cleanup_expired_exports():
             batch.save()
             batch_count += 1
         except Exception as e:
-            print(f"Error cleaning up batch export {batch.id}: {str(e)}")
+            print(f"Error cleaning up batch export {batch.id}: {str(e)}")  # type: ignore[attr-defined]
 
     return {
         "status": "success",
@@ -271,11 +281,11 @@ def generate_export_report(user_id, start_date=None, end_date=None):
 
         stats = {
             "total_exports": exports.count(),
-            "exports_by_format": dict(
-                exports.values("export_format").annotate(count=Count("id"))
+            "exports_by_format": dict(  # type: ignore[attr-defined]
+                exports.values("export_format").annotate(count=Count("id"))  # type: ignore[attr-defined]
             ),
-            "exports_by_status": dict(
-                exports.values("status").annotate(count=Count("id"))
+            "exports_by_status": dict(  # type: ignore[attr-defined]
+                exports.values("status").annotate(count=Count("id"))  # type: ignore[attr-defined]
             ),
             "total_downloads": exports.aggregate(Sum("download_count"))[
                 "download_count__sum"
