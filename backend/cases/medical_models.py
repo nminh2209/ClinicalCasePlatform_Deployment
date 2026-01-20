@@ -1,9 +1,12 @@
-from django.db import models
+# cases/medical_models.py
+
+import os
+
+import magic
 from django.conf import settings
+from django.db import models
 from django.forms import ValidationError
 from django.utils import timezone
-import os
-import magic
 
 
 class Department(models.Model):
@@ -519,7 +522,7 @@ class MedicalAttachment(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.title} - {self.get_attachment_type_display()}"  # type: ignore[attr-defined]
+        return f"{self.title} - {self.get_attachment_type_display()}"  # pyright: ignore[reportAttributeAccessIssue]
 
     # def save(self, *args, **kwargs):
     #     # Trigger validation automatically

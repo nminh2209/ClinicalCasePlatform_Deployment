@@ -22,16 +22,11 @@
         </div>
 
         <div class="filter-options">
-          <select v-model="specialtyFilter" @change="applyFilters" class="filter-select">
-            <option value="">Tất cả chuyên khoa</option>
-            <option value="Tim mạch">Tim mạch</option>
-            <option value="Nội khoa">Nội khoa</option>
-            <option value="Phẫu thuật">Phẫu thuật</option>
-            <option value="Hô hấp">Hô hấp</option>
-            <option value="Tiêu hóa">Tiêu hóa</option>
-            <option value="Thần kinh">Thần kinh</option>
-            <option value="Sản phụ khoa">Sản phụ khoa</option>
-            <option value="Nhi khoa">Nhi khoa</option>
+          <select v-model="specialtyFilter" @change="applyFilters" class="filter-select" :disabled="choicesLoading">
+            <option value="">{{ choicesLoading ? 'Đang tải...' : 'Tất cả chuyên khoa' }}</option>
+            <option v-for="s in specialties" :key="s.id" :value="s.name">
+              {{ s.name }}
+            </option>
           </select>
 
           <select v-model="dateSort" class="filter-select">
@@ -72,7 +67,8 @@
         <div class="cases-grid" v-if="!loading && !error">
           <div v-if="filteredCases.length === 0" class="empty-state">
             <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
             <h3>Không tìm thấy ca bệnh được phê duyệt</h3>
             <p v-if="searchQuery || specialtyFilter">Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm</p>
@@ -111,9 +107,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { requireRoles } from '@/composables/useAuthorize'
+import { useChoices } from '@/composables/useChoices'
 import { casesService } from '@/services/cases'
 
 const router = useRouter()
+const { specialties, loading: choicesLoading } = useChoices()
 
 const searchQuery = ref('')
 const specialtyFilter = ref('')
@@ -147,7 +145,7 @@ const filteredCases = computed(() => {
     filtered = [...filtered].sort((a, b) => {
       const dateA = new Date(a.created_at).getTime()
       const dateB = new Date(b.created_at).getTime()
-      
+
       if (dateSort.value === 'newest') {
         return dateB - dateA
       } else if (dateSort.value === 'oldest') {
@@ -163,14 +161,14 @@ const filteredCases = computed(() => {
 async function loadCases() {
   loading.value = true
   error.value = null
-  
+
   try {
     // Fetch only approved cases from all users
     console.log('Fetching approved cases...')
     const data = await casesService.getCases({ case_status: 'approved' })
     console.log('Received data:', data)
     console.log('Number of cases:', Array.isArray(data) ? data.length : 'Not an array')
-    
+
     // Check if data is an array or if it's paginated
     if (Array.isArray(data)) {
       cases.value = data

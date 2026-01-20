@@ -42,22 +42,13 @@
       <!-- Bulk Actions -->
       <div class="flex justify-between items-center">
         <div class="flex items-center space-x-2">
-          <input 
-            type="checkbox" 
-            v-model="selectAll" 
-            @change="toggleSelectAll"
-            class="rounded"
-          >
+          <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded">
           <span class="text-sm text-gray-600">
             {{ currentLang === 'vi' ? 'Chọn tất cả' : 'Select all' }}
           </span>
         </div>
         <div class="flex space-x-2">
-          <Button 
-            @click="bulkRevoke" 
-            variant="destructive"
-            :disabled="selectedPermissions.length === 0"
-          >
+          <Button @click="bulkRevoke" variant="destructive" :disabled="selectedPermissions.length === 0">
             {{ currentLang === 'vi' ? 'Xóa các mục đã chọn' : 'Delete selected' }}
           </Button>
           <Button @click="() => refreshData(true)" size="sm" variant="outline">
@@ -73,12 +64,7 @@
           <thead>
             <tr class="bg-gray-50">
               <th class="border border-gray-200 p-3 text-left">
-                <input 
-                  type="checkbox" 
-                  v-model="selectAll" 
-                  @change="toggleSelectAll"
-                  class="rounded"
-                >
+                <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded">
               </th>
               <th class="border border-gray-200 p-3 text-left">
                 {{ currentLang === 'vi' ? 'Được chia sẻ với' : 'Shared with' }}
@@ -100,19 +86,14 @@
           <tbody>
             <tr v-for="permission in permissions" :key="permission.id">
               <td class="border border-gray-200 p-3">
-                <input 
-                  type="checkbox" 
-                  :value="permission.id" 
-                  v-model="selectedPermissions"
-                  class="rounded"
-                >
+                <input type="checkbox" :value="permission.id" v-model="selectedPermissions" class="rounded">
               </td>
               <td class="border border-gray-200 p-3">
                 <div class="flex items-center space-x-2">
                   <UserIcon v-if="permission.share_type === 'individual'" class="w-4 h-4 text-blue-500" />
                   <BuildingIcon v-else-if="permission.share_type === 'department'" class="w-4 h-4 text-green-500" />
                   <GlobeIcon v-else-if="permission.share_type === 'public'" class="w-4 h-4 text-purple-500" />
-                  
+
                   <div>
                     <div class="font-medium">{{ getPermissionDisplayName(permission) }}</div>
                     <div class="text-xs text-gray-500">{{ permission.share_description }}</div>
@@ -131,7 +112,8 @@
               </td>
               <td class="border border-gray-200 p-3">
                 <Badge :variant="permission.is_expired ? 'secondary' : 'success'">
-                  {{ permission.is_expired ? (currentLang === 'vi' ? 'Hết hạn' : 'Expired') : (currentLang === 'vi' ? 'Hoạt động' : 'Active') }}
+                  {{ permission.is_expired ? (currentLang === 'vi' ? 'Hết hạn' : 'Expired') : (currentLang === 'vi' ?
+                    'Hoạt động' : 'Active') }}
                 </Badge>
               </td>
               <td class="border border-gray-200 p-3 text-center">
@@ -151,7 +133,9 @@
           {{ currentLang === 'vi' ? 'Chưa có quyền chia sẻ nào' : 'No sharing permissions yet' }}
         </h3>
         <p class="mb-4">
-          {{ currentLang === 'vi' ? 'Bắt đầu chia sẻ ca bệnh này với đồng nghiệp của bạn' : 'Start sharing this case with your colleagues' }}
+          {{ currentLang === 'vi' ?
+            'Bắt đầu chia sẻ ca bệnh này với đồng nghiệp của bạn'
+            : 'Start sharing this case with your colleagues' }}
         </p>
         <Button @click="openShareModal('individual')">
           {{ currentLang === 'vi' ? 'Chia sẻ ngay' : 'Share Now' }}
@@ -180,7 +164,9 @@
                   {{ guest.access_count || 0 }} {{ currentLang === 'vi' ? 'lần truy cập' : 'accesses' }}
                 </span>
                 <Badge :variant="guest.is_expired ? 'secondary' : 'success'">
-                  {{ guest.is_expired ? (currentLang === 'vi' ? 'Hết hạn' : 'Expired') : (currentLang === 'vi' ? 'Hoạt động' : 'Active') }}
+                  {{ guest.is_expired ?
+                    (currentLang === 'vi' ? 'Hết hạn' : 'Expired')
+                    : (currentLang === 'vi' ? 'Hoạt động' : 'Active') }}
                 </Badge>
               </div>
             </div>
@@ -203,21 +189,12 @@
     </div>
 
     <!-- Share Permission Modal -->
-    <SharePermissionModal
-      :open="showShareModal"
-      @update:open="(value: boolean) => showShareModal = value"
-      :case-id="caseId"
-      :share-type="shareType"
-      @permission-created="onPermissionCreated"
-    />
+    <SharePermissionModal :open="showShareModal" @update:open="(value: boolean) => showShareModal = value"
+      :case-id="caseId" :share-type="shareType" @permission-created="onPermissionCreated" />
 
     <!-- Guest Access Modal -->
-    <GuestAccessModal
-      :open="showGuestModal"
-      @update:open="(value: boolean) => showGuestModal = value"
-      :case-id="caseId"
-      @guest-created="onGuestCreated"
-    />
+    <GuestAccessModal :open="showGuestModal" @update:open="(value: boolean) => showGuestModal = value" :case-id="caseId"
+      @guest-created="onGuestCreated" />
   </div>
 </template>
 
@@ -294,7 +271,7 @@ const refreshData = async (forceRefresh = false) => {
   try {
     const cacheKey = props.caseId
     const cachedData = dataCache.value.get(cacheKey)
-    
+
     // Check cache first unless force refresh
     if (!forceRefresh && cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
       permissions.value = [...cachedData.permissions] // Clone to avoid reference issues
@@ -302,20 +279,20 @@ const refreshData = async (forceRefresh = false) => {
       console.log('Using cached data for case', cacheKey, { permissions: permissions.value.length, guests: guestAccesses.value.length })
       return
     }
-    
+
     console.log('Loading fresh data for case', cacheKey)
     await Promise.all([
       loadPermissions(),
       loadGuestAccesses()
     ])
-    
+
     // Update cache with fresh data
     dataCache.value.set(cacheKey, {
       permissions: [...permissions.value],
       guests: [...guestAccesses.value],
       timestamp: Date.now()
     })
-    
+
     if (forceRefresh) {
       toast.success(currentLang.value === 'vi' ? 'Đã làm mới dữ liệu' : 'Data refreshed')
     }
@@ -329,7 +306,7 @@ const loadPermissions = async () => {
   try {
     const data = await sharingService.getCasePermissions(props.caseId)
     // Ensure we have valid permission objects with required properties
-    permissions.value = (Array.isArray(data) ? data : []).filter(p => 
+    permissions.value = (Array.isArray(data) ? data : []).filter(p =>
       p && typeof p === 'object' && typeof p.id === 'number'
     ).map(p => ({
       ...p,
@@ -425,7 +402,7 @@ const deleteGuestAccess = async (guestId: number) => {
   if (!confirm(currentLang.value === 'vi' ? 'Bạn có chắc muốn xóa truy cập khách này?' : 'Are you sure you want to delete this guest access?')) {
     return
   }
-  
+
   try {
     await sharingService.deleteGuestAccess(props.caseId, guestId)
     guestAccesses.value = guestAccesses.value.filter(g => g.id !== guestId)

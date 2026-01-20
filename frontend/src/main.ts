@@ -21,6 +21,10 @@ declare module "vue-router" {
 // Import views
 import Home from "./views/Home.vue";
 import Login from "./views/Login.vue";
+import Register from "./views/Register.vue";
+import ForgotPassword from "./views/ForgotPassword.vue";
+import ResetPassword from "./views/ResetPassword.vue";
+import OAuthCallback from "./views/OAuthCallback.vue";
 import Cases from "./views/Cases.vue";
 import CreateCase from "./views/CreateCase.vue";
 import CaseNotes from "./views/CaseNotes.vue";
@@ -30,6 +34,7 @@ import PatientProfile from "./views/PatientProfile.vue";
 import PatientRecords from "./views/PatientRecords.vue";
 import ViewStudentList from "./views/ViewStudentList.vue";
 import Users from "./views/Users.vue";
+import UserManagement from "./views/UserManagement.vue";
 import SharedCases from "./views/SharedCases.vue";
 import PublicFeed from "./views/PublicFeed.vue";
 import CaseSummary from "./views/CaseSummary.vue";
@@ -43,6 +48,11 @@ const { toast } = useToast();
 const routes: RouteRecordRaw[] = [
   { path: "/", component: Landing },
   { path: "/login", component: Login },
+  { path: "/register", component: Register },
+  { path: "/forgot-password", component: ForgotPassword },
+  { path: "/reset-password/:uid/:token", component: ResetPassword },
+  { path: "/auth/google/callback", component: OAuthCallback },
+  { path: "/auth/microsoft/callback", component: OAuthCallback },
   { path: "/home", component: Home, meta: { requiresAuth: true } },
 
   // Student & Instructor routes (admin restricted)
@@ -106,10 +116,14 @@ const routes: RouteRecordRaw[] = [
     component: Users,
     meta: { requiresAuth: true, requiresRoles: ["admin"] },
   },
+  {
+    path: "/admin/users",
+    component: UserManagement,
+    meta: { requiresAuth: true, requiresRoles: ["admin"] },
+  },
 
   // Shared routes (all authenticated users)
   { path: "/repositories", component: NotFound, meta: { requiresAuth: true } },
-  { path: "/templates", component: NotFound, meta: { requiresAuth: true } },
   { path: "/settings", component: NotFound, meta: { requiresAuth: true } },
 
   // Fallback
@@ -151,8 +165,6 @@ const messages = {
       buildCase: "Build a complete patient case for clinical practice",
 
       // Step Titles & Descriptions
-      templateSelection: "Template Selection",
-      templateSelectionDesc: "Choose a case template to get started",
       basicInfo: "Basic Information",
       basicInfoDesc: "Patient demographics and chief complaint",
       vitalSigns: "Vital Signs",
@@ -182,9 +194,6 @@ const messages = {
       sections: "Template Sections",
       requiredFields: "Required Fields",
       learningObjectives: "Learning Objectives",
-      loadingTemplates: "Loading templates...",
-      noTemplates: "No templates available",
-      templateLoadError: "Error loading templates",
       noDescriptionAvailable: "No description available",
       notApplicable: "N/A",
       noSectionsDefined: "No sections defined",
@@ -244,9 +253,12 @@ const messages = {
       listMedications: "List current medications",
       allergies: "Allergies",
       enterAllergies: "Known allergies",
-      describeFamilyHistory: "Provide a brief overview of any health conditions or diseases that run in your family.",
-      describeSocialHistory: "Provide details about your lifestyle, living situation, and any social factors that may affect your health.",
-      describeSystemsReview: "Describe any symptoms or health issues you've experienced in different parts of your body (e.g., respiratory, cardiovascular, digestive, etc.).",
+      describeFamilyHistory:
+        "Provide a brief overview of any health conditions or diseases that run in your family.",
+      describeSocialHistory:
+        "Provide details about your lifestyle, living situation, and any social factors that may affect your health.",
+      describeSystemsReview:
+        "Describe any symptoms or health issues you've experienced in different parts of your body (e.g., respiratory, cardiovascular, digestive, etc.).",
 
       // Vital Signs
       vitalSigns: "Vital Signs",
@@ -519,6 +531,12 @@ const messages = {
       patientName: "Patient Name",
       patientAge: "Patient Age",
 
+      // New Template Features
+      attachmentRequirements: "Attachment Requirements",
+      requiresReview: "Requires Review",
+      reviewRequiredNote:
+        "This case will need instructor review before approval",
+
       // Departments
       cardiology: "Cardiology",
       neurology: "Neurology",
@@ -528,6 +546,12 @@ const messages = {
       emergency: "Emergency",
       surgery: "Surgery",
       internalMedicine: "Internal Medicine",
+    },
+    common: {
+      fieldRequired: "This field is required",
+      invalidNumber: "Please enter a valid number",
+      invalidDate: "Please enter a valid date",
+      repository: "Repository",
     },
   },
   vi: {
@@ -553,8 +577,6 @@ const messages = {
       buildCase: "Xây dựng hồ sơ bệnh án đầy đủ cho thực hành lâm sàng",
 
       // Step Titles & Descriptions
-      templateSelection: "Chọn Mẫu Hồ Sơ",
-      templateSelectionDesc: "Chọn mẫu để bắt đầu tạo hồ sơ",
       basicInfo: "Thông Tin Cơ Bản",
       basicInfoDesc: "Thông tin nhân khẩu học và triệu chứng chính",
       vitalSigns: "Dấu Hiệu Sinh Tồn",
@@ -583,18 +605,18 @@ const messages = {
       sections: "Các Phần Mẫu",
       requiredFields: "Trường Bắt Buộc",
       learningObjectives: "Mục Tiêu Học Tập",
-      loadingTemplates: "Đang tải mẫu...",
-      noTemplates: "Không có mẫu nào",
-      templateLoadError: "Lỗi khi tải mẫu",
       noDescriptionAvailable: "Không có mô tả",
       notApplicable: "N/A",
       noSectionsDefined: "Không có phần nào được xác định",
 
       // Basic Information
       basicInformation: "Thông Tin Cơ Bản",
-      describeFamilyHistory: "Mô tả tình trạng sức khỏe của gia đình bạn, bao gồm các bệnh lý hoặc tình trạng sức khỏe có thể di truyền.",
-      describeSocialHistory: "Cung cấp thông tin về lối sống, hoàn cảnh sống và các yếu tố xã hội có thể ảnh hưởng đến sức khỏe của bạn.",
-      describeSystemsReview: "Mô tả các triệu chứng hoặc vấn đề sức khỏe bạn đã gặp phải ở các hệ thống cơ thể khác nhau (ví dụ: hô hấp, tim mạch, tiêu hóa, v.v.).",
+      describeFamilyHistory:
+        "Mô tả tình trạng sức khỏe của gia đình bạn, bao gồm các bệnh lý hoặc tình trạng sức khỏe có thể di truyền.",
+      describeSocialHistory:
+        "Cung cấp thông tin về lối sống, hoàn cảnh sống và các yếu tố xã hội có thể ảnh hưởng đến sức khỏe của bạn.",
+      describeSystemsReview:
+        "Mô tả các triệu chứng hoặc vấn đề sức khỏe bạn đã gặp phải ở các hệ thống cơ thể khác nhau (ví dụ: hô hấp, tim mạch, tiêu hóa, v.v.).",
       basicInfoDescription: "Nhập thông tin nhân khẩu học và triệu chứng chính",
       caseInformation: "Thông Tin Hồ Sơ",
       caseTitle: "Tiêu Đề Hồ Sơ",
@@ -920,6 +942,12 @@ const messages = {
       patientName: "Tên Bệnh Nhân",
       patientAge: "Tuổi Bệnh Nhân",
 
+      // New Template Features
+      attachmentRequirements: "Yêu Cầu Tài Liệu",
+      requiresReview: "Yêu Cầu Xét Duyệt",
+      reviewRequiredNote:
+        "Hồ sơ này cần giảng viên xét duyệt trước khi phê duyệt",
+
       // Departments
       cardiology: "Tim Mạch",
       neurology: "Thần Kinh",
@@ -929,6 +957,12 @@ const messages = {
       emergency: "Cấp Cứu",
       surgery: "Phẫu Thuật",
       internalMedicine: "Nội Khoa",
+    },
+    common: {
+      fieldRequired: "Trường này là bắt buộc",
+      invalidNumber: "Vui lòng nhập số hợp lệ",
+      invalidDate: "Vui lòng nhập ngày hợp lệ",
+      repository: "Kho lưu trữ",
     },
   },
 } as const;
@@ -979,10 +1013,10 @@ router.beforeEach((to, from, next) => {
     if (!requiredRoles.includes(user.role)) {
       console.warn(
         `Access denied: user role "${user.role}" not in allowed roles:`,
-        requiredRoles,
+        requiredRoles
       );
       toast.error(
-        "Access denied: You do not have permission to view this page.",
+        "Access denied: You do not have permission to view this page."
       );
       // Redirect to home or 403 page
       next("/home");

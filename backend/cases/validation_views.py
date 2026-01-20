@@ -111,13 +111,6 @@ class CaseValidationViewSet(viewsets.ViewSet):
         # Get applicable rules
         rules = CaseValidationRule.objects.filter(is_active=True)
 
-        # Filter by template
-        if case.template:
-            rules = rules.filter(
-                Q(applies_to_templates__isnull=True)
-                | Q(applies_to_templates=case.template)
-            )
-
         # Filter by specialty
         rules = rules.filter(
             Q(applies_to_specialties=[])

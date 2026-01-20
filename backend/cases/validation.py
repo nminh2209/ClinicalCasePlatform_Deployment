@@ -52,12 +52,6 @@ class CaseValidationRule(models.Model):
     )
 
     # Applicability
-    applies_to_templates = models.ManyToManyField(
-        "templates.CaseTemplate",
-        blank=True,
-        related_name="validation_rules",
-        help_text="Áp dụng cho các template cụ thể (để trống = tất cả)",
-    )
     applies_to_specialties = models.JSONField(
         default=list, help_text="Áp dụng cho các chuyên khoa cụ thể"
     )
@@ -95,12 +89,6 @@ class CaseValidationRule(models.Model):
         Validate a case against this rule
         Returns (is_valid, error_message)
         """
-        from cases.models import Case
-
-        # Check if rule applies to this case
-        if self.applies_to_templates.exists():
-            if case.template not in self.applies_to_templates.all():
-                return True, None
 
         if (
             self.applies_to_specialties
@@ -254,9 +242,7 @@ class CaseValidationResult(models.Model):
         ]
 
     def __str__(self):
-        return (
-            f"Validation for {self.case.title} - {self.get_validation_status_display()}"  # type: ignore[attr-defined]
-        )
+        return f"Validation for {self.case.title} - {self.get_validation_status_display()}"  # type: ignore[attr-defined]
 
 
 class CaseSubmissionWorkflow(models.Model):

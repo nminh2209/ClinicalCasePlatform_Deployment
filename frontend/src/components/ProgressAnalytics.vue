@@ -53,10 +53,13 @@
               'bg-gray-100 text-gray-700': stats.recentTrend === 'stable'
             }">
               <TrendingUp v-if="stats.recentTrend === 'improving'" class="h-3 w-3" />
-              <svg v-else-if="stats.recentTrend === 'declining'" class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+              <svg v-else-if="stats.recentTrend === 'declining'" class="h-3 w-3" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
               </svg>
-              {{ stats.recentTrend === 'improving' ? 'Tiến bộ' : stats.recentTrend === 'declining' ? 'Giảm' : 'Ổn định' }}
+              {{ stats.recentTrend === 'improving' ? 'Tiến bộ' : stats.recentTrend === 'declining' ? 'Giảm' : 'Ổn định'
+              }}
             </span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
@@ -114,8 +117,8 @@
             </div>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
-            <div class="bg-blue-500 h-2 rounded-full" 
-              :style="{ width: (dept.completed / dept.total * 100) + '%' }"></div>
+            <div class="bg-blue-500 h-2 rounded-full" :style="{ width: (dept.completed / dept.total * 100) + '%' }">
+            </div>
           </div>
         </div>
       </div>
@@ -164,7 +167,8 @@
           <h3>Điểm mạnh</h3>
         </div>
         <div class="card-content space-y-2">
-          <div v-if="stats.strengths.length > 0" v-for="(strength, index) in stats.strengths" :key="index" class="flex items-center gap-2 text-green-700">
+          <div v-if="stats.strengths.length > 0" v-for="(strength, index) in stats.strengths" :key="index"
+            class="flex items-center gap-2 text-green-700">
             <CheckCircle class="h-4 w-4" />
             <span>{{ strength }}</span>
           </div>
@@ -219,16 +223,16 @@ const loading = ref(true);
 // Computed stats from real data
 const stats = computed(() => {
   const totalCases = casesData.value.length;
-  const completedCases = casesData.value.filter((c: any) => 
+  const completedCases = casesData.value.filter((c: any) =>
     c.case_status === 'submitted' || c.case_status === 'approved' || c.case_status === 'reviewed'
   ).length;
-  
+
   // Calculate average grade
   const gradedCases = gradesData.value.filter((g: any) => g.is_final && g.score !== null);
   const averageGrade = gradedCases.length > 0
     ? Math.round(gradedCases.reduce((sum: number, g: any) => sum + (g.score || 0), 0) / gradedCases.length)
     : 0;
-  
+
   // Analyze strengths and weaknesses from grading criteria
   const criteriaScores = {
     history: [] as number[],
@@ -237,7 +241,7 @@ const stats = computed(() => {
     treatment: [] as number[],
     presentation: [] as number[]
   };
-  
+
   gradedCases.forEach((g: any) => {
     if (g.grading_criteria) {
       if (g.grading_criteria.history) criteriaScores.history.push(g.grading_criteria.history);
@@ -247,9 +251,9 @@ const stats = computed(() => {
       if (g.grading_criteria.presentation) criteriaScores.presentation.push(g.grading_criteria.presentation);
     }
   });
-  
+
   // Calculate averages for each criteria
-  const avgHistory = criteriaScores.history.length > 0 
+  const avgHistory = criteriaScores.history.length > 0
     ? criteriaScores.history.reduce((a, b) => a + b, 0) / criteriaScores.history.length : 0;
   const avgExamination = criteriaScores.examination.length > 0
     ? criteriaScores.examination.reduce((a, b) => a + b, 0) / criteriaScores.examination.length : 0;
@@ -259,7 +263,7 @@ const stats = computed(() => {
     ? criteriaScores.treatment.reduce((a, b) => a + b, 0) / criteriaScores.treatment.length : 0;
   const avgPresentation = criteriaScores.presentation.length > 0
     ? criteriaScores.presentation.reduce((a, b) => a + b, 0) / criteriaScores.presentation.length : 0;
-  
+
   // Identify strengths (>= 85) and areas needing improvement (< 70)
   const skillAverages = [
     { name: "Lấy tiền sử bệnh", score: avgHistory },
@@ -268,43 +272,43 @@ const stats = computed(() => {
     { name: "Kế hoạch điều trị", score: avgTreatment },
     { name: "Trình bày ca bệnh", score: avgPresentation }
   ];
-  
+
   const strengths = skillAverages
     .filter(s => s.score >= 85)
     .sort((a, b) => b.score - a.score)
     .map(s => s.name)
     .slice(0, 3);
-  
+
   const needsImprovement = skillAverages
     .filter(s => s.score > 0 && s.score < 70)
     .sort((a, b) => a.score - b.score)
     .map(s => s.name)
     .slice(0, 3);
-  
+
   // Calculate trend (comparing recent vs older grades)
-  const sortedGrades = [...gradedCases].sort((a: any, b: any) => 
+  const sortedGrades = [...gradedCases].sort((a: any, b: any) =>
     new Date(a.graded_at).getTime() - new Date(b.graded_at).getTime()
   );
-  
+
   let recentTrend = "stable";
   if (sortedGrades.length >= 4) {
     const recentHalf = sortedGrades.slice(Math.floor(sortedGrades.length / 2));
     const olderHalf = sortedGrades.slice(0, Math.floor(sortedGrades.length / 2));
-    
+
     const recentAvg = recentHalf.reduce((sum: number, g: any) => sum + (g.score || 0), 0) / recentHalf.length;
     const olderAvg = olderHalf.reduce((sum: number, g: any) => sum + (g.score || 0), 0) / olderHalf.length;
-    
+
     if (recentAvg > olderAvg + 5) recentTrend = "improving";
     else if (recentAvg < olderAvg - 5) recentTrend = "declining";
   }
-  
+
   // Calculate total study time from cases (estimated)
-  const studyTime = casesData.value.reduce((sum: any, c: any) => 
+  const studyTime = casesData.value.reduce((sum: any, c: any) =>
     sum + (c.estimated_study_hours || 0), 0
   );
-  
+
   const targetStudyTime = totalCases * 2; // Assume 2 hours per case target
-  
+
   return {
     totalCases,
     completedCases,
@@ -325,33 +329,33 @@ const stats = computed(() => {
 // Department progress from real data
 const departmentProgress = computed(() => {
   const specialtyMap = new Map<string, { completed: number; total: number; grades: number[] }>();
-  
+
   casesData.value.forEach((c: any) => {
     const specialty = c.specialty || 'Khác';
     if (!specialtyMap.has(specialty)) {
       specialtyMap.set(specialty, { completed: 0, total: 0, grades: [] });
     }
-    
+
     const data = specialtyMap.get(specialty)!;
     data.total++;
-    
+
     if (c.case_status === 'submitted' || c.case_status === 'approved' || c.case_status === 'reviewed') {
       data.completed++;
     }
-    
+
     // Find grade for this case
     const grade = gradesData.value.find((g: any) => g.case === c.id);
     if (grade?.is_final && grade.score !== null) {
       data.grades.push(grade.score);
     }
   });
-  
+
   return Array.from(specialtyMap.entries())
     .map(([department, data]) => ({
       department,
       completed: data.completed,
       total: data.total,
-      avgGrade: data.grades.length > 0 
+      avgGrade: data.grades.length > 0
         ? Math.round(data.grades.reduce((a, b) => a + b, 0) / data.grades.length)
         : 0
     }))
@@ -362,43 +366,43 @@ const departmentProgress = computed(() => {
 // Skills progress from grading criteria
 const skillsProgress = computed(() => {
   const s = stats.value;
-  
+
   return [
-    { 
-      skill: "Lấy tiền sử bệnh", 
-      progress: Math.round(s.avgHistory || 0), 
+    {
+      skill: "Lấy tiền sử bệnh",
+      progress: Math.round(s.avgHistory || 0),
       level: getSkillLevel(s.avgHistory || 0)
     },
-    { 
-      skill: "Khám lâm sàng", 
-      progress: Math.round(s.avgExamination || 0), 
+    {
+      skill: "Khám lâm sàng",
+      progress: Math.round(s.avgExamination || 0),
       level: getSkillLevel(s.avgExamination || 0)
     },
-    { 
-      skill: "Chẩn đoán phân biệt", 
-      progress: Math.round(s.avgDifferential || 0), 
+    {
+      skill: "Chẩn đoán phân biệt",
+      progress: Math.round(s.avgDifferential || 0),
       level: getSkillLevel(s.avgDifferential || 0)
     },
-    { 
-      skill: "Kế hoạch điều trị", 
-      progress: Math.round(s.avgTreatment || 0), 
+    {
+      skill: "Kế hoạch điều trị",
+      progress: Math.round(s.avgTreatment || 0),
       level: getSkillLevel(s.avgTreatment || 0)
     },
-    { 
-      skill: "Trình bày ca bệnh", 
-      progress: Math.round(s.avgPresentation || 0), 
+    {
+      skill: "Trình bày ca bệnh",
+      progress: Math.round(s.avgPresentation || 0),
       level: getSkillLevel(s.avgPresentation || 0)
     }
   ].filter(skill => skill.progress > 0); // Only show skills with data
 });
 
-const completionRate = computed(() => 
-  stats.value.totalCases > 0 
+const completionRate = computed(() =>
+  stats.value.totalCases > 0
     ? Math.round((stats.value.completedCases / stats.value.totalCases) * 100)
     : 0
 );
 
-const studyProgress = computed(() => 
+const studyProgress = computed(() =>
   stats.value.targetStudyTime > 0
     ? Math.min(100, Math.round((stats.value.studyTime / stats.value.targetStudyTime) * 100))
     : 0
@@ -428,7 +432,7 @@ async function loadProgressData() {
       casesService.getCases(),
       gradesService.getStudentGrades().catch(() => [])
     ]);
-    
+
     casesData.value = Array.isArray(cases) ? cases : (cases?.results || []);
     gradesData.value = Array.isArray(grades) ? grades : (grades?.results || []);
   } catch (error) {

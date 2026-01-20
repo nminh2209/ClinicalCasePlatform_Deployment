@@ -102,7 +102,8 @@
             <CardContent>
               <div class="w-full h-72 bg-gray-50 rounded-lg p-4 flex flex-col justify-between">
                 <div class="flex h-full gap-2">
-                  <div class="flex flex-col justify-between text-xs text-gray-500 pr-2 border-r border-gray-300 min-w-max">
+                  <div
+                    class="flex flex-col justify-between text-xs text-gray-500 pr-2 border-r border-gray-300 min-w-max">
                     <span>160</span>
                     <span>120</span>
                     <span>80</span>
@@ -110,15 +111,22 @@
                     <span>0</span>
                   </div>
                   <div class="flex items-end justify-between flex-1 gap-2">
-                    <div v-for="(item, idx) in userGrowthData" :key="idx" class="flex-1 flex flex-col items-center gap-2">
+                    <div v-for="(item, idx) in userGrowthData" :key="idx"
+                      class="flex-1 flex flex-col items-center gap-2">
                       <div class="w-full flex gap-1 items-end justify-center h-40">
-                        <div class="flex-1 bg-blue-500 rounded-t opacity-80 hover:opacity-100 cursor-pointer transition-opacity relative group/bar" :style="{ height: (item.students / 160 * 100) + '%' }">
-                          <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                        <div
+                          class="flex-1 bg-blue-500 rounded-t opacity-80 hover:opacity-100 cursor-pointer transition-opacity relative group/bar"
+                          :style="{ height: (item.students / 160 * 100) + '%' }">
+                          <div
+                            class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                             Sinh viên: {{ item.students }}
                           </div>
                         </div>
-                        <div class="flex-1 bg-green-500 rounded-t opacity-80 hover:opacity-100 cursor-pointer transition-opacity relative group/bar" :style="{ height: (item.teachers / 160 * 100) + '%' }">
-                          <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                        <div
+                          class="flex-1 bg-green-500 rounded-t opacity-80 hover:opacity-100 cursor-pointer transition-opacity relative group/bar"
+                          :style="{ height: (item.teachers / 160 * 100) + '%' }">
+                          <div
+                            class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                             Giảng viên: {{ item.teachers }}
                           </div>
                         </div>
@@ -150,7 +158,8 @@
             <CardContent>
               <div class="w-full h-72 bg-gray-50 rounded-lg p-4 flex flex-col justify-between">
                 <div class="flex h-40 gap-2 mb-4">
-                  <div class="flex flex-col justify-between text-xs text-gray-500 pr-2 border-r border-gray-300 min-w-max">
+                  <div
+                    class="flex flex-col justify-between text-xs text-gray-500 pr-2 border-r border-gray-300 min-w-max">
                     <span>200</span>
                     <span>150</span>
                     <span>100</span>
@@ -159,8 +168,11 @@
                   </div>
                   <div class="flex items-end justify-between flex-1 gap-2">
                     <div v-for="(item, idx) in submissionData" :key="idx" class="flex-1 group relative">
-                      <div class="w-full bg-blue-500 rounded-t hover:opacity-80 cursor-pointer transition-opacity relative" :style="{ height: (item.submissions / 200 * 160) + 'px' }">
-                        <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                      <div
+                        class="w-full bg-blue-500 rounded-t hover:opacity-80 cursor-pointer transition-opacity relative"
+                        :style="{ height: (item.submissions / 200 * 160) + 'px' }">
+                        <div
+                          class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                           {{ item.submissions }} bài
                         </div>
                       </div>
@@ -191,9 +203,11 @@
                     </g>
                   </svg>
                   <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center shadow-lg border-4 border-gray-50">
+                    <div
+                      class="w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center shadow-lg border-4 border-gray-50">
                       <div class="text-center">
-                        <p class="text-lg font-bold text-gray-800">{{ departments.reduce((s: number, d: any) => s + d.students, 0) }}</p>
+                        <p class="text-lg font-bold text-gray-800">{{departments.reduce((s: number, d: any) => s +
+                          d.students, 0) }}</p>
                         <p class="text-xs text-gray-600">sinh viên</p>
                       </div>
                     </div>
@@ -221,11 +235,14 @@
                   <div v-for="dept in performanceData" :key="dept.department" class="flex items-center gap-3 group">
                     <div class="w-24 text-sm font-medium text-gray-700 truncate">{{ dept.department }}</div>
                     <div class="flex-1 bg-gray-200 rounded-full h-6 overflow-visible relative group/bar">
-                      <div class="bg-green-500 h-full rounded-full hover:opacity-80 transition-opacity" :style="{ width: dept.avgGrade + '%' }"></div>
-                      <span class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs font-semibold text-white mix-blend-darken">
+                      <div class="bg-green-500 h-full rounded-full hover:opacity-80 transition-opacity"
+                        :style="{ width: dept.avgGrade + '%' }"></div>
+                      <span
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs font-semibold text-white mix-blend-darken">
                         {{ dept.avgGrade }}%
                       </span>
-                      <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                      <div
+                        class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                         {{ dept.avgGrade }}%
                       </div>
                     </div>
@@ -246,10 +263,9 @@
           </CardHeader>
           <CardContent>
             <div class="space-y-3">
-              <div v-for="(dept, index) in departments" :key="index" 
+              <div v-for="(dept, index) in departments" :key="index"
                 class="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer hover:shadow-sm"
-                @click="navigateToDepartment(String(dept.id))"
-              >
+                @click="navigateToDepartment(String(dept.id))">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div class="flex items-center gap-3">
                     <div class="w-4 h-4 rounded-full" :style="{ backgroundColor: dept.color }"></div>
@@ -288,9 +304,8 @@
           </CardHeader>
           <CardContent>
             <div class="space-y-3">
-              <div v-for="(activity, index) in recentActivity" :key="index" 
-                class="flex items-start gap-3 p-4 border border-gray-200 rounded-lg"
-              >
+              <div v-for="(activity, index) in recentActivity" :key="index"
+                class="flex items-start gap-3 p-4 border border-gray-200 rounded-lg">
                 <div class="w-2 h-2 rounded-full mt-2 bg-blue-500"></div>
                 <div class="flex-1">
                   <p class="text-sm text-gray-900 font-medium">{{ activity.message }}</p>
@@ -438,7 +453,7 @@ const submissionData = [
   { month: "Tháng 10", submissions: 152 }
 ];
 
-const departmentDistribution = computed(() => 
+const departmentDistribution = computed(() =>
   departments.value.map((dept: any) => ({
     name: dept.name,
     value: dept.students,
@@ -456,20 +471,20 @@ const pieslices = computed(() => {
   return departmentDistribution.value.map((item: any) => {
     const slicePercent = item.value / total;
     const sliceAngle = slicePercent * 2 * Math.PI;
-    
+
     const x1 = centerX + radius * Math.cos(currentAngle);
     const y1 = centerY + radius * Math.sin(currentAngle);
-    
+
     const endAngle = currentAngle + sliceAngle;
     const x2 = centerX + radius * Math.cos(endAngle);
     const y2 = centerY + radius * Math.sin(endAngle);
-    
+
     const largeArc = sliceAngle > Math.PI ? 1 : 0;
-    
+
     const path = `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
-    
+
     currentAngle = endAngle;
-    
+
     return {
       path,
       color: item.color,

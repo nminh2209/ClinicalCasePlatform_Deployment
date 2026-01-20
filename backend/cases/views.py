@@ -1,52 +1,69 @@
-from rest_framework import generics, permissions, status, filters, viewsets, parsers
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, ValidationError
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Count, Q
-from django.utils.dateparse import parse_date
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
-from datetime import timedelta
+# cases/views.py
+
 import secrets
-from django.core.cache import cache
+from datetime import timedelta
 from difflib import SequenceMatcher
 
 # Type hints to help Pylance
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from rest_framework.request import Request
-    from accounts.models import User
+from django.core.cache import cache
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.dateparse import parse_date
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics, parsers, permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.response import Response
 
-from .models import Case, CasePermission, GuestAccess, CaseGroup, PermissionAuditLog
-from .medical_models import MedicalTerm, ICD10Code, MedicalAbbreviation
+if TYPE_CHECKING:
+    from accounts.models import User
+    from rest_framework.request import Request
+
 from .medical_models import (
     Department,
+    ICD10Code,
+    MedicalAbbreviation,
     # ClinicalHistory,
     # PhysicalExamination,
     # Investigations,
     # DiagnosisManagement,
     # LearningOutcomes,
     MedicalAttachment,
+    MedicalTerm,
     StudentNotes,
 )
+from .models import (
+    Case,
+    CaseGroup,
+    CasePermission,
+    GuestAccess,
+    InstructorCaseAuditLog,
+    PermissionAuditLog,
+)
+from .permissions import IsInstructorPermission
 from .serializers import (
-    CaseListSerializer,
-    CaseDetailSerializer,
-    CaseCreateUpdateSerializer,
-    CasePermissionSerializer,
-    GuestAccessSerializer,
-    CaseGroupSerializer,
-    PermissionAuditLogSerializer,
-    BulkPermissionSerializer,
-    MedicalAttachmentSerializer,
-    StudentNotesSerializer,
-    DepartmentSerializer,
-    MedicalTermSerializer,
-    ICD10Serializer,
     AbbreviationSerializer,
+    BulkPermissionSerializer,
+    CaseCloneSerializer,
+    CaseCreateUpdateSerializer,
+    CaseDetailSerializer,
+    CaseGroupSerializer,
+    CaseListSerializer,
+    CasePermissionSerializer,
+    CaseStatusUpdateSerializer,
     CaseSummarySerializer,
+    DepartmentSerializer,
+    GuestAccessSerializer,
+    ICD10Serializer,
+    InstructorCaseAuditLogSerializer,
+    InstructorCaseCreateSerializer,
+    MedicalAttachmentSerializer,
+    MedicalTermSerializer,
+    PermissionAuditLogSerializer,
+    StudentNotesSerializer,
 )
 
 
@@ -96,9 +113,9 @@ class CaseListCreateView(generics.ListCreateAPIView):
         """Override list to add cache-control headers"""
         response = super().list(request, *args, **kwargs)
         # Prevent browser caching to avoid showing wrong user's data
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
+        response["Cache-Control"] = "no-cache, no-store, must-revalidate, private"
+        response["Pragma"] = "no-cache"
+        response["Expires"] = "0"
         return response
 
     def get_queryset(self):
@@ -109,22 +126,33 @@ class CaseListCreateView(generics.ListCreateAPIView):
             query_params_str = str(sorted(self.request.query_params.items()))
             cache_key = f"case_list_{user.id}_{hash(query_params_str)}"
             cached_ids = cache.get(cache_key)
-            
+
             if cached_ids is not None:
                 # Return queryset from cached IDs
-                return Case.objects.filter(id__in=cached_ids).select_related(
-                    "student", "student__department", "repository", "repository__department", "template"
-                ).prefetch_related("medical_attachments", "permissions")
-        
-        queryset = Case.objects.annotate(
-            comment_count=Count("comments", filter=Q(comments__is_reaction=False))
-        ).select_related(
-            "student", "student__department", 
-            "repository", "repository__department",
-            "template"
-        ).prefetch_related(
-            "medical_attachments",
-            "permissions"
+                return (
+                    Case.objects.filter(id__in=cached_ids)
+                    .select_related(
+                        "student",
+                        "student__department",
+                        "repository",
+                        "repository__department",
+
+                    )
+                    .prefetch_related("medical_attachments", "permissions")
+                )
+
+        queryset = (
+            Case.objects.annotate(
+                comment_count=Count("comments", filter=Q(comments__is_reaction=False))
+            )
+            .select_related(
+                "student",
+                "student__department",
+                "repository",
+                "repository__department",
+
+            )
+            .prefetch_related("medical_attachments", "permissions")
         )
 
         user = self.request.user
@@ -155,6 +183,10 @@ class CaseListCreateView(generics.ListCreateAPIView):
                 | Q(is_public=True)
                 | permission_q
             ).distinct()
+
+
+            # Instructors should not see draft cases (only students see their own drafts)
+            queryset = queryset.exclude(case_status="draft")
 
         # Students: only their own cases, public cases, or cases shared to them/department/public
         elif user.is_authenticated and getattr(user, "is_student", False):
@@ -234,6 +266,49 @@ class CaseListCreateView(generics.ListCreateAPIView):
             return CaseCreateUpdateSerializer
         return CaseListSerializer
 
+    def perform_create(self, serializer):
+        """Auto-assign repository based on user's department if not provided"""
+        from repositories.models import Repository
+        from .medical_models import MedicalAttachment
+        
+        # Check if repository was provided in validated_data
+        repository = serializer.validated_data.get('repository')
+        
+        if not repository:
+            # Auto-assign default repository for user's department
+            user_department = self.request.user.department
+            # Get or create a default repository for the department
+            repository, created = Repository.objects.get_or_create(
+                department=user_department,
+                is_public=False,
+                defaults={
+                    'name': f'Kho bệnh án {user_department.name}',
+                    'description': f'Default repository for {user_department.name}',
+                    'owner': self.request.user,
+                }
+            )
+            case = serializer.save(repository=repository)
+        else:
+            case = serializer.save()
+
+        # Process attachments from multipart upload
+        request_data = self.request.data
+        attachment_keys = [key for key in request_data.keys() if key.startswith('attachment_')]
+        
+        for key in attachment_keys:
+            file = request_data[key]
+            # Create MedicalAttachment
+            MedicalAttachment.objects.create(
+                case=case,
+                file=file,
+                attachment_type='other',  # Default type
+                title=file.name,
+                uploaded_by=self.request.user,
+                file_size=file.size,
+                file_type=file.content_type or '',
+            )
+
+
     def create(self, request, *args, **kwargs):
         """
         Handle case creation with potential file uploads
@@ -277,7 +352,7 @@ class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Case.objects.select_related(
-            "student", "template", "repository"
+            "student", "repository"
         ).prefetch_related(
             "clinical_history",
             "physical_examination",
@@ -288,6 +363,12 @@ class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
         )
 
     def get_serializer_class(self):
+        if (
+            self.request.method == "PUT"
+            and len(self.request.data) == 1
+            and "case_status" in self.request.data
+        ):
+            return CaseStatusUpdateSerializer
         if self.request.method in ["PUT", "PATCH"]:
             return CaseCreateUpdateSerializer
         return CaseDetailSerializer
@@ -327,6 +408,16 @@ class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
         """Only owner can update their own draft cases"""
         case = self.get_object()
         user = self.request.user
+
+        # Check if this is a status-only update (for grading)
+        is_status_only_update = (
+            len(self.request.data) == 1 and "case_status" in self.request.data
+        )
+
+        # Instructors can update status only (for grading)
+        if is_status_only_update and getattr(user, "is_instructor", False):
+            serializer.save()
+            return
 
         # Only the case owner can update
         if case.student != user:
@@ -2062,3 +2153,473 @@ def case_summary_view(request):
 
     serializer = CaseSummarySerializer(summary_data)
     return Response(serializer.data)
+
+
+class CaseListCreateView(generics.ListCreateAPIView):
+    """
+    List cases with advanced filtering and create new cases
+
+    Query parameters:
+    - specialty: Filter by specialty
+    - case_status: Filter by status (draft, submitted, reviewed, approved)
+    - priority_level: Filter by priority (low, medium, high, urgent)
+    - complexity_level: Filter by complexity (basic, intermediate, advanced, expert)
+    - date_from: Filter cases created after this date (YYYY-MM-DD)
+    - date_to: Filter cases created before this date (YYYY-MM-DD)
+    - admission_from: Filter by admission date after (YYYY-MM-DD)
+    - admission_to: Filter by admission date before (YYYY-MM-DD)
+    - department: Filter by department ID
+    - search: Search in title, diagnosis, patient_name, keywords
+    - ordering: Order by created_at, updated_at, title, priority_level
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = [
+        "specialty",
+        "case_status",
+        "priority_level",
+        "complexity_level",
+        "student__role",
+    ]
+    search_fields = ["title", "keywords", "patient_name", "case_summary"]
+    ordering_fields = [
+        "created_at",
+        "updated_at",
+        "title",
+        "priority_level",
+        "admission_date",
+    ]
+    ordering = ["-created_at"]
+
+    def list(self, request, *args, **kwargs):
+        """Override list to add cache-control headers"""
+        response = super().list(request, *args, **kwargs)
+        # Prevent browser caching to avoid showing wrong user's data
+        response["Cache-Control"] = "no-cache, no-store, must-revalidate, private"
+        response["Pragma"] = "no-cache"
+        response["Expires"] = "0"
+        return response
+
+    def get_queryset(self):
+        # Check cache first for common queries
+        cache_key = None
+        if self.request.query_params.get("use_cache") != "false":
+            user = self.request.user
+            query_params_str = str(sorted(self.request.query_params.items()))
+            cache_key = f"case_list_{user.id}_{hash(query_params_str)}"
+            cached_ids = cache.get(cache_key)
+
+            if cached_ids is not None:
+                # Return queryset from cached IDs
+                return (
+                    Case.objects.filter(id__in=cached_ids)
+                    .select_related(
+                        "student",
+                        "student__department",
+                        "repository",
+                        "repository__department",
+
+                    )
+                    .prefetch_related("medical_attachments", "permissions")
+                )
+
+        queryset = (
+            Case.objects.annotate(
+                comment_count=Count("comments", filter=Q(comments__is_reaction=False))
+            )
+            .select_related(
+                "student",
+                "student__department",
+                "repository",
+                "repository__department",
+
+            )
+            .prefetch_related("medical_attachments", "permissions")
+        )
+
+        user = self.request.user
+
+        # Role & permission-based visibility filtering
+        # Instructors: see cases from their department, public cases, or cases shared to them (individual),
+        # department-shared (target_department), or public-share_type permissions.
+        # Students: only their own, public, or shared cases
+        if user.is_authenticated and getattr(user, "is_instructor", False):
+            department_id = user.department_id  # type: ignore[attr-defined]
+            # Active (and not expired) permission-based access
+            permission_active_q = Q(permissions__is_active=True) & (
+                Q(permissions__expires_at__isnull=True)
+                | Q(permissions__expires_at__gte=timezone.now())
+            )
+            permission_q = permission_active_q & (
+                Q(permissions__user=user)  # individual share
+                | Q(
+                    permissions__share_type="department",
+                    permissions__target_department_id=department_id,
+                )
+                | Q(permissions__share_type="public")
+            )
+
+            queryset = queryset.filter(
+                Q(student__department_id=department_id)
+                | Q(repository__department_id=department_id)
+                | Q(is_public=True)
+                | permission_q
+            ).distinct()
+
+
+            # Instructors should not see draft cases (only students see their own drafts)
+            queryset = queryset.exclude(case_status="draft")
+
+        # Students: only their own cases, public cases, or cases shared to them/department/public
+        elif user.is_authenticated and getattr(user, "is_student", False):
+            department_id = user.department_id  # type: ignore[attr-defined]
+            permission_active_q = Q(permissions__is_active=True) & (
+                Q(permissions__expires_at__isnull=True)
+                | Q(permissions__expires_at__gte=timezone.now())
+            )
+            permission_q = permission_active_q & (
+                Q(permissions__user=user)
+                | Q(
+                    permissions__share_type="department",
+                    permissions__target_department_id=department_id,
+                )
+                | Q(permissions__share_type="public")
+            )
+
+            queryset = queryset.filter(
+                Q(student=user) | Q(is_public=True) | permission_q
+            ).distinct()
+
+        # Date range filtering
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+        if date_from:
+            parsed_date = parse_date(date_from)
+            if parsed_date:
+                queryset = queryset.filter(created_at__gte=parsed_date)
+        if date_to:
+            parsed_date = parse_date(date_to)
+            if parsed_date:
+                queryset = queryset.filter(created_at__lte=parsed_date)
+
+        # Admission date filtering
+        admission_from = self.request.query_params.get("admission_from")
+        admission_to = self.request.query_params.get("admission_to")
+        if admission_from:
+            parsed_date = parse_date(admission_from)
+            if parsed_date:
+                queryset = queryset.filter(admission_date__gte=parsed_date)
+        if admission_to:
+            parsed_date = parse_date(admission_to)
+            if parsed_date:
+                queryset = queryset.filter(admission_date__lte=parsed_date)
+
+        # Department filtering through repository
+        department_id = self.request.query_params.get("department")
+        if department_id:
+            queryset = queryset.filter(repository__department_id=department_id)
+
+        # Custom Q object searches for multi-field matching
+        q_search = self.request.query_params.get("q")
+        if q_search:
+            queryset = queryset.filter(
+                Q(title__icontains=q_search)
+                | Q(patient_name__icontains=q_search)
+                | Q(keywords__icontains=q_search)
+                | Q(case_summary__icontains=q_search)
+                | Q(specialty__icontains=q_search)
+            )
+
+        # Public cases filter
+        is_public = self.request.query_params.get("is_public")
+        if is_public is not None:
+            queryset = queryset.filter(is_public=is_public.lower() == "true")
+
+        # Disable cache to prevent cross-user data leakage
+        # if cache_key:
+        #     case_ids = list(queryset.values_list('id', flat=True)[:100])  # Cache first 100
+        #     from django.conf import settings
+        #     cache.set(cache_key, case_ids, settings.CACHE_TTL.get("CASE_LIST", 300))
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return CaseCreateUpdateSerializer
+        return CaseListSerializer
+
+    def perform_create(self, serializer):
+        """Auto-assign repository based on user's department if not provided"""
+        from repositories.models import Repository
+        from .medical_models import MedicalAttachment
+        
+        # Check if repository was provided in validated_data
+        repository = serializer.validated_data.get('repository')
+        
+        if not repository:
+            # Auto-assign default repository for user's department
+            user_department = self.request.user.department
+            # Get or create a default repository for the department
+            repository, created = Repository.objects.get_or_create(
+                department=user_department,
+                is_public=False,
+                defaults={
+                    'name': f'Kho bệnh án {user_department.name}',
+                    'description': f'Default repository for {user_department.name}',
+                    'owner': self.request.user,
+                }
+            )
+            case = serializer.save(repository=repository)
+        else:
+            case = serializer.save()
+
+        # Process attachments from multipart upload
+        request_data = self.request.data
+        attachment_keys = [key for key in request_data.keys() if key.startswith('attachment_')]
+        
+        for key in attachment_keys:
+            file = request_data[key]
+            # Create MedicalAttachment
+            MedicalAttachment.objects.create(
+                case=case,
+                file=file,
+                attachment_type='other',  # Default type
+                title=file.name,
+                uploaded_by=self.request.user,
+                file_size=file.size,
+                file_type=file.content_type or '',
+            )
+
+
+    def create(self, request, *args, **kwargs):
+        """
+        Handle case creation with potential file uploads
+        """
+        # If request has multipart data with 'data' field, parse it
+        if hasattr(request, "data") and "data" in request.data:
+            import json
+
+            try:
+                case_data = json.loads(request.data["data"])
+                # Create a new request-like object with parsed data
+                from django.http import QueryDict
+                from django.utils.datastructures import MultiValueDict
+
+                # Create a mutable copy of request.data
+                mutable_data = MultiValueDict()
+                for key, value in request.data.items():
+                    if key != "data":
+                        mutable_data[key] = value
+
+                # Add parsed JSON data
+                for key, value in case_data.items():
+                    mutable_data[key] = value
+
+                # Replace request.data with the combined data
+                request._full_data = mutable_data  # type: ignore[attr-defined]
+                request._data = mutable_data  # type: ignore[attr-defined]
+
+            except (json.JSONDecodeError, KeyError):
+                pass
+
+        return super().create(request, *args, **kwargs)
+
+
+class InstructorCaseCreateView(generics.CreateAPIView):
+    """
+    Create a new instructor template case.
+    POST /api/cases/instructor/
+
+    Instructor cases are automatically:
+    - Set to 'approved' status
+    - Made public (is_public=True)
+    - Published to public feed (is_published_to_feed=True)
+    """
+
+    serializer_class = InstructorCaseCreateSerializer
+    permission_classes = [permissions.IsAuthenticated, IsInstructorPermission]
+
+    def perform_create(self, serializer):
+        # Template feature removed - create as regular instructor case
+        case = serializer.save(
+            student=self.request.user,  # Uses 'student' field for creator
+            case_status=Case.StatusChoices.APPROVED,
+            is_public=True,
+            # Auto-publish to feed for instructor cases
+            is_published_to_feed=True,
+            published_to_feed_at=timezone.now(),
+            published_by=self.request.user,
+            feed_visibility="university",  # Visible to all students
+        )
+        # Log creation
+        InstructorCaseAuditLog.objects.create(
+            case=case,
+            actor=self.request.user,
+            action=InstructorCaseAuditLog.ActionChoices.CREATED,
+            changes={"created": True, "title": case.title, "published_to_feed": True},
+        )
+
+
+class CaseCloneView(generics.CreateAPIView):
+    """
+    Clone an instructor template case.
+    POST /api/cases/{id}/clone/
+
+    Creates a copy of the template case owned by the requesting student.
+    """
+
+    serializer_class = CaseCloneSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        case_id = self.kwargs.get("pk")
+        case = get_object_or_404(Case, pk=case_id)
+        # Template feature removed - allow cloning of any case
+        return case
+
+    def create(self, request, *args, **kwargs):
+        # We need to inject the source_case_id into the data
+        # because the generic CreateAPIView expects the body to contain data
+        # but we get the ID from the URL
+
+        # We create a mutable copy of the data
+        if isinstance(request.data, dict):
+            data = request.data.copy()
+        else:
+            data = {}
+
+        data["source_case_id"] = self.kwargs.get("pk")
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
+
+
+class InstructorCaseAuditLogView(generics.ListAPIView):
+    """
+    List audit logs for instructor template cases.
+    GET /api/cases/instructor/audit-log/
+    """
+
+    serializer_class = InstructorCaseAuditLogSerializer
+    permission_classes = [permissions.IsAuthenticated, IsInstructorPermission]
+
+    def get_queryset(self):
+        return (
+            InstructorCaseAuditLog.objects.filter(actor=self.request.user)
+            .select_related("case", "actor")
+            .order_by("-created_at")
+        )
+
+
+class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a specific case with detailed medical sections
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Case.objects.select_related(
+            "student", "repository"
+        ).prefetch_related(
+            "clinical_history",
+            "physical_examination",
+            "investigations_detail",
+            "diagnosis_management",
+            "learning_outcomes",
+            "medical_attachments",
+            "permissions",
+        )
+
+    def get_serializer_class(self):
+        if (
+            self.request.method == "PUT"
+            and len(self.request.data) == 1
+            and "case_status" in self.request.data
+        ):
+            return CaseStatusUpdateSerializer
+        if self.request.method in ["PUT", "PATCH"]:
+            return CaseCreateUpdateSerializer
+        return CaseDetailSerializer
+
+    def get_object(self):
+        case = super().get_object()
+        user = self.request.user
+
+        # Check permissions
+        if case.student == user:
+            return case  # Owner has full access
+
+        # Check if user has permission to view this case (with expiry check)
+        if user.is_instructor and case.repository.is_public:  # type: ignore[attr-defined]
+            return case
+
+        # Check active permissions with expiry
+        active_permission = (
+            CasePermission.objects.filter(case=case, user=user, is_active=True)
+            .filter(Q(expires_at__isnull=True) | Q(expires_at__gte=timezone.now()))
+            .exists()
+        )
+
+        if active_permission:
+            return case
+
+        # If no permission, check if it's a public repository or public case
+        if case.repository.is_public or case.is_public:
+            return case
+
+        # No access
+        from django.core.exceptions import PermissionDenied
+
+        raise PermissionDenied("You don't have permission to access this case")
+
+    def perform_update(self, serializer):
+        """Only owner can update their own draft cases"""
+        case = self.get_object()
+        user = self.request.user
+
+        # Template feature removed - standard update handling
+        # Check if this is a status-only update (for grading)
+        is_status_only_update = (
+            len(self.request.data) == 1 and "case_status" in self.request.data
+        )
+
+        # Instructors can update status only (for grading)
+        if is_status_only_update and getattr(user, "is_instructor", False):
+            serializer.save()
+            return
+
+        # Only the case owner can update
+        if case.student != user:
+            raise PermissionDenied("Only the case owner can update this case")
+
+        # Only drafts can be updated
+        if case.case_status != "draft":
+            raise PermissionDenied("Only draft cases can be updated")
+
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        """Only owner can delete their own cases"""
+        user = self.request.user
+
+        # Only the case owner or instructors can delete
+        if instance.student != user and not user.is_instructor:  # type: ignore[attr-defined]
+            raise PermissionDenied(
+                "Only the case owner or instructors can delete this case"
+            )
+
+        # Template feature removed - standard deletion
+        instance.delete()
+

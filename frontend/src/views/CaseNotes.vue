@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 ">
     <!-- Student View: Edit case and submit -->
-    <CreateCase v-if="isStudent" :caseId="id" @navigate="handleNavigate"  />
+    <CreateCase v-if="isStudent" :caseId="id" @navigate="handleNavigate" />
 
     <!-- Instructor View: Grade the case -->
     <InstructorGrading v-else-if="isInstructor" :caseId="id" @navigate="handleNavigate" />
@@ -41,7 +41,7 @@ const isStudent = computed(() => authStore.user?.role === 'student')
 const isInstructor = computed(() => authStore.user?.role === 'instructor')
 
 // Component-level guard (students + instructors)
-requireRoles(['student','instructor'])
+requireRoles(['student', 'instructor'])
 
 const handleNavigate = (destination: 'dashboard' | string) => {
   if (destination === 'dashboard') {

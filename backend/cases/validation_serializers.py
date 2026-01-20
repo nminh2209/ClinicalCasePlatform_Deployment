@@ -42,9 +42,6 @@ class CaseValidationRuleSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_by", "created_at", "updated_at"]
 
-    def get_template_names(self, obj):
-        return [t.name for t in obj.applies_to_templates.all()]
-
 
 class CaseValidationResultSerializer(serializers.ModelSerializer):
     """Serializer for validation results"""

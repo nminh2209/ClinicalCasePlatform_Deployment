@@ -24,7 +24,6 @@ class CaseValidationRuleAdmin(admin.ModelAdmin):
     ]
     list_filter = ["rule_type", "severity", "is_active", "created_at"]
     search_fields = ["name", "target_field", "error_message_vi"]
-    filter_horizontal = ["applies_to_templates"]
     readonly_fields = ["created_by", "created_at", "updated_at"]
 
     fieldsets = (
@@ -35,7 +34,7 @@ class CaseValidationRuleAdmin(admin.ModelAdmin):
         ("Cấu hình quy tắc", {"fields": ("target_field", "rule_config")}),
         (
             "Phạm vi áp dụng",
-            {"fields": ("applies_to_templates", "applies_to_specialties")},
+            {"fields": ("applies_to_specialties",)},
         ),
         (
             "Thông báo lỗi",

@@ -49,6 +49,11 @@ export function useBackendTranslations() {
       }
     }
 
+    // Type check - if not a string, return as-is or extract name
+    if (typeof value !== 'string') {
+      return String(value);
+    }
+
     // Fallback: try to match by lowercase
     const lowerValue = value.toLowerCase();
     const specialtyMap = backendTranslationMap.specialty || {};

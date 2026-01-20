@@ -36,17 +36,17 @@
             <div class="flex justify-between">
               <span class="text-gray-600">{{ t('createCase.heartRate') }}:</span>
               <span class="font-medium">{{ localData.physical_examination?.vital_signs_hr || t('createCase.notRecorded')
-                }} (bpm)</span>
+              }} (bpm)</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">{{ t('createCase.bloodPressure') }}:</span>
               <span class="font-medium">{{ localData.physical_examination?.vital_signs_bp || t('createCase.notRecorded')
-                }} (mmHg)</span>
+              }} (mmHg)</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">{{ t('createCase.respiratoryRate') }}:</span>
               <span class="font-medium">{{ localData.physical_examination?.vital_signs_rr || t('createCase.notRecorded')
-                }} {{ t('createCase.respiratoryRateUnit') }} </span>
+              }} {{ t('createCase.respiratoryRateUnit') }} </span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">{{ t('createCase.oxygenSaturation') }}:</span>

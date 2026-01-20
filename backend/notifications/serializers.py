@@ -1,3 +1,5 @@
+# notifications/serializers.py
+
 from rest_framework import serializers
 from .models import Notification
 
@@ -23,6 +25,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             "related_comment",
             "related_grade",
             "related_feedback",
+            "related_inquiry",
         ]
         read_only_fields = [
             "id",

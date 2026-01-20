@@ -1,20 +1,23 @@
+# cases/feed_views.py
+
 """
 Public Feed Views - Social Media Style Case Sharing
 Using existing Case and Comment models (no new tables)
 """
 
+from typing import TYPE_CHECKING
+
+from comments.models import Comment
+from django.db.models import Count, Prefetch, Q
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from django.db.models import Count, Q, Prefetch
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
 
 from .models import Case
-from comments.models import Comment
-from .serializers import PublicFeedSerializer, CaseDetailSerializer
-from typing import TYPE_CHECKING
+from .serializers import CaseDetailSerializer, PublicFeedSerializer
 
 if TYPE_CHECKING:
     from accounts.models import User

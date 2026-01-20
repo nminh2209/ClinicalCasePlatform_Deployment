@@ -6,11 +6,16 @@
       <div>
         <div class="flex items-center gap-3 mb-2">
           <h1 class="text-gray-800 text-2xl font-bold">Trang Sinh viên</h1>
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          <span
+            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
             <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
-              <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path>
+              <path
+                d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z">
+              </path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222">
+              </path>
             </svg>
             {{ studentProfile.department }}
           </span>
@@ -24,10 +29,8 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- Case Summary Card (New) -->
-      <div 
-        @click="router.push('/case-summary')"
-        class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer transform hover:scale-105"
-      >
+      <div @click="router.push('/case-summary')"
+        class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer transform hover:scale-105">
         <div class="p-6">
           <div class="flex items-start justify-between">
             <div class="flex-1">
@@ -37,7 +40,9 @@
             </div>
             <div class="p-3 bg-indigo-100 rounded-lg">
               <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
               </svg>
             </div>
           </div>
@@ -55,7 +60,9 @@
             </div>
             <div class="p-3 bg-blue-50 rounded-lg">
               <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                </path>
               </svg>
             </div>
           </div>
@@ -73,7 +80,9 @@
             </div>
             <div class="p-3 bg-green-50 rounded-lg">
               <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
               </svg>
             </div>
           </div>
@@ -91,7 +100,9 @@
             </div>
             <div class="p-3 bg-yellow-50 rounded-lg">
               <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                </path>
               </svg>
             </div>
           </div>
@@ -109,7 +120,9 @@
             </div>
             <div class="p-3 bg-purple-50 rounded-lg">
               <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z">
+                </path>
               </svg>
             </div>
           </div>
@@ -123,28 +136,23 @@
       <div class="border-b border-gray-200">
         <div class="flex justify-center p-2">
           <div class="inline-flex gap-2 p-1 bg-gray-100 rounded-lg">
-            <button 
-              @click="activeTab = 'cases'"
-              :class="[
-                'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                activeTab === 'cases' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              ]"
-            >
+            <button @click="activeTab = 'cases'" :class="[
+              'px-4 py-2 text-sm font-medium rounded-md transition-colors',
+              activeTab === 'cases'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            ]">
               Bệnh án của tôi
             </button>
-            <button 
-              @click="activeTab = 'progress'"
-              :class="[
-                'px-4 py-2 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-2',
-                activeTab === 'progress' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              ]"
-            >
+            <button @click="activeTab = 'progress'" :class="[
+              'px-4 py-2 text-sm font-medium rounded-md transition-colors inline-flex items-center gap-2',
+              activeTab === 'progress'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            ]">
               <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
               </svg>
               Phân tích tiến độ
             </button>
@@ -171,7 +179,9 @@
         <!-- Empty State -->
         <div v-else-if="recentCases.length === 0" class="text-center py-12">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+            </path>
           </svg>
           <h3 class="mt-2 text-sm font-medium text-gray-900">Chưa có bệnh án</h3>
           <p class="mt-1 text-sm text-gray-500">Bạn chưa được phân công bệnh án nào.</p>
@@ -179,30 +189,25 @@
 
         <!-- Cases List -->
         <div v-else class="space-y-3">
-          <div 
-            v-for="case_ in recentCases" 
-            :key="case_.id" 
-            @click="router.push(`/cases/${case_.id}`)"
-            class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all hover:shadow-sm"
-          >
+          <div v-for="case_ in recentCases" :key="case_.id" @click="router.push(`/cases/${case_.id}`)"
+            class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-all hover:shadow-sm">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div class="flex-1">
                 <div class="flex items-start gap-3 mb-2">
                   <div class="flex-1">
                     <h3 class="font-semibold text-gray-900 mb-2">{{ case_.title }}</h3>
                     <div class="flex flex-wrap items-center gap-2">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700">
                         {{ case_.specialty }}
                       </span>
-                      <span 
-                        :class="[
-                          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                          case_.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                      <span :class="[
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                        case_.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
                           case_.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
-                          case_.status === 'graded' ? 'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'
-                        ]"
-                      >
+                            case_.status === 'graded' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'
+                      ]">
                         {{ getStatusLabel(case_.status) }}
                       </span>
                     </div>
@@ -214,13 +219,14 @@
                 <div v-if="case_.grade !== null && case_.grade !== undefined" class="text-2xl font-bold text-green-600">
                   {{ case_.grade }}%
                 </div>
-                <div v-else-if="case_.status === 'submitted' || case_.case_status === 'submitted'" class="text-sm font-medium text-blue-600">
+                <div v-else-if="case_.status === 'submitted' || case_.case_status === 'submitted'"
+                  class="text-sm font-medium text-blue-600">
                   Đang chấm
                 </div>
                 <div v-else class="text-2xl font-bold text-gray-400">
                   --/--
                 </div>
-                
+
                 <!-- Date display based on status -->
                 <div class="text-xs text-gray-500 mt-1 space-y-0.5">
                   <!-- For graded/submitted cases: show created (due) and submitted -->
@@ -228,7 +234,7 @@
                     <div v-if="case_.createdAt">Tạo: {{ formatDate(case_.createdAt) }}</div>
                     <div v-if="case_.submittedAt">Nộp: {{ formatDate(case_.submittedAt) }}</div>
                   </div>
-                  
+
                   <!-- For draft/in-progress cases: show created (due) and updated -->
                   <div v-else>
                     <div v-if="case_.createdAt">Tạo: {{ formatDate(case_.createdAt) }}</div>
@@ -288,14 +294,14 @@ const studentProfile = computed(() => ({
 // Computed stats from real data
 const stats = computed(() => {
   const assignedCases = casesData.value.length;
-  
+
   // Count cases that are submitted, approved, or graded
-  const completedNotes = casesData.value.filter((c: any) => 
+  const completedNotes = casesData.value.filter((c: any) =>
     c.case_status === 'submitted' || c.case_status === 'approved' || c.case_status === 'reviewed'
   ).length;
-  
+
   const draftCases = casesData.value.filter((c: any) => c.case_status === 'draft').length;
-  
+
   // Calculate average grade from grades data
   const gradedCases = gradesData.value.filter((g: any) => g.is_final && g.score !== null);
   const averageGrade = gradedCases.length > 0
@@ -314,7 +320,7 @@ const stats = computed(() => {
 const recentCases = computed(() => {
   return casesData.value.map((case_: any) => {
     const grade = gradesData.value.find((g: any) => g.case === case_.id);
-    
+
     return {
       id: case_.id.toString(),
       title: case_.title || `${case_.patient_name || 'Unnamed Patient'} - ${case_.specialty || 'General'}`,
@@ -340,11 +346,11 @@ async function loadDashboardData() {
       casesService.getCases(),
       gradesService.getStudentGrades().catch(() => []), // Gracefully handle if grades API fails
     ]);
-    
+
     // Handle both array and paginated response formats
     casesData.value = Array.isArray(casesResponse) ? casesResponse : (casesResponse?.results || []);
     gradesData.value = Array.isArray(gradesResponse) ? gradesResponse : (gradesResponse?.results || []);
-    
+
     // Debug logging
     // console.log('=== STUDENT DASHBOARD DEBUG ===');
     // console.log('Cases loaded:', casesData.value.length);

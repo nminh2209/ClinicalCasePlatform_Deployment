@@ -1,4 +1,13 @@
 import api from "./api";
+import type {
+  InstructorCase,
+  CreateInstructorCaseRequest,
+  CloneCaseRequest,
+  CloneCaseResponse,
+  InstructorCaseAuditLog,
+  ListCasesParams,
+  CaseListResponse,
+} from "../types/instructor";
 
 export const casesService = {
   async getCases(params = {}) {
@@ -10,13 +19,19 @@ export const casesService = {
     const response = await api.get(`/cases/${id}/`);
     const caseData = response.data;
 
-    // Fetch medical attachments for this case
-    try {
-      const attachmentsResponse = await api.get(`/cases/${id}/attachments/`);
-      caseData.medical_attachments = attachmentsResponse.data;
-    } catch (error) {
-      console.warn("Failed to fetch medical attachments:", error);
-      caseData.medical_attachments = [];
+    // Check if medical_attachments already included in response
+    if (!caseData.medical_attachments) {
+      // Fetch medical attachments for this case as fallback
+      try {
+        const attachmentsResponse = await api.get(`/cases/${id}/attachments/`);
+        caseData.medical_attachments = attachmentsResponse.data;
+        console.log('📎 Fetched attachments from separate endpoint:', caseData.medical_attachments);
+      } catch (error) {
+        console.warn("Failed to fetch medical attachments:", error);
+        caseData.medical_attachments = [];
+      }
+    } else {
+      console.log('📎 Attachments already in case response:', caseData.medical_attachments);
     }
 
     return caseData;
@@ -137,5 +152,50 @@ export const casesService = {
       responseType: options.format === 'csv' ? 'blob' : 'json'
     });
     return response;
+  },
+
+  // ========================================================================
+  // INSTRUCTOR CASE FEATURES
+  // ========================================================================
+
+  /**
+   * Create a new instructor template case (auto-approved, public by default)
+   * Accessible only by instructors via IsInstructorPermission
+   */
+  async createInstructorCase(caseData: CreateInstructorCaseRequest): Promise<InstructorCase> {
+    const response = await api.post("/cases/instructor/", caseData);
+    return response.data;
+  },
+
+  /**
+   * Clone a case (for any public approved case)
+   * Creates a deep copy with medical sections and attachments
+   * Sets cloned_from to original case ID
+   */
+  async cloneCase(caseId: string | number, cloneData?: CloneCaseRequest): Promise<CloneCaseResponse> {
+    const response = await api.post(`/cases/${caseId}/clone/`, cloneData || {});
+    return response.data;
+  },
+
+  /**
+   * Get instructor case audit logs
+   * Shows who changed the template, what changed, and when
+   */
+  async getInstructorCaseAuditLogs(caseId?: string | number): Promise<InstructorCaseAuditLog[]> {
+    if (caseId) {
+      const response = await api.get(`/cases/${caseId}/audit/`);
+      return response.data;
+    }
+    // Get all audit logs for all instructor cases
+    const response = await api.get("/instructor-cases/audit/");
+    return response.data;
+  },
+
+  /**
+   * Get a specific audit log entry
+   */
+  async getAuditLogDetail(auditId: string | number): Promise<InstructorCaseAuditLog> {
+    const response = await api.get(`/instructor-cases/audit/${auditId}/`);
+    return response.data;
   },
 };

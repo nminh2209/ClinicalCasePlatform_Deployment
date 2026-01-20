@@ -1,15 +1,18 @@
-from django.db import models
+# cases/models.py
+
 from django.conf import settings
+from django.db import models
+
 from .medical_models import (
     # Department,
     ClinicalHistory,
-    PhysicalExamination,
-    Investigations,
     DiagnosisManagement,
+    Investigations,
     LearningOutcomes,
+    PhysicalExamination,
     StudentNotes,
 )
-
+from .specialty_models import Specialty, CasePriorityLevel, CaseComplexityLevel
 
 class Case(models.Model):
     """
@@ -29,15 +32,10 @@ class Case(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="created_cases",
-        limit_choices_to={"role": "student"},
+        # Removed limit_choices_to to allow instructors to own cases via the new endpoint
+        # limit_choices_to={"role": "student"},
     )
-    template = models.ForeignKey(
-        "templates.CaseTemplate",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="cases",
-    )
+
     repository = models.ForeignKey(
         "repositories.Repository", on_delete=models.CASCADE, related_name="cases"
     )
@@ -62,31 +60,6 @@ class Case(models.Model):
     )
     admission_date = models.DateField(null=True, blank=True, help_text="Ngày nhập viện")
     discharge_date = models.DateField(null=True, blank=True, help_text="Ngày xuất viện")
-
-    # # Legacy fields (kept for backward compatibility)
-    # history = models.TextField(
-    #     blank=True,
-    #     help_text="Tiền sử bệnh nhân (sử dụng clinical_history để chi tiết hơn)",
-    # )
-    # examination = models.TextField(
-    #     blank=True,
-    #     help_text="Khám lâm sàng (sử dụng physical_examination để chi tiết hơn)",
-    # )
-    # diagnosis = models.TextField(
-    #     blank=True, help_text="Chẩn đoán (sử dụng diagnosis_management để chi tiết hơn)"
-    # )
-    # treatment = models.TextField(
-    #     blank=True, help_text="Điều trị (sử dụng diagnosis_management để chi tiết hơn)"
-    # )
-    # investigations = models.TextField(
-    #     blank=True,
-    #     help_text="Xét nghiệm (sử dụng investigations_detail để chi tiết hơn)",
-    # )
-    # follow_up = models.TextField(blank=True, help_text="Theo dõi")
-    # learning_objectives = models.TextField(
-    #     blank=True,
-    #     help_text="Mục tiêu học tập (sử dụng learning_outcomes để chi tiết hơn)",
-    # )
 
     # Case metadata
     case_status = models.CharField(
@@ -140,9 +113,6 @@ class Case(models.Model):
     )
     follow_up_date = models.DateField(null=True, blank=True, help_text="Ngày theo dõi")
     is_public = models.BooleanField(default=False, help_text="Ca bệnh công khai")
-    is_template_based = models.BooleanField(
-        default=False, help_text="Dựa trên template"
-    )
     is_archived = models.BooleanField(default=False, help_text="Đã lưu trữ")
     view_count = models.PositiveIntegerField(default=0, help_text="Số lượt xem")
     average_rating = models.FloatField(
@@ -183,6 +153,25 @@ class Case(models.Model):
     )
     reaction_count = models.PositiveIntegerField(
         default=0, help_text="Tổng số reactions (likes, loves, etc.)"
+    )
+    cloned_from_title = models.CharField(
+        max_length=300,
+        null=True,
+        blank=True,
+        help_text="Tiêu đề ca gốc nếu ca này được sao chép từ một ca khác của giảng viên",
+    )
+    cloned_from_instructor_name = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True,
+        help_text="Tên giảng viên gốc nếu ca này được sao chép từ một ca khác của giảng viên",
+    )
+    clones = models.ManyToManyField(
+        "self",
+        symmetrical=False,
+        related_name="original_case",
+        blank=True,
+        help_text="Các ca được sao chép từ ca này",
     )
 
     # Timestamps
@@ -662,3 +651,54 @@ class PermissionAuditLog(models.Model):
             user_agent=user_agent,
             additional_data=additional_data or {},
         )
+
+
+class InstructorCaseAuditLog(models.Model):
+    """
+    Audit log specifically for instructor template case operations.
+    Tracks creation, modification, and deletion of official template cases.
+    """
+
+    class ActionChoices(models.TextChoices):
+        CREATED = "created", "Created"
+        MODIFIED = "modified", "Modified"
+        DELETED = "deleted", "Deleted"
+
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="instructor_audit_logs",
+        help_text="The case that was modified",
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="instructor_case_audits",
+        help_text="The instructor who performed the action",
+    )
+    action = models.CharField(
+        max_length=20,
+        choices=ActionChoices.choices,
+        help_text="Type of action performed",
+    )
+    changes = models.JSONField(
+        default=dict,
+        help_text="JSON object containing the changed fields and their values",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "cases_instructorcaseauditlog"
+        verbose_name = "Instructor Case Audit Log"
+        verbose_name_plural = "Instructor Case Audit Logs"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["case", "action"]),
+            models.Index(fields=["actor"]),
+            models.Index(fields=["created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.action} by {self.actor} on {self.case}"

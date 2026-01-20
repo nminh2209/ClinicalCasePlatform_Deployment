@@ -17,44 +17,44 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="space-y-2">
               <Label for="hemoglobin">{{ t('createCase.hemoglobin') }} {{ t('createCase.hemoglobinUnit') }}</Label>
-              <Input id="hemoglobin" type="number" step="0.1" v-model.number="localData.detailed_investigations.hemoglobin_level"
-                placeholder="14.0" />
+              <Input id="hemoglobin" type="number" step="0.1"
+                v-model.number="localData.detailed_investigations.hemoglobin_level" placeholder="14.0" />
             </div>
 
             <div class="space-y-2">
               <Label for="wbc">{{ t('createCase.whiteBloodCellCount') }} {{ t('createCase.wbcUnit') }}</Label>
-              <Input id="wbc" type="number" step="0.1" v-model.number="localData.detailed_investigations.white_cell_count"
-                placeholder="7.5" />
+              <Input id="wbc" type="number" step="0.1"
+                v-model.number="localData.detailed_investigations.white_cell_count" placeholder="7.5" />
             </div>
 
             <div class="space-y-2">
               <Label for="platelet">{{ t('createCase.plateletCount') }} {{ t('createCase.plateletUnit') }}</Label>
-              <Input id="platelet" type="number" step="1" v-model.number="localData.detailed_investigations.platelet_count"
-                placeholder="250" />
+              <Input id="platelet" type="number" step="1"
+                v-model.number="localData.detailed_investigations.platelet_count" placeholder="250" />
             </div>
 
             <div class="space-y-2">
               <Label for="sodium">{{ t('createCase.sodium') }} {{ t('createCase.sodiumUnit') }}</Label>
-              <Input id="sodium" type="number" step="0.1" v-model.number="localData.detailed_investigations.sodium_level"
-                placeholder="140" />
+              <Input id="sodium" type="number" step="0.1"
+                v-model.number="localData.detailed_investigations.sodium_level" placeholder="140" />
             </div>
 
             <div class="space-y-2">
               <Label for="potassium">{{ t('createCase.potassium') }} {{ t('createCase.potassiumUnit') }}</Label>
-              <Input id="potassium" type="number" step="0.1" v-model.number="localData.detailed_investigations.potassium_level"
-                placeholder="4.0" />
+              <Input id="potassium" type="number" step="0.1"
+                v-model.number="localData.detailed_investigations.potassium_level" placeholder="4.0" />
             </div>
 
             <div class="space-y-2">
               <Label for="creatinine">{{ t('createCase.creatinine') }} {{ t('createCase.creatinineUnit') }}</Label>
-              <Input id="creatinine" type="number" step="0.1" v-model.number="localData.detailed_investigations.creatinine_level"
-                placeholder="1.0" />
+              <Input id="creatinine" type="number" step="0.1"
+                v-model.number="localData.detailed_investigations.creatinine_level" placeholder="1.0" />
             </div>
 
             <div class="space-y-2">
               <Label for="glucose">{{ t('createCase.glucose') }} {{ t('createCase.glucoseUnit') }}</Label>
-              <Input id="glucose" type="number" step="1" v-model.number="localData.detailed_investigations.glucose_level"
-                placeholder="100" />
+              <Input id="glucose" type="number" step="1"
+                v-model.number="localData.detailed_investigations.glucose_level" placeholder="100" />
             </div>
           </div>
         </div>

@@ -16,15 +16,15 @@ export const useCasesStore = defineStore("cases", () => {
   });
 
   const draftCases = computed(() =>
-    cases.value.filter((c) => c.case_status === "draft")
+    cases.value.filter((c) => c.case_status === "draft"),
   );
 
   const submittedCases = computed(() =>
-    cases.value.filter((c) => c.case_status === "submitted")
+    cases.value.filter((c) => c.case_status === "submitted"),
   );
 
   const reviewedCases = computed(() =>
-    cases.value.filter((c) => c.case_status === "reviewed")
+    cases.value.filter((c) => c.case_status === "reviewed"),
   );
 
   async function fetchCases(filters = {}) {
@@ -35,19 +35,29 @@ export const useCasesStore = defineStore("cases", () => {
       if (response.results) {
         // Paginated response
         cases.value = response.results;
+        const pageSize = 12;
+        const currentPage = (filters as any).page || 1;
         pagination.value = {
           count: response.count,
           next: response.next,
           previous: response.previous,
-          current_page: Math.ceil(response.count / 20) || 1,
-          total_pages: Math.ceil(response.count / 20) || 1,
+          current_page: currentPage,
+          total_pages: Math.ceil(response.count / pageSize) || 1,
         };
-      } else {
+      } else if (Array.isArray(response)) {
         // Simple array response
         cases.value = response;
+        pagination.value = {
+          count: response.length,
+          next: null,
+          previous: null,
+          current_page: 1,
+          total_pages: 1,
+        };
       }
     } catch (err: any) {
       error.value = err.response?.data?.message || "Failed to fetch cases";
+      cases.value = []; // Ensure cases is always an array
       throw err;
     } finally {
       loading.value = false;

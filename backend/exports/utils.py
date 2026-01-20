@@ -183,7 +183,7 @@ class ExportUtils:
                         "oxygen_saturation": pe.vital_signs_spo2 or "N/A",
                     },
                     "general_appearance": pe.general_appearance or "Không có",
-                    "head_neck": getattr(pe, "head_neck", None) or "Không có",
+                    "head_neck": getattr(pe, "head_neck", "") or "Không có",
                     "cardiovascular": pe.cardiovascular or "Không có",
                     "respiratory": pe.respiratory or "Không có",
                     "abdominal": pe.abdominal or "Không có",
@@ -200,7 +200,7 @@ class ExportUtils:
                 data["investigations_detail"] = {
                     "laboratory_results": inv.laboratory_results or "Không có",
                     "imaging_studies": inv.imaging_studies or "Không có",
-                    "other_tests": inv.other_tests or "Không có",
+                    "other_tests": getattr(inv, "other_tests", None) or "Không có",
                 }
                 # For backward compatibility
                 data["investigations"] = (
@@ -232,9 +232,9 @@ class ExportUtils:
             if hasattr(case, "learning_outcomes"):
                 lo = case.learning_outcomes  # type: ignore[attr-defined]
                 data["learning_outcomes"] = {
-                    "learning_objectives": lo.learning_objectives or "Không có",
-                    "key_concepts": lo.key_concepts or "Không có",
-                    "clinical_reasoning": lo.clinical_reasoning_points or "Không có",
+                    "learning_objectives": getattr(lo, "learning_objectives", "") or "Không có",
+                    "key_concepts": getattr(lo, "key_concepts", "") or "Không có",
+                    "clinical_reasoning": getattr(lo, "clinical_pearls", "") or "Không có",  # Fixed: was clinical_reasoning_points
                 }
                 # For backward compatibility
                 data["learning_objectives"] = (

@@ -10,52 +10,56 @@
           <!-- Temperature -->
           <div class="space-y-2">
             <Label for="temperature">{{ t('createCase.temperature') }} {{ t('createCase.temperatureUnit') }}</Label>
-            <Input id="temperature" type="number" step="0.1" v-model.number="localData.physical_examination.vital_signs_temp"
-              placeholder="37.0" min="30" max="45" />
+            <Input id="temperature" type="number" step="0.1"
+              v-model.number="localData.physical_examination.vital_signs_temp" placeholder="37.0" min="30" max="45" />
           </div>
 
           <!-- Heart Rate -->
           <div class="space-y-2">
             <Label for="heartRate">{{ t('createCase.heartRate') }} {{ t('createCase.heartRateUnit') }}</Label>
-            <Input id="heartRate" type="number" v-model.number="localData.physical_examination.vital_signs_hr" placeholder="72" min="30"
-              max="200" />
+            <Input id="heartRate" type="number" v-model.number="localData.physical_examination.vital_signs_hr"
+              placeholder="72" min="30" max="200" />
           </div>
 
           <!-- Blood Pressure -->
           <div class="space-y-2">
-            <Label for="bloodPressure">{{ t('createCase.bloodPressure') }} {{ t('createCase.bloodPressureUnit') }}</Label>
+            <Label for="bloodPressure">{{ t('createCase.bloodPressure') }} {{ t('createCase.bloodPressureUnit')
+              }}</Label>
             <div class="flex space-x-2">
-              <Input id="bloodPressure" type="text" v-model="localData.physical_examination.vital_signs_bp" placeholder="120/80" />
+              <Input id="bloodPressure" type="text" v-model="localData.physical_examination.vital_signs_bp"
+                placeholder="120/80" />
             </div>
             <p class="text-xs text-gray-500">{{ t('createCase.bloodPressureFormat') }}</p>
           </div>
 
           <!-- Respiratory Rate -->
           <div class="space-y-2">
-            <Label for="respiratoryRate">{{ t('createCase.respiratoryRate') }} {{ t('createCase.respiratoryRateUnit') }}</Label>
-            <Input id="respiratoryRate" type="number" v-model.number="localData.physical_examination.vital_signs_rr" placeholder="16"
-              min="8" max="60" />
+            <Label for="respiratoryRate">{{ t('createCase.respiratoryRate') }} {{ t('createCase.respiratoryRateUnit')
+              }}</Label>
+            <Input id="respiratoryRate" type="number" v-model.number="localData.physical_examination.vital_signs_rr"
+              placeholder="16" min="8" max="60" />
           </div>
 
           <!-- Oxygen Saturation -->
           <div class="space-y-2">
-            <Label for="oxygenSaturation">{{ t('createCase.oxygenSaturation') }} {{ t('createCase.oxygenSaturationUnit') }}</Label>
-            <Input id="oxygenSaturation" type="number" v-model.number="localData.physical_examination.vital_signs_spo2" placeholder="98"
-              min="70" max="100" />
+            <Label for="oxygenSaturation">{{ t('createCase.oxygenSaturation') }} {{ t('createCase.oxygenSaturationUnit')
+              }}</Label>
+            <Input id="oxygenSaturation" type="number" v-model.number="localData.physical_examination.vital_signs_spo2"
+              placeholder="98" min="70" max="100" />
           </div>
 
           <!-- Weight -->
           <div class="space-y-2">
             <Label for="weight">{{ t('createCase.weight') }} {{ t('createCase.weightUnit') }}</Label>
-            <Input id="weight" type="number" step="0.1" v-model.number="localData.physical_examination.weight_kg" placeholder="70" min="10"
-              max="300" />
+            <Input id="weight" type="number" step="0.1" v-model.number="localData.physical_examination.weight_kg"
+              placeholder="70" min="10" max="300" />
           </div>
 
           <!-- Height -->
           <div class="space-y-2">
             <Label for="height">{{ t('createCase.height') }} {{ t('createCase.heightUnit') }}</Label>
-            <Input id="height" type="number" step="0.1" v-model.number="localData.physical_examination.height_cm" placeholder="170" min="50"
-              max="250" />
+            <Input id="height" type="number" step="0.1" v-model.number="localData.physical_examination.height_cm"
+              placeholder="170" min="50" max="250" />
           </div>
 
           <!-- BMI -->
@@ -126,20 +130,20 @@ const calculatedBMI = computed(() => {
     const heightInMeters = height / 100
     const bmi = weight / (heightInMeters * heightInMeters)
     const roundedBMI = Math.round(bmi * 10) / 10
-    
+
     // Save BMI to the data model
     if (localData.value.physical_examination) {
       localData.value.physical_examination.bmi = roundedBMI
     }
-    
+
     return roundedBMI
   }
-  
+
   // Clear BMI if invalid
   if (localData.value.physical_examination) {
     localData.value.physical_examination.bmi = null
   }
-  
+
   return null
 })
 

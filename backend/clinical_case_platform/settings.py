@@ -18,6 +18,22 @@ SECRET_KEY = config(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=True, cast=bool)
 
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
     default="localhost,127.0.0.1,0.0.0.0",
@@ -45,13 +61,14 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "accounts",
     "cases",
-    "templates",
     "repositories",
     "comments",
     "feedback",
     "exports",
     "grades",
+    "inquiries",
     "notifications.apps.NotificationsConfig",
+    "ai.apps.AiConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -73,28 +90,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "clinical_case_platform.urls"
 
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        },
-    },
-]
-
 WSGI_APPLICATION = "clinical_case_platform.wsgi.application"
+ASGI_APPLICATION = "clinical_case_platform.asgi.application"
 
 # Database - Enhanced with connection pooling and optimization
 # Use DATABASE_URL if available (Render.com), otherwise use individual env vars (local dev)
 try:
     import dj_database_url
+
     DATABASE_URL = config("DATABASE_URL", default=None)
 except ImportError:
     DATABASE_URL = None
@@ -102,8 +105,8 @@ except ImportError:
 if DATABASE_URL:
     # Production: Use DATABASE_URL from Render.com
     DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL,
+        "default": dj_database_url.parse(  # type: ignore[attr-defined]
+            DATABASE_URL,  # type: ignore[attr-defined]
             conn_max_age=600,
             conn_health_checks=True,
         )
@@ -116,7 +119,9 @@ else:
             "NAME": config("DB_NAME", default="clinical_case_platform_test"),
             "USER": config("DB_USER", default="postgres"),
             "PASSWORD": config("DB_PASSWORD", default="postgres"),
-            "HOST": config("DB_HOST", default="localhost"),
+            "HOST": config(
+                "DB_HOST", default="127.0.0.1"
+            ),  # Use IP instead of localhost to avoid DNS lookup
             "PORT": config("DB_PORT", default="5432"),
             "CONN_MAX_AGE": 600,  # 10 minutes persistent connections
             "OPTIONS": {
@@ -178,19 +183,20 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 20,
+    "PAGE_SIZE": 12,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
-    ],
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",  # Anonymous users
-        "user": "1000/hour",  # Authenticated users
-        "login": "5/minute",  # Login endpoint
-        "exports": "10/hour",  # Export generation
-        "uploads": "30/hour",  # File uploads
-    },
+    # Disable throttling for development - uncomment for production
+    # "DEFAULT_THROTTLE_CLASSES": [
+    #     "rest_framework.throttling.AnonRateThrottle",
+    #     "rest_framework.throttling.UserRateThrottle",
+    # ],
+    # "DEFAULT_THROTTLE_RATES": {
+    #     "anon": "1000/hour",  # Anonymous users (increased for dev)
+    #     "user": "10000/hour",  # Authenticated users (increased for dev)
+    #     "login": "50/minute",  # Login endpoint (increased for dev)
+    #     "exports": "100/hour",  # Export generation (increased for dev)
+    #     "uploads": "300/hour",  # File uploads (increased for dev)
+    # },
 }
 
 # JWT Settings
@@ -225,22 +231,24 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-    'cache-control',
-    'pragma',
-    'expires',
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "cache-control",
+    "pragma",
+    "expires",
 ]
 
 # Redis settings
-REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+REDIS_URL = config(
+    "REDIS_URL", default="redis://127.0.0.1:6379/0"
+)  # Use IP to avoid DNS lookup
 
 # Caching - Redis configuration for production-ready caching
 CACHES = {
@@ -269,6 +277,18 @@ CACHE_TTL = {
     "NOTIFICATION_COUNT": 60,  # 1 minute
 }
 
+# Django Channels configuration
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [REDIS_URL],
+            "capacity": 1500,  # Maximum number of messages to store
+            "expiry": 10,  # Message expiry in seconds
+        },
+    },
+}
+
 # Email settings
 EMAIL_BACKEND = config(
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
@@ -278,6 +298,10 @@ EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@clinicalcase.edu")
+
+# Frontend URL (for password reset links)
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 
 # Celery Configuration
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://localhost:6379/0")
@@ -344,6 +368,7 @@ LOGGING = {
             "formatter": "verbose",
             "maxBytes": 1024 * 1024 * 10,  # 10 MB
             "backupCount": 5,
+            "encoding": "utf-8",  # Support Vietnamese characters
         },
         "error_file": {
             "level": "ERROR",
@@ -352,6 +377,7 @@ LOGGING = {
             "formatter": "verbose",
             "maxBytes": 1024 * 1024 * 10,  # 10 MB
             "backupCount": 5,
+            "encoding": "utf-8",  # Support Vietnamese characters
         },
         "performance_file": {
             "level": "INFO",
@@ -360,11 +386,13 @@ LOGGING = {
             "formatter": "verbose",
             "maxBytes": 1024 * 1024 * 10,  # 10 MB
             "backupCount": 3,
+            "encoding": "utf-8",  # Support Vietnamese characters
         },
         "console": {
             "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "simple",
+            # Don't set encoding for console - let it handle errors gracefully
         },
     },
     "loggers": {
@@ -400,3 +428,7 @@ LOGGING = {
     },
 }
 
+# OCR Settings
+# Number of pages to process per document (default: 1)
+# Increased to 10 to support full medical record processing
+OCR_PAGE_LIMIT = 10

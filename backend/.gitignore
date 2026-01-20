@@ -20,3 +20,9 @@ db.sqlite3
 # Logs
 logs/*.log
 *.log
+
+# JMeter test results and reports
+jmeter/results.jtl
+jmeter/report/
+jmeter/*.log
+jmeter/*.jtl

@@ -1,5 +1,8 @@
+# comments/urls.py
+
 from django.urls import path
-from .views import CommentListCreateView, CommentDetailView
+
+from .views import CommentDetailView, CommentListCreateView
 
 urlpatterns = [
     # Comment CRUD

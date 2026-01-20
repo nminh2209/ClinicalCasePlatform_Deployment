@@ -15,6 +15,14 @@
             </svg>
             Tạo hồ sơ mới
           </router-link>
+          <router-link v-if="authStore.user?.role === 'instructor'" to="/cases/create" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="16" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            Tạo hồ sơ mẫu
+          </router-link>
         </div>
       </div>
     </div>
@@ -33,16 +41,11 @@
         </div>
 
         <div class="filter-options">
-          <select v-model="specialtyFilter" @change="applyFilters" class="filter-select">
-            <option value="">Tất cả chuyên khoa</option>
-            <option value="Tim mạch">Tim mạch</option>
-            <option value="Nội khoa">Nội khoa</option>
-            <option value="Phẫu thuật">Phẫu thuật</option>
-            <option value="Hô hấp">Hô hấp</option>
-            <option value="Tiêu hóa">Tiêu hóa</option>
-            <option value="Thần kinh">Thần kinh</option>
-            <option value="Sản phụ khoa">Sản phụ khoa</option>
-            <option value="Nhi khoa">Nhi khoa</option>
+          <select v-model="specialtyFilter" @change="applyFilters" class="filter-select" :disabled="choicesLoading">
+            <option value="">{{ choicesLoading ? 'Đang tải...' : 'Tất cả chuyên khoa' }}</option>
+            <option v-for="s in specialties" :key="s.id" :value="s.name">
+              {{ s.name }}
+            </option>
           </select>
 
           <select v-model="dateSort" class="filter-select">
@@ -53,9 +56,24 @@
       </div>
     </div>
 
+    <!-- Collection Category Tabs (Students only) -->
+    <div v-if="isStudent" class="collection-tabs">
+      <button class="collection-tab" :class="{ active: collectionFilter === 'all' }" @click="collectionFilter = 'all'">
+        📁 Tất cả ({{ cases.length }})
+      </button>
+      <button class="collection-tab" :class="{ active: collectionFilter === 'my-cases' }"
+        @click="collectionFilter = 'my-cases'">
+        ✏️ Hồ sơ của tôi ({{ myCasesCount }})
+      </button>
+      <button class="collection-tab" :class="{ active: collectionFilter === 'saved' }"
+        @click="collectionFilter = 'saved'">
+        📥 Hồ sơ đã lưu ({{ savedCasesCount }})
+      </button>
+    </div>
+
     <!-- Stats Cards -->
     <div class="stats-grid">
-      <div class="stat-card" @click="activeFilter = 'all'" :class="{ 'stat-active': activeFilter === 'all' }">
+      <div class="stat-card" @click="setActiveFilter('all')" :class="{ 'stat-active': activeFilter === 'all' }">
         <div class="stat-icon stat-primary">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -63,12 +81,13 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ cases.length }}</div>
+          <div class="stat-value">{{ getStatusCount('all') }}</div>
           <div class="stat-label">Tổng số hồ sơ</div>
         </div>
       </div>
 
-      <div class="stat-card" v-if="isStudent" @click="activeFilter = 'draft'" :class="{ 'stat-active': activeFilter === 'draft' }">
+      <div class="stat-card" v-if="isStudent" @click="setActiveFilter('draft')"
+        :class="{ 'stat-active': activeFilter === 'draft' }">
         <div class="stat-icon stat-info">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
@@ -81,7 +100,8 @@
         </div>
       </div>
 
-      <div class="stat-card" @click="activeFilter = 'submitted'" :class="{ 'stat-active': activeFilter === 'submitted' }">
+      <div class="stat-card" @click="setActiveFilter('submitted')"
+        :class="{ 'stat-active': activeFilter === 'submitted' }">
         <div class="stat-icon stat-warning">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -90,13 +110,13 @@
         </div>
         <div class="stat-content">
           <div class="stat-value">{{ getStatusCount('submitted') }}</div>
-          <div class="stat-label" v-if="authStore.user?.role === 'instructor'">Chờ chấm / Đã chấm</div>
+          <div class="stat-label" v-if="authStore.user?.role === 'instructor'">Chưa Chấm</div>
           <div class="stat-label" v-else>Đã nộp</div>
         </div>
       </div>
     </div>
 
-    
+
 
     <main class="cases-main">
       <div class="container">
@@ -106,7 +126,7 @@
 
         <div class="error" v-if="error">
           <p>{{ error }}</p>
-          <button @click="loadCases" class="btn btn-primary">Thử lại</button>
+          <button @click="() => loadCases(1)" class="btn btn-primary">Thử lại</button>
         </div>
 
 
@@ -117,11 +137,31 @@
             <p v-if="cases.length > 0">Có {{ cases.length }} hồ sơ trong cơ sở dữ liệu nhưng không khớp với bộ lọc hiện
               tại.</p>
           </div>
-          <div v-for="case_ in filteredCases" :key="case_.id" class="case-card">
+          <div v-for="case_ in filteredCases" :key="case_.id" class="case-card"
+            :class="{ 'saved-case': case_.cloned_from }">
             <div class="case-header">
               <h3>{{ case_.title }}</h3>
-              <span :class="['status-badge', case_.case_status]">
-                {{ getStatusLabel(case_.case_status) }}
+              <div class="header-badges">
+                <!-- Instructor Template Badge -->
+                <span v-if="case_.created_by_role === 'instructor' && !case_.cloned_from" class="template-badge" title="Hồ sơ mẫu từ giảng viên">
+                  📚 Hồ sơ mẫu
+                </span>
+                <!-- Saved/Cloned Case Badge -->
+                <span v-if="case_.cloned_from" class="saved-badge" title="Hồ sơ đã lưu từ giảng viên">
+                  📥 Đã lưu
+                </span>
+                <span :class="['status-badge', case_.case_status]">
+                  {{ getStatusLabel(case_.case_status) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Original Author Info for Cloned Cases -->
+            <div v-if="case_.cloned_from" class="cloned-from-info">
+              <span class="cloned-label">📚 Nguồn gốc:</span>
+              <span class="cloned-title">{{ case_.cloned_from_title }}</span>
+              <span v-if="case_.cloned_from_instructor_name" class="cloned-author">
+                (bởi {{ case_.cloned_from_instructor_name }})
               </span>
             </div>
 
@@ -136,13 +176,14 @@
               <button @click="router.push(`/cases/${case_.id}`)" class="btn btn-primary btn-sm">
                 Xem chi tiết
               </button>
+              <!-- Save to Collection Button for Template Cases (not cloned yet, not owner) -->
+              <button v-if="case_.created_by_role === 'instructor' && !isOwner(case_) && !case_.cloned_from"
+                @click="openCloneDialog(case_)" class="btn btn-success btn-sm" title="Lưu vào bộ sưu tập của bạn">
+                📥 Lưu
+              </button>
               <!-- Case Sharing Button for Instructors -->
-              <button 
-                v-if="authStore.user?.role === 'instructor'" 
-                @click="openSharingPanel(case_)" 
-                class="btn btn-secondary btn-sm"
-                title="Chia sẻ ca bệnh"
-              >
+              <button v-if="authStore.user?.role === 'instructor'" @click="openSharingPanel(case_)"
+                class="btn btn-secondary btn-sm" title="Chia sẻ ca bệnh">
                 🔗 Chia sẻ
               </button>
               <div class="export-dropdown">
@@ -165,8 +206,44 @@
             ? 'Thử điều chỉnh từ khóa tìm kiếm'
             : 'Không có hồ sơ bệnh án nào phù hợp với bộ lọc hiện tại' }}</p>
         </div>
+
+        <!-- Pagination -->
+        <div v-if="!loading && !error && pagination.total_pages > 1" class="pagination">
+          <button class="pagination-btn" :disabled="currentPage === 1" @click="goToPage(1)" title="Trang đầu">
+            «
+          </button>
+          <button class="pagination-btn" :disabled="!pagination.previous" @click="goToPage(currentPage - 1)"
+            title="Trang trước">
+            ‹
+          </button>
+
+          <template v-for="page in paginationPages" :key="page">
+            <span v-if="page === '...'" class="pagination-ellipsis">...</span>
+            <button v-else class="pagination-btn" :class="{ active: currentPage === page }"
+              @click="goToPage(page as number)">
+              {{ page }}
+            </button>
+          </template>
+
+          <button class="pagination-btn" :disabled="!pagination.next" @click="goToPage(currentPage + 1)"
+            title="Trang sau">
+            ›
+          </button>
+          <button class="pagination-btn" :disabled="currentPage === pagination.total_pages"
+            @click="goToPage(pagination.total_pages)" title="Trang cuối">
+            »
+          </button>
+
+          <span class="pagination-info">
+            Trang {{ currentPage }} / {{ pagination.total_pages }} ({{ totalCases }} hồ sơ)
+          </span>
+        </div>
       </div>
     </main>
+
+    <!-- Clone Case Dialog -->
+    <CloneCaseDialog :isOpen="showCloneDialog" :caseId="Number(cloneCaseId)" @close="showCloneDialog = false"
+      @success="handleCloneSuccess" />
 
     <!-- Case Detail Modal -->
     <div v-if="selectedCase || loading" class="modal-overlay" @click="closeModal">
@@ -617,15 +694,18 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCasesStore } from '@/stores/cases'
+import { useChoices } from '@/composables/useChoices'
 import { requireRoles } from '@/composables/useAuthorize'
 // Use the TypeScript export service which exposes exportCase convenience method
 import { exportService } from '@/services/export.ts'
 import { casesService } from '@/services/cases'
 import CaseSharingPanel from '@/components/CaseSharingPanel.vue'
+import CloneCaseDialog from '@/components/CloneCaseDialog.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const casesStore = useCasesStore()
+const { specialties, loading: choicesLoading } = useChoices()
 
 const searchQuery = ref('')
 const activeFilter = ref('all')
@@ -635,9 +715,26 @@ const selectedCase = ref<Record<string, any> | null>(null)
 const showExportMenu = ref<number | string | null>(null)
 const exporting = ref(false)
 
+// Collection filter for students (all, my-cases, saved)
+const collectionFilter = ref<'all' | 'my-cases' | 'saved'>('all')
+
+// Clone dialog state
+const showCloneDialog = ref(false)
+const cloneCaseId = ref<number | undefined>(undefined)
+
 // Case sharing state
 const showSharingPanel = ref(false)
 const selectedCaseForSharing = ref<Record<string, any> | null>(null)
+
+// Pagination state
+const currentPage = ref(1)
+
+// Statistics state for accurate counts
+const statistics = ref<{
+  total_cases: number;
+  by_status: { case_status: string; count: number }[];
+} | null>(null)
+const statsLoading = ref(false)
 
 // Medical file upload state
 const showUploadForm = ref(false)
@@ -676,6 +773,29 @@ const statusTabs = computed(() => {
 const loading = computed(() => casesStore.loading)
 const error = computed(() => casesStore.error)
 const cases = computed(() => casesStore.cases)
+const pagination = computed(() => casesStore.pagination)
+const totalCases = computed(() => casesStore.pagination.count)
+
+// Computed properties for collection categorization
+const myCasesCount = computed(() => {
+  return cases.value.filter(c => !c.cloned_from && c.created_by_id === authStore.user?.id).length
+})
+
+const savedCasesCount = computed(() => {
+  return cases.value.filter(c => c.cloned_from).length
+})
+
+// Get cases based on current collection filter (for stats)
+const currentCollectionCases = computed(() => {
+  if (!isStudent.value) return cases.value
+
+  if (collectionFilter.value === 'my-cases') {
+    return cases.value.filter(c => !c.cloned_from && c.created_by_id === authStore.user?.id)
+  } else if (collectionFilter.value === 'saved') {
+    return cases.value.filter(c => c.cloned_from)
+  }
+  return cases.value
+})
 
 const filteredCases = computed(() => {
   let filtered = cases.value
@@ -685,15 +805,31 @@ const filteredCases = computed(() => {
     filtered = filtered.filter(c => c.case_status !== 'draft')
   }
 
+  // Filter by collection type (for students)
+  if (isStudent.value && collectionFilter.value !== 'all') {
+    if (collectionFilter.value === 'my-cases') {
+      // My own cases (not cloned)
+      filtered = filtered.filter(c => !c.cloned_from && c.created_by_id === authStore.user?.id)
+    } else if (collectionFilter.value === 'saved') {
+      // Saved/cloned cases from instructors
+      filtered = filtered.filter(c => c.cloned_from)
+    }
+  }
+
   // Filter by status
   if (activeFilter.value !== 'all') {
     if (activeFilter.value === 'submitted') {
-      // "submitted" now includes both pending and graded (reviewed/approved)
-      filtered = filtered.filter(c => 
-        c.case_status === 'submitted' || 
-        c.case_status === 'reviewed' || 
-        c.case_status === 'approved'
-      )
+      // For instructors: only show ungraded cases (submitted status only)
+      // For students: show all submitted cases including reviewed/approved
+      if (authStore.user?.role === 'instructor') {
+        filtered = filtered.filter(c => c.case_status === 'submitted')
+      } else {
+        filtered = filtered.filter(c =>
+          c.case_status === 'submitted' ||
+          c.case_status === 'reviewed' ||
+          c.case_status === 'approved'
+        )
+      }
     } else {
       filtered = filtered.filter(c => c.case_status === activeFilter.value)
     }
@@ -721,7 +857,7 @@ const filteredCases = computed(() => {
     filtered = [...filtered].sort((a, b) => {
       const dateA = new Date(a.created_at).getTime()
       const dateB = new Date(b.created_at).getTime()
-      
+
       if (dateSort.value === 'newest') {
         return dateB - dateA // Newest first
       } else if (dateSort.value === 'oldest') {
@@ -752,13 +888,104 @@ const canUploadFiles = computed(() => {
   )
 })
 
-async function loadCases() {
+async function loadStatistics() {
+  statsLoading.value = true
   try {
-    await casesStore.fetchCases()
+    const response = await casesService.getCaseSummaryStatistics()
+    // Parse the response format from backend
+    statistics.value = {
+      total_cases: response.summary?.total_cases || 0,
+      by_status: response.distributions?.by_status || []
+    }
+  } catch (err) {
+    console.error('Failed to load statistics:', err)
+  } finally {
+    statsLoading.value = false
+  }
+}
+
+async function loadCases(page: number = 1) {
+  try {
+    const params: any = { page }
+    
+    // Pass status filter to backend API for proper filtering
+    if (activeFilter.value !== 'all') {
+      if (activeFilter.value === 'submitted' && authStore.user?.role === 'instructor') {
+        // Instructors: filter only ungraded (submitted) cases
+        params.case_status = 'submitted'
+      } else if (activeFilter.value !== 'submitted') {
+        // Other filters pass directly
+        params.case_status = activeFilter.value
+      }
+      // For students with 'submitted' filter, don't pass to API - client-side handles it
+    }
+    
+    // Pass specialty filter if set
+    if (specialtyFilter.value) {
+      params.specialty = specialtyFilter.value
+    }
+    
+    // Pass search query if set
+    if (searchQuery.value) {
+      params.search = searchQuery.value
+    }
+    
+    await casesStore.fetchCases(params)
+    currentPage.value = page
+    // Load fresh statistics when cases are loaded
+    await loadStatistics()
   } catch (err) {
     console.error('Failed to load cases:', err)
   }
 }
+
+function goToPage(page: number) {
+  if (page >= 1 && page <= pagination.value.total_pages) {
+    loadCases(page)
+  }
+}
+
+// Handle stat card filter click - reload cases from API with new filter
+function setActiveFilter(filter: string) {
+  if (activeFilter.value !== filter) {
+    activeFilter.value = filter
+    loadCases(1) // Reload from page 1 with new filter
+  }
+}
+
+const paginationPages = computed(() => {
+  const total = pagination.value.total_pages
+  const current = currentPage.value
+  const pages: (number | string)[] = []
+
+  if (total <= 7) {
+    // Show all pages if 7 or fewer
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    // Always show first page
+    pages.push(1)
+
+    if (current > 3) {
+      pages.push('...')
+    }
+
+    // Show pages around current
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i)
+    }
+
+    if (current < total - 2) {
+      pages.push('...')
+    }
+
+    // Always show last page
+    pages.push(total)
+  }
+
+  return pages
+})
 
 function handleSearch() {
   // Debounce search if needed
@@ -804,7 +1031,7 @@ async function viewCase(case_: any) {
     // Fetch full case details instead of using list data
     await casesStore.fetchCase(case_.id)
     selectedCase.value = casesStore.currentCase
-    
+
     // DEBUG: Log the case data to see what's being returned
     console.log('=== CASE DATA DEBUG ===')
     console.log('Full case:', selectedCase.value)
@@ -831,6 +1058,27 @@ function openSharingPanel(case_: any) {
 function closeSharingPanel() {
   showSharingPanel.value = false
   selectedCaseForSharing.value = null
+}
+
+// Clone case functions
+function openCloneDialog(case_: any) {
+  cloneCaseId.value = case_.id
+  showCloneDialog.value = true
+}
+
+function handleCloneSuccess(clonedCase: any) {
+  // Refresh the case list
+  loadCases()
+  // Switch to "saved" collection view to show the newly saved case
+  collectionFilter.value = 'saved'
+  // Show success message
+  alert(`Đã lưu hồ sơ "${clonedCase.title}" vào bộ sưu tập của bạn thành công!`)
+  // Optionally navigate to the new case
+  // router.push(`/cases/${clonedCase.id}`)
+}
+
+function isOwner(case_: any): boolean {
+  return case_.student === authStore.user?.id || authStore.user?.role === 'instructor'
 }
 
 function closeModal() {
@@ -866,18 +1114,66 @@ function getStatusLabel(status: string) {
 }
 
 function getStatusCount(status: string) {
-  if (status === 'all') {
-    return cases.value.length
+  // For collection filters (my-cases, saved), use local filtering on current page
+  if (isStudent.value && collectionFilter.value !== 'all') {
+    const baseCases = currentCollectionCases.value
+    if (status === 'all') {
+      return baseCases.length
+    }
+    if (status === 'submitted') {
+      return baseCases.filter(case_ =>
+        case_.case_status === 'submitted' ||
+        case_.case_status === 'reviewed' ||
+        case_.case_status === 'approved'
+      ).length
+    }
+    return baseCases.filter(case_ => case_.case_status === status).length
   }
+
+  // For 'all' status, use statistics.total_cases (unfiltered count from backend)
+  // Fall back to pagination.count only when no filter is active
+  if (status === 'all') {
+    // If we have statistics, use the total_cases (always unfiltered)
+    if (statistics.value?.total_cases) {
+      return statistics.value.total_cases
+    }
+    // Fallback to pagination count (only accurate when no filter is active)
+    return pagination.value.count || cases.value.length
+  }
+
+  // Use statistics from backend for status-specific counts across all pages
+  if (statistics.value) {
+    if (status === 'submitted') {
+      const byStatus = statistics.value.by_status
+      // For instructors: only count ungraded cases (submitted status only)
+      // For students: count all submitted + reviewed + approved
+      if (authStore.user?.role === 'instructor') {
+        return byStatus.find(s => s.case_status === 'submitted')?.count || 0
+      } else {
+        const submittedCount = byStatus.find(s => s.case_status === 'submitted')?.count || 0
+        const reviewedCount = byStatus.find(s => s.case_status === 'reviewed')?.count || 0
+        const approvedCount = byStatus.find(s => s.case_status === 'approved')?.count || 0
+        return submittedCount + reviewedCount + approvedCount
+      }
+    }
+    const statusItem = statistics.value.by_status.find(s => s.case_status === status)
+    return statusItem?.count || 0
+  }
+  
+  // Fallback to local filtering if statistics not loaded
+  const baseCases = cases.value
   if (status === 'submitted') {
-    // Count both submitted and graded (reviewed/approved) cases
-    return cases.value.filter(case_ => 
-      case_.case_status === 'submitted' || 
-      case_.case_status === 'reviewed' || 
+    // For instructors: only count ungraded cases
+    if (authStore.user?.role === 'instructor') {
+      return baseCases.filter(case_ => case_.case_status === 'submitted').length
+    }
+    return baseCases.filter(case_ =>
+      case_.case_status === 'submitted' ||
+      case_.case_status === 'reviewed' ||
       case_.case_status === 'approved'
     ).length
   }
-  return cases.value.filter(case_ => case_.case_status === status).length
+  return baseCases.filter(case_ => case_.case_status === status).length
 }
 
 function getAttachmentIcon(attachment: any) {
@@ -1288,11 +1584,42 @@ onMounted(() => {
 }
 
 /* Cases Grid */
-.loading,
-.error {
+.loading {
   text-align: center;
   padding: 3rem;
   color: #6b7280;
+}
+
+.error {
+  text-align: center;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 500px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.75rem;
+  color: #991b1b;
+}
+
+.error p {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.error .btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.error .btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .cases-grid {
@@ -1457,6 +1784,61 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 3rem;
+  color: #6b7280;
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border-color: #3b82f6;
+}
+
+.pagination-ellipsis {
+  padding: 0 0.5rem;
+  color: #6b7280;
+}
+
+.pagination-info {
+  margin-left: 1rem;
+  font-size: 0.875rem;
   color: #6b7280;
 }
 
@@ -2145,5 +2527,150 @@ onMounted(() => {
 
 .sharing-modal .modal-content {
   padding: 0;
+}
+
+/* Header Badges */
+.header-badges {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Filter Checkbox */
+.filter-checkbox-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.filter-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.filter-checkbox-group label {
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Success Button */
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-1px);
+}
+
+/* Collection Category Tabs */
+.collection-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+  flex-wrap: wrap;
+}
+
+.collection-tab {
+  padding: 0.75rem 1.25rem;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collection-tab:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.collection-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Saved Case Card Styling */
+.case-card.saved-case {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.template-badge {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.saved-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.cloned-from-info {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.cloned-label {
+  color: #166534;
+  font-weight: 600;
+}
+
+.cloned-title {
+  color: #15803d;
+  font-weight: 500;
+}
+
+.cloned-author {
+  color: #16a34a;
+  font-style: italic;
 }
 </style>

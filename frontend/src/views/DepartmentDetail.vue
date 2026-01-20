@@ -2,7 +2,8 @@
   <div class="p-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-2xl font-semibold">Khoa: {{ departmentName }}</h2>
-      <router-link :to="`/users?department=${encodeURIComponent(departmentName)}`" class="btn">Xem người dùng trong khoa</router-link>
+      <router-link :to="`/users?department=${encodeURIComponent(departmentName)}`" class="btn">Xem người dùng trong
+        khoa</router-link>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -51,5 +52,10 @@ const dept = computed(() => departments.find(d => d.name === departmentName) || 
 </script>
 
 <style scoped>
-.btn { background: #1e40af; color: #fff; padding: 6px 10px; border-radius: 6px; }
+.btn {
+  background: #1e40af;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
 </style>

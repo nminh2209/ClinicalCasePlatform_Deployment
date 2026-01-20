@@ -5,14 +5,7 @@
       <div class="top-nav-bar">
         <!-- Back to Home Button -->
         <router-link to="/" class="back-button">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
           <span>{{ t("login.goBack") }}</span>
@@ -35,36 +28,20 @@
           <div class="form-group">
             <Label htmlFor="email" class="form-label">{{
               t("login.username")
-            }}</Label>
-            <Input
-              id="email"
-              v-model="email"
-              type="email"
-              :placeholder="t('login.placeholder.username')"
-              class="form-input"
-              required
-            />
+              }}</Label>
+            <Input id="email" v-model="email" type="email" :placeholder="t('login.placeholder.username')"
+              class="form-input" required />
           </div>
 
           <div class="form-group">
             <Label htmlFor="password" class="form-label">{{
               t("login.password")
-            }}</Label>
+              }}</Label>
             <div class="password-input-wrapper">
-              <Input
-                id="password"
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                :placeholder="t('login.placeholder.password')"
-                class="form-input password-input"
-                required
-              />
-              <button
-                type="button"
-                @click="togglePasswordVisibility"
-                class="password-toggle"
-                :aria-label="showPassword ? 'Hide password' : 'Show password'"
-              >
+              <Input id="password" v-model="password" :type="showPassword ? 'text' : 'password'"
+                :placeholder="t('login.placeholder.password')" class="form-input password-input" required />
+              <button type="button" @click="togglePasswordVisibility" class="password-toggle"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'">
                 <Eye v-if="!showPassword" />
                 <EyeOff v-else />
               </button>
@@ -72,14 +49,7 @@
           </div>
 
           <div v-if="error" class="error-message">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -89,35 +59,68 @@
 
           <Button type="submit" class="submit-button" :disabled="loading">
             <span v-if="loading" class="loading-text">
-              <svg
-                class="spinner"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+              <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
                 <path d="M21 12a9 9 0 1 1-6.219-8.56" />
               </svg>
               Đang đăng nhập...
             </span>
             <span v-else class="button-content">
               {{ t("login.button") }}
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
             </span>
           </Button>
         </form>
+
+        <!-- Forgot Password Link -->
+        <div class="forgot-password-link">
+          <router-link to="/forgot-password" class="link">
+            Quên mật khẩu?
+          </router-link>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span>Hoặc</span>
+        </div>
+
+        <!-- Social Login Buttons -->
+        <div class="social-login">
+          <button type="button" @click="handleGoogleLogin" class="social-button google" :disabled="loading">
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            <span>Đăng nhập với Google</span>
+          </button>
+
+          <button type="button" @click="handleMicrosoftLogin" class="social-button microsoft" :disabled="loading">
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="#f25022" d="M1 1h10v10H1z" />
+              <path fill="#00a4ef" d="M13 1h10v10H13z" />
+              <path fill="#7fba00" d="M1 13h10v10H1z" />
+              <path fill="#ffb900" d="M13 13h10v10H13z" />
+            </svg>
+            <span>Đăng nhập với Microsoft</span>
+          </button>
+        </div>
+
+        <!-- Register Link -->
+        <div class="footer-links">
+          <p>
+            Chưa có tài khoản?
+            <router-link to="/register" class="link">Đăng ký ngay</router-link>
+          </p>
+        </div>
 
         <div class="copyright">
           <p>{{ t("login.copyright") }}</p>
@@ -161,7 +164,7 @@ const handleSubmit = async () => {
 
   try {
     await authStore.login(email.value, password.value);
-    
+
     // Redirect to home to show role-based dashboard
     router.push("/home");
   } catch (err: any) {
@@ -171,6 +174,24 @@ const handleSubmit = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const handleGoogleLogin = () => {
+  // Redirect to Google OAuth
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
+  const redirectUri = `${window.location.origin}/auth/google/callback`;
+  const scope = "openid email profile";
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+  window.location.href = authUrl;
+};
+
+const handleMicrosoftLogin = () => {
+  // Redirect to Microsoft OAuth
+  const clientId = import.meta.env.VITE_MICROSOFT_CLIENT_ID || "YOUR_MICROSOFT_CLIENT_ID";
+  const redirectUri = `${window.location.origin}/auth/microsoft/callback`;
+  const scope = "openid email profile";
+  const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+  window.location.href = authUrl;
 };
 </script>
 
@@ -364,13 +385,16 @@ const handleSubmit = async () => {
 }
 
 @keyframes shake {
+
   0%,
   100% {
     transform: translateX(0);
   }
+
   25% {
     transform: translateX(-8px);
   }
+
   75% {
     transform: translateX(8px);
   }
@@ -442,6 +466,97 @@ const handleSubmit = async () => {
   transform: none;
 }
 
+.forgot-password-link {
+  text-align: right;
+  margin-top: 0.75rem;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.divider span {
+  padding: 0 1rem;
+}
+
+.social-login {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.social-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #1e293b;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.social-button:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.social-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.social-button.google:hover:not(:disabled) {
+  border-color: #4285f4;
+}
+
+.social-button.microsoft:hover:not(:disabled) {
+  border-color: #00a4ef;
+}
+
+.footer-links {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.footer-links p {
+  font-size: 0.9375rem;
+  color: #64748b;
+}
+
+.link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
 .button-content {
   display: flex;
   align-items: center;
@@ -462,6 +577,7 @@ const handleSubmit = async () => {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

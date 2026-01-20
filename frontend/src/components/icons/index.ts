@@ -30,6 +30,7 @@ import BuildingIcon from './BuildingIcon.vue';
 import GlobeIcon from './GlobeIcon.vue';
 import MailIcon from './MailIcon.vue';
 import UsersIcon from './UsersIcon.vue';
+import FileSearch from './FileSearch.vue';
 
 export {
   ArrowLeft,
@@ -63,7 +64,8 @@ export {
   BuildingIcon,
   GlobeIcon,
   MailIcon,
-  UsersIcon
+  UsersIcon,
+  FileSearch
 };
 
 // Alias for backward compatibility

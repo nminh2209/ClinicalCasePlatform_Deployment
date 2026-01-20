@@ -1,3 +1,5 @@
+# notifications/models.py
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -17,6 +19,7 @@ class Notification(models.Model):
         FEEDBACK = "feedback", "Feedback"
         CASE_REVIEW = "case_review", "Case Review"
         PERMISSION_GRANTED = "permission_granted", "Permission Granted"
+        INQUIRY = "inquiry", "Inquiry"
         SYSTEM = "system", "System"
 
     recipient = models.ForeignKey(
@@ -71,6 +74,15 @@ class Notification(models.Model):
         blank=True,
         related_name="notifications",
         help_text="Related feedback if applicable",
+    )
+
+    related_inquiry = models.ForeignKey(
+        "inquiries.Inquiry",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="notifications",
+        help_text="Related inquiry if applicable",
     )
 
     # Action URL (for navigation)
@@ -173,4 +185,17 @@ class Notification(models.Model):
             message=f"Bệnh án '{case.title}' sẽ hết hạn trong {days_left} ngày",
             related_case=case,
             action_url=f"/cases/{case.id}",
+        )
+
+    @classmethod
+    def create_inquiry_notification(cls, inquiry, recipient, title, message):
+        """Create notification for inquiry-related events"""
+        return cls.objects.create(
+            recipient=recipient,
+            notification_type=cls.NotificationType.INQUIRY,
+            title=title,
+            message=message,
+            related_inquiry=inquiry,
+            related_case=inquiry.case,
+            action_url=f"/inquiries/{inquiry.id}",
         )

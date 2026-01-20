@@ -32,18 +32,12 @@
 
               <div class="form-group">
                 <label for="specialty">Chuyên khoa *</label>
-                <select id="specialty" v-model="caseData.specialty" class="form-select" required>
-                  <option value="">Chọn chuyên khoa</option>
-                  <option value="Hồi sức tích cực">Hồi sức tích cực</option>
-                  <option value="Tim mạch">Tim mạch</option>
-                  <option value="Nội khoa">Nội khoa</option>
-                  <option value="Phẫu thuật">Phẫu thuật</option>
-                  <option value="Hô hấp">Hô hấp</option>
-                  <option value="Tiêu hóa">Tiêu hóa</option>
-                  <option value="Thần kinh">Thần kinh</option>
-                  <option value="Sản phụ khoa">Sản phụ khoa</option>
-                  <option value="Nhi khoa">Nhi khoa</option>
-                  <option value="Khác">Khác</option>
+                <select id="specialty" v-model="caseData.specialty" class="form-select" required
+                  :disabled="choicesLoading">
+                  <option value="">{{ choicesLoading ? 'Đang tải...' : 'Chọn chuyên khoa' }}</option>
+                  <option v-for="s in specialties" :key="s.id" :value="s.name">
+                    {{ s.name }}
+                  </option>
                 </select>
               </div>
             </div>
@@ -67,11 +61,12 @@
 
               <div class="form-group">
                 <label for="patient_gender">Giới tính *</label>
-                <select id="patient_gender" v-model="caseData.patient_gender" class="form-select" required>
-                  <option value="">Chọn giới tính</option>
-                  <option value="male">Nam</option>
-                  <option value="female">Nữ</option>
-                  <option value="other">Khác</option>
+                <select id="patient_gender" v-model="caseData.patient_gender" class="form-select" required
+                  :disabled="choicesLoading">
+                  <option value="">{{ choicesLoading ? 'Đang tải...' : 'Chọn giới tính' }}</option>
+                  <option v-for="g in genders" :key="g.key" :value="g.key">
+                    {{ g.label }}
+                  </option>
                 </select>
               </div>
 
@@ -408,28 +403,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-// import Badge from '@/components/ui/Badge.vue';
-// import Button from '@/components/ui/Button.vue';
-// import Card from '@/components/ui/Card.vue';
-// import CardHeader from '@/components/ui/CardHeader.vue';
-// import CardTitle from '@/components/ui/CardTitle.vue';
-// import CardDescription from '@/components/ui/CardDescription.vue';
-// import CardContent from '@/components/ui/CardContent.vue';
-// import Input from '@/components/ui/Input.vue';
-// import Tabs from '@/components/ui/Tabs.vue';
-// import TabsList from '@/components/ui/TabsList.vue';
-// import TabsTrigger from '@/components/ui/TabsTrigger.vue';
-// import TabsContent from '@/components/ui/TabsContent.vue';
-// import Textarea from '@/components/ui/Textarea.vue';
-// import Toast from '@/components/ui/Toast.vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCasesStore } from '@/stores/cases'
 import { casesService } from '@/services/cases'
+import { useChoices } from '@/composables/useChoices'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const casesStore = useCasesStore()
+const { specialties, genders, loading: choicesLoading } = useChoices()
 
 const saving = ref(false)
 
@@ -526,7 +509,6 @@ const caseData = ref<CaseData>({
 })
 
 const repositories = ref<Array<{ id: number, name: string }>>([])
-const templates = ref([])
 
 const isValid = computed(() => {
   return caseData.value.title &&
@@ -772,7 +754,7 @@ onMounted(async () => {
     return
   }
 
-  // Load repositories and templates
+  // Load repositories
   await loadRepositories()
 })
 </script>

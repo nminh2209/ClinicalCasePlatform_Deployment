@@ -26,7 +26,7 @@
     <!-- Case Content -->
     <div class="post-content">
       <h3 class="case-title">{{ post.title }}</h3>
-      
+
       <div class="case-meta">
         <Badge>{{ post.specialty }}</Badge>
         <Badge variant="secondary">{{ formatComplexity(post.complexity_level) }}</Badge>
@@ -43,11 +43,7 @@
         </p>
       </div>
 
-      <button 
-        v-if="post.case_summary && post.case_summary.length > 200" 
-        @click="toggleExpand" 
-        class="expand-btn"
-      >
+      <button v-if="post.case_summary && post.case_summary.length > 200" @click="toggleExpand" class="expand-btn">
         {{ expanded ? 'Thu gọn' : 'Xem thêm' }}
       </button>
     </div>
@@ -74,43 +70,31 @@
 
     <!-- Action Buttons -->
     <div class="post-actions">
-      <button 
-        @click="react('like')" 
-        :class="['action-btn', { active: userReaction === 'like' }]"
-      >
+      <button @click="react('like')" :class="['action-btn', { active: userReaction === 'like' }]">
         <span class="icon">👍</span>
         <span>Thích</span>
       </button>
-      
-      <button 
-        @click="react('love')" 
-        :class="['action-btn', { active: userReaction === 'love' }]"
-      >
+
+      <button @click="react('love')" :class="['action-btn', { active: userReaction === 'love' }]">
         <span class="icon">❤️</span>
         <span>Yêu thích</span>
       </button>
-      
-      <button 
-        @click="react('insightful')" 
-        :class="['action-btn', { active: userReaction === 'insightful' }]"
-      >
+
+      <button @click="react('insightful')" :class="['action-btn', { active: userReaction === 'insightful' }]">
         <span class="icon">💡</span>
         <span>Hữu ích</span>
       </button>
-      
-      <button 
-        @click="react('learned')" 
-        :class="['action-btn', { active: userReaction === 'learned' }]"
-      >
+
+      <button @click="react('learned')" :class="['action-btn', { active: userReaction === 'learned' }]">
         <span class="icon">📚</span>
         <span>Học được</span>
       </button>
-      
+
       <button @click="viewFullCase" class="action-btn">
         <span class="icon">💬</span>
         <span>Bình luận</span>
       </button>
-      
+
       <button @click="viewFullCase" class="action-btn">
         <span class="icon">👁️</span>
         <span>Xem đầy đủ</span>
@@ -147,7 +131,7 @@ const toggleExpand = () => {
 const react = async (reactionType: 'like' | 'love' | 'insightful' | 'learned') => {
   try {
     await feedService.toggleReaction(props.post.id, reactionType, userReaction.value);
-    
+
     // Update local state
     if (userReaction.value === reactionType) {
       userReaction.value = null;
@@ -159,7 +143,7 @@ const react = async (reactionType: 'like' | 'love' | 'insightful' | 'learned') =
         props.post.reaction_count++;
       }
     }
-    
+
     emit('react', { caseId: props.post.id, reactionType });
   } catch (error) {
     console.error('Failed to react:', error);
@@ -177,11 +161,11 @@ const formatDate = (dateString: string) => {
   const diff = now.getTime() - date.getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(hours / 24);
-  
+
   if (hours < 1) return 'Vừa xong';
   if (hours < 24) return `${hours} giờ trước`;
   if (days < 7) return `${days} ngày trước`;
-  
+
   return date.toLocaleDateString('vi-VN', {
     day: '2-digit',
     month: '2-digit',
@@ -385,16 +369,16 @@ const formatComplexity = (level: string) => {
   .post-actions {
     flex-wrap: wrap;
   }
-  
+
   .action-btn {
     font-size: 13px;
     padding: 8px 10px;
   }
-  
+
   .action-btn span:not(.icon) {
     display: none;
   }
-  
+
   .action-btn .icon {
     font-size: 20px;
   }

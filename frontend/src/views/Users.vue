@@ -16,7 +16,8 @@
     <div v-if="error && !loading" class="bg-red-50 rounded-lg border border-red-200 p-4 shadow-sm">
       <p class="text-red-700 font-medium">Lỗi tải dữ liệu:</p>
       <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-      <button @click="loadData()" class="mt-2 px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
+      <button @click="loadData()"
+        class="mt-2 px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
         Thử lại
       </button>
     </div>
@@ -26,15 +27,13 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-2">Tìm kiếm</label>
-          <input 
-            v-model="q" 
-            placeholder="Tên hoặc email..." 
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          />
+          <input v-model="q" placeholder="Tên hoặc email..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
         </div>
-        <div> 
+        <div>
           <label class="block text-xs font-medium text-gray-700 mb-2">Vai trò</label>
-          <select v-model="role" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          <select v-model="role"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
             <option value="">Tất cả vai trò</option>
             <option value="student">Sinh viên</option>
             <option value="instructor">Giảng viên</option>
@@ -43,16 +42,15 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-2">Khoa</label>
-          <select v-model="departmentFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          <select v-model="departmentFilter"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
             <option value="">Tất cả khoa</option>
             <option v-for="d in departments" :key="d.id" :value="String(d.id)">{{ d.vietnamese_name }}</option>
           </select>
         </div>
         <div class="flex items-end">
-          <button 
-            @click="resetFilters" 
-            class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm font-medium transition-colors"
-          >
+          <button @click="resetFilters"
+            class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm font-medium transition-colors">
             Xóa bộ lọc
           </button>
         </div>
@@ -78,38 +76,33 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in filtered" :key="user.id" class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-              <td class="px-6 py-4 font-medium text-gray-800">{{ user.full_name || `${user.first_name} ${user.last_name}` || user.username }}</td>
+            <tr v-for="user in filtered" :key="user.id"
+              class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 font-medium text-gray-800">{{ user.full_name || `${user.first_name}
+                ${user.last_name}` || user.username }}</td>
               <td class="px-6 py-4 text-gray-600">{{ user.email }}</td>
               <td class="px-6 py-4">
-                <span 
-                  class="inline-flex px-2 py-1 text-xs font-medium rounded-full"
-                  :class="user.role === 'student' ? 'bg-blue-100 text-blue-800' : user.role === 'instructor' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'"
-                >
+                <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full"
+                  :class="user.role === 'student' ? 'bg-blue-100 text-blue-800' : user.role === 'instructor' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'">
                   {{ roleLabel(user.role) }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-gray-600">{{ user.department_vietnamese_name || user.department_name || '—' }}</td>
+              <td class="px-6 py-4 text-gray-600">{{ user.department_vietnamese_name || user.department_name || '—' }}
+              </td>
               <td class="px-6 py-4">
-                <span 
-                  class="inline-flex px-2 py-1 text-xs font-medium rounded-full"
-                  :class="user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
-                >
+                <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full"
+                  :class="user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
                   {{ user.is_active ? 'Hoạt động' : 'Vô hiệu' }}
                 </span>
               </td>
               <td class="px-6 py-4">
                 <div class="flex gap-2">
-                  <button 
-                    @click="edit(user)" 
-                    class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                  >
+                  <button @click="edit(user)"
+                    class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors">
                     Sửa
                   </button>
-                  <button 
-                    @click="toggleActive(user)" 
-                    class="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors"
-                  >
+                  <button @click="toggleActive(user)"
+                    class="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors">
                     {{ user.is_active ? 'Vô hiệu' : 'Kích hoạt' }}
                   </button>
                 </div>
@@ -124,28 +117,25 @@
     </div>
 
     <!-- Pagination -->
-    <div v-if="!loading && count > 0" class="mt-4 flex items-center justify-between bg-white p-4 rounded-b border-t border-gray-100">
+    <div v-if="!loading && count > 0"
+      class="mt-4 flex items-center justify-between bg-white p-4 rounded-b border-t border-gray-100">
       <div class="text-sm text-gray-600">
         Hiển thị <strong>{{ startIndex }}</strong> - <strong>{{ endIndex }}</strong> / <strong>{{ count }}</strong>
       </div>
       <div class="flex items-center space-x-2">
-        <button @click="gotoPage(page - 1)" :disabled="!previous" class="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50">Trước</button>
+        <button @click="gotoPage(page - 1)" :disabled="!previous"
+          class="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50">Trước</button>
 
         <template v-for="p in pagesToShow" :key="p">
-          <button
-            v-if="p === '...'"
-            disabled
-            class="px-3 py-1 text-sm"
-          >...
+          <button v-if="p === '...'" disabled class="px-3 py-1 text-sm">...
           </button>
-          <button
-            v-else
-            @click="gotoPage(p)"
-            :class="['px-3 py-1 rounded-md text-sm', p === page ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200']"
-          >{{ p }}</button>
+          <button v-else @click="gotoPage(p)"
+            :class="['px-3 py-1 rounded-md text-sm', p === page ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200']">{{
+            p }}</button>
         </template>
 
-        <button @click="gotoPage(page + 1)" :disabled="!next" class="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50">Tiếp</button>
+        <button @click="gotoPage(page + 1)" :disabled="!next"
+          class="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50">Tiếp</button>
       </div>
     </div>
   </div>
@@ -228,7 +218,7 @@ function normalize(s = ''): string {
 const filtered = computed(() => {
   const term = normalize(debouncedQuery.value || '');
   const tokens = term.split(/\s+/).filter(Boolean);
-  
+
   // If no search query, return all current page users as-is (filtering is server-side now)
   if (!tokens.length) return users.value;
 
@@ -267,7 +257,7 @@ async function loadData(requestedPage: number = page.value) {
     page.value = requestedPage;
 
     // sync route query param for page
-    router.replace({ query: { ...route.query, page: String(page.value) } }).catch(() => {});
+    router.replace({ query: { ...route.query, page: String(page.value) } }).catch(() => { });
 
     // Handle departments (should be array or paginated)
     const deptsData = deptsRes.data;
@@ -349,7 +339,19 @@ const pagesToShow = computed(() => buildPagesArray());
 </script>
 
 <style scoped>
-.input { border: 1px solid #e5e7eb; }
-.btn { background: #1e40af; color: #fff; padding: 6px 10px; border-radius: 6px; }
-.btn-sm { padding: 4px 8px; font-size: 12px }
+.input {
+  border: 1px solid #e5e7eb;
+}
+
+.btn {
+  background: #1e40af;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px
+}
 </style>

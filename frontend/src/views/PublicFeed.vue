@@ -16,37 +16,25 @@
     <!-- Filter Bar -->
     <div class="filter-bar">
       <div class="filter-tabs">
-        <button 
-          @click="filterType = 'department'" 
-          :class="['filter-tab', { active: filterType === 'department' }]"
-        >
+        <button @click="filterType = 'department'" :class="['filter-tab', { active: filterType === 'department' }]">
           <BuildingIcon class="w-4 h-4" />
           Khoa của tôi
         </button>
-        <button 
-          @click="filterType = 'all'" 
-          :class="['filter-tab', { active: filterType === 'all' }]"
-        >
+        <button @click="filterType = 'all'" :class="['filter-tab', { active: filterType === 'all' }]">
           <GlobeIcon class="w-4 h-4" />
           Tất cả
         </button>
-        <button 
-          @click="filterType = 'featured'" 
-          :class="['filter-tab', { active: filterType === 'featured' }]"
-        >
+        <button @click="filterType = 'featured'" :class="['filter-tab', { active: filterType === 'featured' }]">
           ⭐ Nổi bật
         </button>
       </div>
 
       <div class="filter-controls">
-        <select v-model="specialtyFilter" class="filter-select">
-          <option value="">Tất cả chuyên khoa</option>
-          <option value="Nội khoa">Nội khoa</option>
-          <option value="Ngoại khoa">Ngoại khoa</option>
-          <option value="Tim mạch">Tim mạch</option>
-          <option value="Nhi khoa">Nhi khoa</option>
-          <option value="Sản phụ khoa">Sản phụ khoa</option>
-          <option value="Hô hấp">Hô hấp</option>
+        <select v-model="specialtyFilter" class="filter-select" :disabled="choicesLoading">
+          <option value="">{{ choicesLoading ? 'Đang tải...' : 'Tất cả chuyên khoa' }}</option>
+          <option v-for="s in specialties" :key="s.id" :value="s.name">
+            {{ s.name }}
+          </option>
         </select>
 
         <Button @click="refreshFeed" variant="outline" size="sm">
@@ -79,15 +67,8 @@
 
     <!-- Feed Posts -->
     <div v-else-if="feedPosts.length > 0" class="feed-posts">
-      <FeedPostCard 
-        v-for="post in feedPosts" 
-        :key="post.id"
-        :post="post"
-        @react="handleReaction"
-        @comment="handleComment"
-        @view-details="openCaseModal"
-        @refresh="loadFeed"
-      />
+      <FeedPostCard v-for="post in feedPosts" :key="post.id" :post="post" @react="handleReaction"
+        @comment="handleComment" @view-details="openCaseModal" @refresh="loadFeed" />
 
       <!-- Load More -->
       <div v-if="hasMore" class="load-more">
@@ -111,18 +92,14 @@
     </div>
 
     <!-- Case Detail Modal -->
-    <CaseDetailModal 
-      :case-id="selectedCaseId"
-      :is-open="showCaseModal"
-      @close="closeCaseModal"
-      @refresh="loadFeed"
-    />
+    <CaseDetailModal :case-id="selectedCaseId" :is-open="showCaseModal" @close="closeCaseModal" @refresh="loadFeed" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue';
 import { useToast } from '@/composables/useToast';
+import { useChoices } from '@/composables/useChoices';
 import feedService, { type FeedPost, type FeedStatistics } from '@/services/feed';
 import FeedPostCard from '@/components/FeedPostCard.vue';
 import CaseDetailModal from '@/components/CaseDetailModal.vue';
@@ -131,6 +108,7 @@ import GlobeIcon from '@/components/icons/GlobeIcon.vue';
 import BuildingIcon from '@/components/icons/BuildingIcon.vue';
 
 const { toast } = useToast();
+const { specialties, loading: choicesLoading } = useChoices();
 
 const loading = ref(true);
 const loadingMore = ref(false);

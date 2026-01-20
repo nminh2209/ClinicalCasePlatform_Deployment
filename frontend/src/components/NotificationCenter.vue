@@ -3,20 +3,15 @@
     <!-- Trigger -->
     <Button variant="ghost" size="icon" class="relative" @click="toggleOpen">
       <Bell class="h-5 w-5" />
-      <span
-        v-if="unreadCount > 0"
-        class="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-red-500 rounded-full"
-      >
+      <span v-if="unreadCount > 0"
+        class="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-red-500 rounded-full">
         {{ unreadCount > 9 ? "9+" : unreadCount }}
       </span>
     </Button>
 
     <!-- Popover -->
-    <div
-      v-if="open"
-      class="absolute right-0 mt-2 w-[380px] bg-white border rounded shadow-lg z-50"
-      @click.outside="close"
-    >
+    <div v-if="open" class="absolute right-0 mt-2 w-[380px] bg-white border rounded shadow-lg z-50"
+      @click.outside="close">
       <div class="flex items-center justify-between p-4 border-b">
         <div>
           <h3 class="text-gray-800 text-sm font-semibold">Thông báo</h3>
@@ -24,36 +19,22 @@
             {{ unreadCount }} chưa đọc
           </p>
         </div>
-        <Button
-          v-if="unreadCount > 0"
-          variant="ghost"
-          size="sm"
-          class="text-xs"
-          @click="markAllAsRead"
-        >
+        <Button v-if="unreadCount > 0" variant="ghost" size="sm" class="text-xs" @click="markAllAsRead">
           Đánh dấu đã đọc tất cả
         </Button>
       </div>
 
       <div class="max-h-[400px] overflow-y-auto">
-        <div
-          v-if="filteredNotifications.length === 0"
-          class="py-12 text-center text-sm text-gray-500"
-        >
+        <div v-if="filteredNotifications.length === 0" class="py-12 text-center text-sm text-gray-500">
           <Bell class="h-12 w-12 mx-auto mb-3 text-gray-300" />
           Không có thông báo
         </div>
 
         <div v-else class="divide-y">
-          <div
-            v-for="notif in filteredNotifications"
-            :key="notif.id"
-            :class="[
-              'p-4 cursor-pointer transition-colors',
-              !notif.read ? 'bg-blue-50/50' : 'hover:bg-gray-50',
-            ]"
-            @click="onNotificationClick(notif)"
-          >
+          <div v-for="notif in filteredNotifications" :key="notif.id" :class="[
+            'p-4 cursor-pointer transition-colors',
+            !notif.read ? 'bg-blue-50/50' : 'hover:bg-gray-50',
+          ]" @click="onNotificationClick(notif)">
             <div class="flex items-start gap-3">
               <div class="shrink-0 mt-1">
                 <component :is="getIconComponent(notif.type)" class="h-4 w-4" />
@@ -61,23 +42,16 @@
 
               <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between gap-2 mb-1">
-                  <p
-                    :class="
-                      !notif.read
-                        ? 'font-medium text-gray-800'
-                        : 'text-gray-700'
-                    "
-                  >
+                  <p :class="!notif.read
+                      ? 'font-medium text-gray-800'
+                      : 'text-gray-700'
+                    ">
                     {{ notif.title }}
                   </p>
 
                   <div class="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      class="h-6 w-6 shrink-0"
-                      @click.stop="removeNotification(notif.id)"
-                    >
+                    <Button variant="ghost" size="icon" class="h-6 w-6 shrink-0"
+                      @click.stop="removeNotification(notif.id)">
                       <X class="h-3 w-3" />
                     </Button>
                   </div>
@@ -89,13 +63,8 @@
                 <div class="flex items-center justify-between">
                   <p class="text-xs text-gray-400">{{ notif.time }}</p>
 
-                  <Button
-                    v-if="!notif.read"
-                    variant="ghost"
-                    size="icon"
-                    class="h-6 w-6 shrink-0"
-                    @click.stop="markAsRead(notif.id)"
-                  >
+                  <Button v-if="!notif.read" variant="ghost" size="icon" class="h-6 w-6 shrink-0"
+                    @click.stop="markAsRead(notif.id)">
                     <Check class="h-3 w-3" />
                   </Button>
                 </div>
@@ -134,6 +103,7 @@ import Button from "./ui/Button.vue";
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const WS_URL = API_URL.replace(/^http/, 'ws');
 
 export default {
   name: "NotificationCenter",
@@ -151,6 +121,123 @@ export default {
     const root = ref(null);
     const notifications = ref([]);
     const loading = ref(false);
+    let websocket = null;
+    let reconnectTimeout = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 3;
+    let pingInterval = null;
+
+    const connectWebSocket = () => {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        console.warn('No access token found, skipping WebSocket connection');
+        return;
+      }
+
+      // Stop trying after max attempts
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.warn('Max WebSocket reconnection attempts reached. Please refresh the page to retry.');
+        return;
+      }
+
+      try {
+        // Connect to WebSocket with auth token
+        websocket = new WebSocket(`${WS_URL}/ws/notifications/?token=${token}`);
+
+        websocket.onopen = () => {
+          console.log('WebSocket connected');
+          reconnectAttempts = 0; // Reset counter on successful connection
+
+          // Send ping every 30 seconds to keep connection alive
+          pingInterval = setInterval(() => {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+              websocket.send(JSON.stringify({ type: 'ping' }));
+            }
+          }, 30000);
+        };
+
+        websocket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'connection_established') {
+              console.log('WebSocket connection established');
+            } else if (data.type === 'notification') {
+              // New notification received in real-time
+              const newNotif = {
+                id: data.notification.id.toString(),
+                type: data.notification.type,
+                title: data.notification.title,
+                message: data.notification.message,
+                time: 'Vừa xong',
+                read: data.notification.is_read,
+                actionUrl: data.notification.action_url,
+              };
+
+              // Add to beginning of list
+              notifications.value.unshift(newNotif);
+
+              // Show browser notification if permission granted
+              if (Notification.permission === 'granted') {
+                new Notification(newNotif.title, {
+                  body: newNotif.message,
+                  icon: '/favicon.ico',
+                });
+              }
+            } else if (data.type === 'unread_count') {
+              // Unread count update (optional, we calculate it ourselves)
+              console.log('Unread count:', data.count);
+            } else if (data.type === 'pong') {
+              // Pong response to our ping
+              console.log('Received pong');
+            }
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
+
+        websocket.onerror = (error) => {
+          console.error('WebSocket error:', error);
+        };
+
+        websocket.onclose = () => {
+          console.log('WebSocket disconnected');
+          if (pingInterval) {
+            clearInterval(pingInterval);
+            pingInterval = null;
+          }
+
+          reconnectAttempts++;
+
+          // Attempt to reconnect after 5 seconds (max 3 times)
+          if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            reconnectTimeout = setTimeout(() => {
+              console.log(`Attempting to reconnect WebSocket... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+              connectWebSocket();
+            }, 5000);
+          } else {
+            console.warn('WebSocket connection failed. Notifications will not update in real-time.');
+          }
+        };
+      } catch (error) {
+        console.error('Error creating WebSocket:', error);
+      }
+    };
+
+    const disconnectWebSocket = () => {
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
+      if (pingInterval) {
+        clearInterval(pingInterval);
+        pingInterval = null;
+      }
+      if (websocket) {
+        websocket.close();
+        websocket = null;
+      }
+    };
 
     const fetchNotifications = async () => {
       try {
@@ -161,10 +248,10 @@ export default {
             Authorization: `Bearer ${token}`,
           },
         });
-        
+
         // Handle both paginated and non-paginated responses
         const data = response.data.results || response.data;
-        
+
         // Map backend data to frontend format
         if (Array.isArray(data)) {
           notifications.value = data.map(n => ({
@@ -296,16 +383,20 @@ export default {
 
     onMounted(() => {
       document.addEventListener("click", onClickOutside);
-      fetchNotifications(); // Fetch on mount
-      
-      // Poll for new notifications every 30 seconds
-      const interval = setInterval(fetchNotifications, 30000);
-      onBeforeUnmount(() => clearInterval(interval));
+      fetchNotifications(); // Fetch initial notifications
+      // WebSocket disabled - requires Daphne ASGI server (see backend/REDIS_SETUP_GUIDE.md)
+      // connectWebSocket();
+
+      // Request browser notification permission if not already granted
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
     });
-    
-    onBeforeUnmount(() =>
-      document.removeEventListener("click", onClickOutside)
-    );
+
+    onBeforeUnmount(() => {
+      document.removeEventListener("click", onClickOutside);
+      disconnectWebSocket(); // Clean up WebSocket connection
+    });
 
     return {
       open,

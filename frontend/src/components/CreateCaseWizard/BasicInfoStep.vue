@@ -7,8 +7,16 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2 md:col-span-2">
             <Label for="title">{{ t('createCase.caseTitle') }} *</Label>
-            <Input id="title" v-model="localData.title" :placeholder="t('createCase.enterCaseTitle')"
-              :error="getTranslatedError('title')" />
+            <div class="flex gap-2 items-start">
+              <Input 
+                id="title" 
+                v-model="localData.title" 
+                :placeholder="t('createCase.enterCaseTitle')"
+                :error="getTranslatedError('title')" 
+                class="flex-1"
+              />
+              <VoiceToText v-model="localData.title" />
+            </div>
           </div>
 
           <!-- Patient name hidden - auto-generated from title -->
@@ -18,59 +26,41 @@
             <Label for="specialty">{{ t('createCase.specialty') }} *</Label>
             <select id="specialty" v-model="localData.specialty"
               class="w-full px-3 py-2 border border-gray-300 rounded-md"
-              :class="{ 'border-red-500': getTranslatedError('specialty') }">
-              <option value="">{{ t('createCase.selectSpecialty') }}</option>
-              <option value="Cardiology">Cardiology (Tim mạch)</option>
-              <option value="Neurology">Neurology (Thần kinh)</option>
-              <option value="Gastroenterology">Gastroenterology (Tiêu hóa)</option>
-              <option value="Pulmonology">Pulmonology (Hô hấp)</option>
-              <option value="Nephrology">Nephrology (Thận)</option>
-              <option value="Endocrinology">Endocrinology (Nội tiết)</option>
-              <option value="Rheumatology">Rheumatology (Khớp)</option>
-              <option value="Hematology">Hematology (Huyết học)</option>
-              <option value="Oncology">Oncology (Ung bướu)</option>
-              <option value="Infectious Disease">Infectious Disease (Nhiễm khuẩn)</option>
-              <option value="Emergency Medicine">Emergency Medicine (Cấp cứu)</option>
-              <option value="Internal Medicine">Internal Medicine (Nội khoa)</option>
-              <option value="Surgery">Surgery (Ngoại khoa)</option>
-              <option value="Pediatrics">Pediatrics (Nhi khoa)</option>
-              <option value="Obstetrics & Gynecology">Obstetrics & Gynecology (Sản phụ khoa)</option>
-              <option value="Orthopedics">Orthopedics (Chỉnh hình)</option>
-              <option value="Dermatology">Dermatology (Da liễu)</option>
-              <option value="Ophthalmology">Ophthalmology (Nhãn khoa)</option>
-              <option value="ENT">ENT (Tai mũi họng)</option>
-              <option value="Psychiatry">Psychiatry (Tâm thần)</option>
-              <option value="Other">Other (Khác)</option>
+              :class="{ 'border-red-500': getTranslatedError('specialty') }" :disabled="choicesLoading">
+              <option value="">{{ choicesLoading ? 'Đang tải...' : t('createCase.selectSpecialty') }}</option>
+              <option v-for="s in specialties.filter(Boolean)" :key="s.id" :value="s.name">
+                {{ s.name }}
+              </option>
             </select>
-            <p v-if="getTranslatedError('specialty')" class="text-sm text-red-600">{{ getTranslatedError('specialty') }}</p>
+            <p v-if="getTranslatedError('specialty')" class="text-sm text-red-600">{{ getTranslatedError('specialty') }}
+            </p>
           </div>
 
           <div class="space-y-2">
             <Label for="complexity">{{ t('createCase.complexity') }}</Label>
             <select id="complexity" v-model="localData.complexity_level"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md">
-              <option value="basic">{{ t('createCase.complexityBasic') }}</option>
-              <option value="intermediate">{{ t('createCase.complexityIntermediate') }}</option>
-              <option value="advanced">{{ t('createCase.complexityAdvanced') }}</option>
-              <option value="expert">{{ t('createCase.complexityExpert') }}</option>
+              class="w-full px-3 py-2 border border-gray-300 rounded-md" :disabled="choicesLoading">
+              <option value="" disabled>{{ choicesLoading ? 'Đang tải...' : 'Chọn độ phức tạp' }}</option>
+              <option v-for="c in complexities.filter(Boolean)" :key="c.id" :value="c.key">
+                {{ c.name }}
+              </option>
             </select>
           </div>
 
           <div class="space-y-2">
             <Label for="priority">Mức độ ưu tiên</Label>
             <select id="priority" v-model="localData.priority_level"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md">
-              <option value="low">Thấp</option>
-              <option value="medium" selected>Trung bình</option>
-              <option value="high">Cao</option>
-              <option value="urgent">Khẩn cấp</option>
+              class="w-full px-3 py-2 border border-gray-300 rounded-md" :disabled="choicesLoading">
+              <option value="" disabled>{{ choicesLoading ? 'Đang tải...' : 'Chọn mức độ ưu tiên' }}</option>
+              <option v-for="p in priorities.filter(Boolean)" :key="p.id" :value="p.key">
+                {{ p.name }}
+              </option>
             </select>
           </div>
 
           <div class="space-y-2">
             <Label for="keywords">Từ khóa (Keywords)</Label>
-            <Input id="keywords" v-model="localData.keywords"
-              placeholder="Ví dụ: acute, myocardial, infarction" />
+            <Input id="keywords" v-model="localData.keywords" placeholder="Ví dụ: acute, myocardial, infarction" />
             <p class="text-xs text-gray-500 mt-1">Từ khóa tìm kiếm, phân cách bằng dấu phẩy</p>
           </div>
         </div>
@@ -93,7 +83,7 @@
             <select id="gender" v-model="localData.patient_gender"
               class="w-full px-3 py-2 border border-gray-300 rounded-md"
               :class="{ 'border-red-500': getTranslatedError('patient_gender') }">
-              <option value="">{{ t('createCase.selectGender') }}</option>
+              <option value="" disabled>{{ t('createCase.selectGender') }}</option>
               <option value="male">{{ t('createCase.male') }}</option>
               <option value="female">{{ t('createCase.female') }}</option>
               <option value="other">{{ t('createCase.other') }}</option>
@@ -180,7 +170,7 @@
               <Label for="symptom_onset">Khởi phát triệu chứng</Label>
               <select id="symptom_onset" v-model="localData.clinical_history.symptom_onset"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Chọn</option>
+                <option value="" disabled>Chọn</option>
                 <option value="sudden">Đột ngột</option>
                 <option value="gradual">Từ từ</option>
                 <option value="chronic">Mạn tính</option>
@@ -191,7 +181,7 @@
               <Label for="symptom_progression">Diễn biến triệu chứng</Label>
               <select id="symptom_progression" v-model="localData.clinical_history.symptom_progression"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Chọn</option>
+                <option value="" disabled>Chọn</option>
                 <option value="improving">Cải thiện</option>
                 <option value="worsening">Xấu đi</option>
                 <option value="stable">Ổn định</option>
@@ -259,12 +249,15 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useChoices } from '@/composables/useChoices'
 import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
 import Label from '@/components/ui/Label.vue'
 import Textarea from '@/components/ui/Textarea.vue'
+import VoiceToText from '@/components/VoiceToText.vue'
 
 const { t } = useI18n()
+const { specialties, priorities, complexities, loading: choicesLoading } = useChoices()
 
 const props = defineProps<{
   caseData: any

@@ -3,8 +3,6 @@ Management command to reset and repopulate test data
 """
 
 from django.core.management.base import BaseCommand
-from django.core.management import call_command
-from django.db import connection
 from cases.models import (
     Case,
     ClinicalHistory,
@@ -18,7 +16,6 @@ from cases.models import (
 from comments.models import Comment
 from feedback.models import Feedback
 from grades.models import Grade
-from templates.models import CaseTemplate
 
 
 class Command(BaseCommand):
@@ -60,9 +57,6 @@ class Command(BaseCommand):
 
         # Delete cases
         Case.objects.all().delete()
-
-        # Delete templates
-        CaseTemplate.objects.all().delete()
 
         self.stdout.write(
             self.style.SUCCESS("Data and templates deleted successfully!")

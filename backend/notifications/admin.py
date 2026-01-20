@@ -1,3 +1,5 @@
+# notifications/admin.py
+
 from django.contrib import admin
 from .models import Notification
 
@@ -38,6 +40,7 @@ class NotificationAdmin(admin.ModelAdmin):
                     "related_comment",
                     "related_grade",
                     "related_feedback",
+                    "related_inquiry",
                 )
             },
         ),

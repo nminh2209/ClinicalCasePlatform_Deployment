@@ -3,7 +3,6 @@ from django.db import transaction
 from accounts.models import User
 from cases.models import Case
 from repositories.models import Repository
-from templates.models import CaseTemplate
 
 
 class Command(BaseCommand):
@@ -28,7 +27,6 @@ class Command(BaseCommand):
                     # Delete test data (be careful not to delete production data)
                     Case.objects.filter(title__icontains="Sample").delete()
                     Repository.objects.filter(name__icontains="Test").delete()
-                    CaseTemplate.objects.filter(name__icontains="Template").delete()
                     User.objects.filter(email__endswith="@test.com").delete()
 
                 # Create test users
@@ -110,66 +108,6 @@ class Command(BaseCommand):
                 if created:
                     self.stdout.write(f"  ✅ Created repository: {repo2.name}")
 
-                # Create test templates
-                self.stdout.write("📝 Creating test templates...")
-
-                template1, created = CaseTemplate.objects.get_or_create(
-                    name="Cardiology Case Template",
-                    defaults={
-                        "description": "Standard template for cardiology cases",
-                        "created_by": instructor1,
-                        "fields_schema": {
-                            "sections": [
-                                "history",
-                                "examination",
-                                "investigations",
-                                "diagnosis",
-                                "treatment",
-                            ],
-                            "required_fields": [
-                                "patient_name",
-                                "patient_age",
-                                "history",
-                                "examination",
-                            ],
-                            "cardiology_specific": [
-                                "chest_pain",
-                                "ecg",
-                                "echo",
-                                "cardiac_enzymes",
-                            ],
-                        },
-                        "is_standard": True,
-                    },
-                )
-                if created:
-                    self.stdout.write(f"  ✅ Created template: {template1.name}")
-
-                template2, created = CaseTemplate.objects.get_or_create(
-                    name="General Medicine Template",
-                    defaults={
-                        "description": "Standard template for general medicine cases",
-                        "created_by": instructor1,
-                        "fields_schema": {
-                            "sections": [
-                                "history",
-                                "examination",
-                                "diagnosis",
-                                "treatment",
-                            ],
-                            "required_fields": [
-                                "patient_name",
-                                "patient_age",
-                                "history",
-                                "examination",
-                            ],
-                        },
-                        "is_standard": True,
-                    },
-                )
-                if created:
-                    self.stdout.write(f"  ✅ Created template: {template2.name}")
-
                 # Create sample cases
                 self.stdout.write("📋 Creating sample cases...")
 
@@ -177,7 +115,6 @@ class Command(BaseCommand):
                     title="Sample Cardiology Case - Acute MI",
                     defaults={
                         "student": student1,
-                        "template": template1,
                         "repository": repo1,
                         "patient_name": "Patient Alpha (anonymized)",
                         "patient_age": 58,
@@ -200,7 +137,6 @@ class Command(BaseCommand):
                     title="Sample Internal Medicine Case - Diabetes",
                     defaults={
                         "student": student2,
-                        "template": template2,
                         "repository": repo2,
                         "patient_name": "Patient Beta (anonymized)",
                         "patient_age": 45,
@@ -222,7 +158,6 @@ class Command(BaseCommand):
                     title="Sample Emergency Case - Acute Asthma",
                     defaults={
                         "student": student1,
-                        "template": template2,
                         "repository": repo1,
                         "patient_name": "Patient Gamma (anonymized)",
                         "patient_age": 28,
@@ -248,7 +183,6 @@ class Command(BaseCommand):
                 self.stdout.write("\n📊 Summary:")
                 self.stdout.write(f"  Users: {User.objects.count()}")
                 self.stdout.write(f"  Repositories: {Repository.objects.count()}")
-                self.stdout.write(f"  Templates: {CaseTemplate.objects.count()}")
                 self.stdout.write(f"  Cases: {Case.objects.count()}")
 
                 self.stdout.write("\n🔐 Test Login Credentials:")
@@ -262,4 +196,3 @@ class Command(BaseCommand):
                 self.style.ERROR(f"❌ Error creating test data: {str(e)}")
             )
             raise
-

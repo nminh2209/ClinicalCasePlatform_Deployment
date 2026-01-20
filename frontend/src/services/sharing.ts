@@ -103,18 +103,18 @@ export const sharingService = {
 
   async createPermission(caseId: number, permission: CreatePermissionRequest) {
     const response = await api.post(`/cases/${caseId}/permissions/`, permission)
-    
+
     // Clear related caches
     cache.clear(`permissions_${caseId}`)
     cache.clear('accessible_cases')
     cache.clear('shared_cases')
-    
+
     return response.data
   },
-  
+
   async getDepartments(params?: { search?: string; ordering?: string; page?: number; page_size?: number }) {
     const cacheKey = `departments_${JSON.stringify(params || {})}`
-    
+
     // Check cache first
     const cached = cache.get(cacheKey)
     if (cached) {
@@ -125,25 +125,25 @@ export const sharingService = {
     const data = response.data as any
     // Handle pagination or plain list
     const result = Array.isArray(data) ? data as Department[] : (data.results ?? []) as Department[]
-    
+
     // Cache for 10 minutes since departments don't change often
     cache.set(cacheKey, result, 10)
-    
+
     return result
   },
 
   async updatePermission(caseId: number, permissionId: number, permission: Partial<SharePermission>) {
     const response = await api.put(`/cases/${caseId}/permissions/${permissionId}/`, permission)
-    
+
     // Clear related caches
     cache.clear(`permissions_${caseId}`)
-    
+
     return response.data
   },
 
   async deletePermission(caseId: number, permissionId: number) {
     await api.delete(`/cases/${caseId}/permissions/${permissionId}/`)
-    
+
     // Clear related caches
     cache.clear(`permissions_${caseId}`)
     cache.clear('accessible_cases')
@@ -249,14 +249,14 @@ export const sharingService = {
 
   // Enhanced helper methods
   async getUsersForSharing(params?: { search?: string; department?: number; role?: string; page_size?: number }) {
-    const response = await api.get('/auth/users/', { 
+    const response = await api.get('/auth/users/', {
       params: {
         role: 'instructor', // Default to instructors for sharing
         page_size: 20, // Reasonable default
         ...params
       }
     })
-    
+
     // Handle paginated response
     const data = response.data
     return Array.isArray(data) ? data : (data.results ?? [])

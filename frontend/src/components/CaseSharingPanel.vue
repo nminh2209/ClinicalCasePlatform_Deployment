@@ -24,13 +24,13 @@
           <UserIcon class="w-4 h-4" />
           <span>{{ currentLang === 'vi' ? 'Chia sẻ ca bệnh' : 'Share Case' }}</span>
         </Button>
-        
+
         <Button @click="openGuestModal" variant="outline" class="flex items-center space-x-2">
           <MailIcon class="w-4 h-4" />
           <span>{{ currentLang === 'vi' ? 'Truy cập khách' : 'Guest Access' }}</span>
         </Button>
       </div>
-      
+
       <div class="text-sm text-gray-500">
         {{ permissions.length }} {{ currentLang === 'vi' ? 'quyền chia sẻ' : 'sharing permissions' }}
       </div>
@@ -39,7 +39,8 @@
     <!-- Tabs for different views -->
     <Tabs v-model="activeTab" class="w-full">
       <TabsList class="grid w-full grid-cols-1">
-        <TabsTrigger value="permissions">{{ currentLang === 'vi' ? 'Quyền chia sẻ' : 'Sharing Permissions' }}</TabsTrigger>
+        <TabsTrigger value="permissions">{{ currentLang === 'vi' ? 'Quyền chia sẻ' : 'Sharing Permissions' }}
+        </TabsTrigger>
       </TabsList>
 
       <!-- Current Permissions Tab -->
@@ -48,24 +49,15 @@
           <!-- Bulk Actions -->
           <div class="flex justify-between items-center">
             <div class="flex items-center space-x-2">
-              <input 
-                type="checkbox" 
-                v-model="selectAll" 
-                @change="toggleSelectAll"
-                class="rounded"
-              >
+              <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded">
               <span class="text-sm text-gray-600">
-                {{ currentLang === 'vi' ? 'Chọn tất cả' : 'Select All' }} 
+                {{ currentLang === 'vi' ? 'Chọn tất cả' : 'Select All' }}
                 ({{ selectedPermissions.length }}/{{ permissions.length }})
               </span>
             </div>
             <div class="space-x-2">
-              <Button 
-                @click="bulkRevokePermissions" 
-                :disabled="selectedPermissions.length === 0"
-                variant="destructive" 
-                size="sm"
-              >
+              <Button @click="bulkRevokePermissions" :disabled="selectedPermissions.length === 0" variant="destructive"
+                size="sm">
                 {{ currentLang === 'vi' ? 'Thu hồi đã chọn' : 'Revoke Selected' }}
               </Button>
             </div>
@@ -85,23 +77,20 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="permission in permissions" :key="permission?.id || `perm-${Math.random()}`" class="border-t hover:bg-gray-50">
+                <tr v-for="permission in permissions" :key="permission?.id || `perm-${Math.random()}`"
+                  class="border-t hover:bg-gray-50">
                   <td class="p-3">
-                    <input 
-                      type="checkbox" 
-                      :value="permission?.id" 
-                      v-model="selectedPermissions"
-                      class="rounded"
-                      :disabled="!permission?.id"
-                    >
+                    <input type="checkbox" :value="permission?.id" v-model="selectedPermissions" class="rounded"
+                      :disabled="!permission?.id">
                   </td>
                   <td class="p-3">
                     <div class="flex items-center space-x-2">
                       <UserIcon v-if="permission?.share_type === 'individual'" class="w-4 h-4 text-blue-500" />
-                      <BuildingIcon v-else-if="permission?.share_type === 'department'" class="w-4 h-4 text-green-500" />
+                      <BuildingIcon v-else-if="permission?.share_type === 'department'"
+                        class="w-4 h-4 text-green-500" />
                       <GlobeIcon v-else-if="permission?.share_type === 'public'" class="w-4 h-4 text-purple-500" />
                       <UsersIcon v-else-if="permission?.share_type === 'class_group'" class="w-4 h-4 text-orange-500" />
-                      
+
                       <div>
                         <div class="font-medium">
                           {{ getPermissionDisplayName(permission) }}
@@ -132,10 +121,12 @@
                   </td>
                   <td class="p-3 text-right">
                     <div class="flex justify-end space-x-2">
-                      <Button @click="editPermission(permission)" size="sm" variant="outline" :disabled="!permission?.id">
+                      <Button @click="editPermission(permission)" size="sm" variant="outline"
+                        :disabled="!permission?.id">
                         ✏️
                       </Button>
-                      <Button @click="deletePermission(permission?.id)" size="sm" variant="destructive" :disabled="!permission?.id">
+                      <Button @click="deletePermission(permission?.id)" size="sm" variant="destructive"
+                        :disabled="!permission?.id">
                         🗑️
                       </Button>
                     </div>
@@ -152,7 +143,9 @@
               {{ currentLang === 'vi' ? 'Chưa có quyền chia sẻ nào' : 'No sharing permissions yet' }}
             </h3>
             <p class="mb-4">
-              {{ currentLang === 'vi' ? 'Bắt đầu chia sẻ ca bệnh này với đồng nghiệp của bạn' : 'Start sharing this case with your colleagues' }}
+              {{ currentLang === 'vi' ?
+                'Bắt đầu chia sẻ ca bệnh này với đồng nghiệp của bạn'
+                : 'Start sharing this case with your colleagues' }}
             </p>
             <Button @click="openShareModal('individual')">
               {{ currentLang === 'vi' ? 'Chia sẻ ngay' : 'Share Now' }}
@@ -190,7 +183,8 @@
                       {{ guest.access_count || 0 }} {{ currentLang === 'vi' ? 'lần truy cập' : 'accesses' }}
                     </span>
                     <Badge :variant="guest.is_expired ? 'secondary' : 'success'">
-                      {{ guest.is_expired ? (currentLang === 'vi' ? 'Hết hạn' : 'Expired') : (currentLang === 'vi' ? 'Hoạt động' : 'Active') }}
+                      {{ guest.is_expired ? (currentLang === 'vi' ? 'Hết hạn' : 'Expired') : (currentLang === 'vi' ?
+                        'Hoạt động' : 'Active') }}
                     </Badge>
                   </div>
                 </div>
@@ -236,7 +230,9 @@
               {{ currentLang === 'vi' ? 'Chưa chia sẻ ca bệnh nào' : 'No shared cases yet' }}
             </h3>
             <p class="mb-4">
-              {{ currentLang === 'vi' ? 'Bắt đầu chia sẻ ca bệnh của bạn với đồng nghiệp' : 'Start sharing your cases with colleagues' }}
+              {{ currentLang === 'vi' ?
+                'Bắt đầu chia sẻ ca bệnh của bạn với đồng nghiệp'
+                : 'Start sharing your cases with colleagues' }}
             </p>
           </div>
 
@@ -246,7 +242,7 @@
                 <div class="flex-1">
                   <h4 class="font-medium">{{ sharedCase.case_title }}</h4>
                   <p class="text-sm text-gray-600 mt-1">{{ sharedCase.case_description || 'No description' }}</p>
-                  
+
                   <!-- Permission Summary -->
                   <div class="flex items-center space-x-4 mt-3 text-sm">
                     <span class="flex items-center">
@@ -261,24 +257,21 @@
 
                   <!-- Permission Details -->
                   <div class="mt-3 space-y-2">
-                    <div v-for="perm in sharedCase.recent_permissions" :key="perm.id" class="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+                    <div v-for="perm in sharedCase.recent_permissions" :key="perm.id"
+                      class="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
                       <div class="flex items-center space-x-2">
                         <UserIcon v-if="perm.share_type === 'individual'" class="w-4 h-4 text-blue-500" />
                         <BuildingIcon v-else-if="perm.share_type === 'department'" class="w-4 h-4 text-green-500" />
                         <GlobeIcon v-else-if="perm.share_type === 'public'" class="w-4 h-4 text-purple-500" />
-                        
+
                         <span class="font-medium">{{ getPermissionDisplayName(perm) }}</span>
                         <Badge size="sm" :variant="getPermissionVariant(perm.permission_type)">
                           {{ getPermissionTypeText(perm.permission_type) }}
                         </Badge>
                       </div>
-                      
-                      <Button 
-                        @click="revokeSharedPermission(sharedCase.case_id, perm.id)" 
-                        size="sm" 
-                        variant="destructive"
-                        :disabled="perm.revoking"
-                      >
+
+                      <Button @click="revokeSharedPermission(sharedCase.case_id, perm.id)" size="sm"
+                        variant="destructive" :disabled="perm.revoking">
                         {{ perm.revoking ? '⏳' : '🗑️' }}
                       </Button>
                     </div>
@@ -286,11 +279,7 @@
                 </div>
 
                 <div class="ml-4">
-                  <Button 
-                    @click="viewCaseDetails(sharedCase.case_id)" 
-                    size="sm" 
-                    variant="outline"
-                  >
+                  <Button @click="viewCaseDetails(sharedCase.case_id)" size="sm" variant="outline">
                     {{ currentLang === 'vi' ? 'Xem chi tiết' : 'View Details' }}
                   </Button>
                 </div>
@@ -309,14 +298,14 @@
             </h4>
             <p class="text-2xl font-bold text-blue-600">{{ analytics.total_permissions || 0 }}</p>
           </div>
-          
+
           <div class="bg-green-50 p-4 rounded-lg">
             <h4 class="font-medium text-green-800 mb-2">
               {{ currentLang === 'vi' ? 'Khách mời hoạt động' : 'Active Guests' }}
             </h4>
             <p class="text-2xl font-bold text-green-600">{{ analytics.active_guests || 0 }}</p>
           </div>
-          
+
           <div class="bg-purple-50 p-4 rounded-lg">
             <h4 class="font-medium text-purple-800 mb-2">
               {{ currentLang === 'vi' ? 'Lượt truy cập trong tuần' : 'Weekly Access Count' }}
@@ -350,13 +339,8 @@
     </Tabs>
 
     <!-- Share Permission Modal -->
-    <SharePermissionModal
-      :open="showShareModal"
-      @update:open="(value: boolean) => showShareModal = value"
-      :case-id="caseId"
-      :share-type="shareType"
-      @permission-created="onPermissionCreated"
-    />
+    <SharePermissionModal :open="showShareModal" @update:open="(value: boolean) => showShareModal = value"
+      :case-id="caseId" :share-type="shareType" @permission-created="onPermissionCreated" />
   </div>
 </template>
 
@@ -452,7 +436,7 @@ const loadPermissions = async () => {
   try {
     const data = await sharingService.getCasePermissions(props.caseId)
     // Ensure we have valid permission objects with required properties
-    permissions.value = (Array.isArray(data) ? data : []).filter(p => 
+    permissions.value = (Array.isArray(data) ? data : []).filter(p =>
       p && typeof p === 'object' && typeof p.id === 'number'
     ).map(p => ({
       ...p,
@@ -534,7 +518,7 @@ const loadAuditLog = async () => {
 // UI Helper methods
 const getPermissionDisplayName = (permission: Permission | null | undefined) => {
   if (!permission) return 'Unknown'
-  
+
   switch (permission.share_type) {
     case 'individual':
       return permission.user_name || permission.user_email || 'Unknown User'
@@ -571,7 +555,7 @@ const getPermissionTypeText = (type: string) => {
 
 const getStatusText = (permission: Permission | null | undefined) => {
   if (!permission) return 'Unknown'
-  
+
   if (permission.is_expired) {
     return currentLang.value === 'vi' ? 'Hết hạn' : 'Expired'
   }
@@ -596,7 +580,7 @@ const formatDate = (dateString: string) => {
 
 // Modal management
 const openShareModal = (type: string) => {
-  if (['individual','department','public'].includes(type)) {
+  if (['individual', 'department', 'public'].includes(type)) {
     shareType.value = type as PanelShareType
   } else {
     console.warn('Invalid share type:', type)
@@ -644,7 +628,7 @@ const toggleSelectAll = () => {
 // Bulk operations
 const bulkRevokePermissions = async () => {
   if (selectedPermissions.value.length === 0) return
-  
+
   try {
     await sharingService.bulkRevokePermissions(props.caseId, selectedPermissions.value)
     selectedPermissions.value = []
@@ -660,7 +644,7 @@ const bulkRevokePermissions = async () => {
 const editPermission = (permission: Permission) => {
   editingPermission.value = permission
   // Map any unsupported types (e.g., class_group) to a safe fallback for modal
-  shareType.value = (['individual','department','public'].includes(permission.share_type)
+  shareType.value = (['individual', 'department', 'public'].includes(permission.share_type)
     ? permission.share_type
     : 'individual') as PanelShareType
   showShareModal.value = true
@@ -670,7 +654,7 @@ const deletePermission = async (permissionId: number) => {
   if (!confirm(currentLang.value === 'vi' ? 'Bạn có chắc muốn xóa quyền này?' : 'Are you sure you want to delete this permission?')) {
     return
   }
-  
+
   try {
     await sharingService.deletePermission(props.caseId, permissionId)
     loadPermissions()
@@ -700,7 +684,7 @@ const deleteGuestAccess = async (guestId: number) => {
   if (!confirm(currentLang.value === 'vi' ? 'Bạn có chắc muốn xóa truy cập khách này?' : 'Are you sure you want to delete this guest access?')) {
     return
   }
-  
+
   try {
     await sharingService.deleteGuestAccess(props.caseId, guestId)
     loadGuestAccesses()
@@ -726,12 +710,12 @@ const revokeSharedPermission = async (caseId: number, permissionId: number) => {
 
   try {
     await sharingService.deletePermission(caseId, permissionId)
-    
+
     // Remove the permission from the list
     if (sharedCase) {
       sharedCase.recent_permissions = sharedCase.recent_permissions.filter((p: any) => p.id !== permissionId)
       sharedCase.permission_count = Math.max(0, sharedCase.permission_count - 1)
-      
+
       // Remove case if no permissions left
       if (sharedCase.permission_count === 0) {
         mySharedCases.value = mySharedCases.value.filter(c => c.case_id !== caseId)

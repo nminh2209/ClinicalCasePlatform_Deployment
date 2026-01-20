@@ -228,7 +228,7 @@
         <!-- Student Notes Section -->
         <section class="info-section student-notes-section" v-if="caseData.student_notes">
           <h3 class="section-title">📝 Ghi chú của sinh viên</h3>
-          
+
           <!-- Clinical Assessment -->
           <div v-if="caseData.student_notes.clinical_assessment" class="note-subsection">
             <h4>Đánh giá lâm sàng</h4>
@@ -272,6 +272,38 @@
           </div>
         </section>
 
+        <!-- Medical Attachments Section -->
+        <section class="info-section" v-if="caseData.medical_attachments && caseData.medical_attachments.length > 0">
+          <h3>📎 Tệp đính kèm ({{ caseData.medical_attachments.length }})</h3>
+          <div class="attachments-list">
+            <div v-for="attachment in caseData.medical_attachments" :key="attachment.id" class="attachment-item">
+              <div class="attachment-icon">
+                <span v-if="attachment.file_type?.includes('pdf')">📄</span>
+                <span v-else-if="attachment.file_type?.includes('image')">🖼️</span>
+                <span v-else>📎</span>
+              </div>
+              <div class="attachment-info">
+                <div class="attachment-title">{{ attachment.title }}</div>
+                <div class="attachment-meta">
+                  <span class="attachment-type">{{ attachment.attachment_type_display || attachment.attachment_type
+                    }}</span>
+                  <span v-if="attachment.file_size" class="attachment-size">{{ formatFileSize(attachment.file_size)
+                    }}</span>
+                  <span v-if="attachment.uploaded_by_name" class="attachment-uploader">{{ attachment.uploaded_by_name
+                    }}</span>
+                </div>
+                <div v-if="attachment.description" class="attachment-description">{{ attachment.description }}</div>
+              </div>
+              <div class="attachment-actions">
+                <a :href="getFileUrl(attachment.file)" target="_blank" class="btn-attachment-download"
+                  title="Tải xuống">
+                  ⬇️
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Comments Section -->
         <section class="info-section">
           <h3>Bình luận ({{ comments.length }})</h3>
@@ -290,12 +322,7 @@
 
           <!-- Add Comment Form -->
           <div class="add-comment">
-            <textarea 
-              v-model="newComment" 
-              placeholder="Viết bình luận..."
-              rows="3"
-              class="comment-input"
-            ></textarea>
+            <textarea v-model="newComment" placeholder="Viết bình luận..." rows="3" class="comment-input"></textarea>
             <button @click="submitComment" :disabled="!newComment.trim()" class="submit-btn">
               Gửi bình luận
             </button>
@@ -304,6 +331,10 @@
       </div>
 
       <div class="modal-footer">
+        <button @click="exportPDF" class="btn-primary" :disabled="exportingPDF">
+          <span v-if="exportingPDF">⏳ Đang tạo PDF...</span>
+          <span v-else>📥 Xuất PDF</span>
+        </button>
         <button @click="close" class="btn-secondary">Đóng</button>
       </div>
     </div>
@@ -330,6 +361,7 @@ const comments = ref<any[]>([]);
 const loading = ref(false);
 const error = ref('');
 const newComment = ref('');
+const exportingPDF = ref(false);
 
 watch(() => props.isOpen, async (isOpen) => {
   if (isOpen && props.caseId) {
@@ -358,10 +390,11 @@ const loadCaseDetails = async () => {
   loading.value = true;
   error.value = '';
   try {
-    // Use the public feed endpoint which includes all necessary fields
-    const response = await api.get(`/cases/public-feed/${props.caseId}/`);
+    // Use the regular case detail endpoint which includes medical_attachments
+    const response = await api.get(`/cases/${props.caseId}/`);
     caseData.value = response.data;
     console.log('📋 Case data loaded:', response.data);
+    console.log('📎 Attachments:', response.data.medical_attachments?.length || 0);
     console.log('📝 Has clinical_history:', !!response.data.clinical_history);
     console.log('🔬 Has physical_examination:', !!response.data.physical_examination);
     console.log('🧪 Has detailed_investigations:', !!response.data.detailed_investigations);
@@ -380,18 +413,18 @@ const loadComments = async () => {
     console.warn('Cannot load comments: caseId is null');
     return;
   }
-  
+
   try {
     console.log(`💬 Loading comments for case ${props.caseId}...`);
     // Filter comments by case_id and exclude reactions
     const response = await api.get(`/comments/?case=${props.caseId}&is_reaction=false`);
     const loadedComments = response.data.results || response.data;
-    
+
     // Extra safety: filter by case ID on frontend too
-    const filteredComments = Array.isArray(loadedComments) 
+    const filteredComments = Array.isArray(loadedComments)
       ? loadedComments.filter(c => c.case === props.caseId)
       : [];
-    
+
     comments.value = filteredComments;
     console.log(`✅ Loaded ${filteredComments.length} comments for case ${props.caseId}`);
   } catch (err: any) {
@@ -456,6 +489,51 @@ const formatCommentDate = (dateString: string) => {
   if (days < 7) return `${days} ngày trước`;
 
   return date.toLocaleDateString('vi-VN');
+};
+
+const formatFileSize = (bytes: number): string => {
+  if (!bytes) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
+
+const getFileUrl = (filePath: string): string => {
+  // If it's already a full URL, return as-is
+  if (filePath.startsWith('http')) return filePath;
+  // Otherwise prepend the API base URL
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  return `${baseUrl}${filePath}`;
+};
+
+const exportPDF = async () => {
+  if (!props.caseId) return;
+
+  exportingPDF.value = true;
+  try {
+    // Use the case export PDF endpoint (ReportLab-based)
+    const response = await api.get(`/cases/${props.caseId}/export_pdf/`, {
+      responseType: 'blob'
+    });
+
+    // Open PDF in new tab for preview instead of downloading
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+
+    // Clean up the URL after a delay
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 100);
+
+    toast.success('Đã mở PDF trong tab mới!');
+  } catch (err: any) {
+    console.error('PDF export failed:', err);
+    toast.error('Không thể tạo PDF. Vui lòng thử lại.');
+  } finally {
+    exportingPDF.value = false;
+  }
 };
 </script>
 
@@ -714,6 +792,28 @@ const formatCommentDate = (dateString: string) => {
   gap: 12px;
 }
 
+.btn-primary {
+  padding: 10px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .btn-secondary {
   padding: 10px 20px;
   background: #f3f4f6;
@@ -728,6 +828,104 @@ const formatCommentDate = (dateString: string) => {
 
 .btn-secondary:hover {
   background: #e5e7eb;
+}
+
+/* Attachments Section */
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.attachment-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.attachment-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.attachment-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.attachment-title {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.attachment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.attachment-type {
+  padding: 2px 8px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.attachment-size,
+.attachment-uploader {
+  padding: 2px 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.attachment-description {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.attachment-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-attachment-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.btn-attachment-download:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {

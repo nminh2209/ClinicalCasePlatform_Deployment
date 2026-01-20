@@ -20,11 +20,26 @@ const authStore = useAuthStore();
 const route = useRoute();
 
 // Pages that should NOT show the layout (sidebar/topbar)
-const noLayoutPages = ["/", "/login"];
+const noLayoutPages = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+];
 
-// Show layout for all authenticated pages, hide for login/landing
+// Show layout for all authenticated pages, hide for login/landing/auth pages
 const showLayout = computed(() => {
-  return !noLayoutPages.includes(route.path);
+  // Check exact path match
+  if (noLayoutPages.includes(route.path)) {
+    return false;
+  }
+
+  // Check path prefix for dynamic routes (password reset, OAuth callbacks)
+  if (route.path.startsWith("/reset-password/") || route.path.startsWith("/auth/")) {
+    return false;
+  }
+
+  return true;
 });
 
 onMounted(() => {
@@ -232,11 +247,9 @@ body {
 }
 
 .medical-header {
-  background: linear-gradient(
-    135deg,
-    var(--primary-blue) 0%,
-    var(--primary-blue-dark) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--primary-blue) 0%,
+      var(--primary-blue-dark) 100%);
 }
 
 /* Responsive Typography */

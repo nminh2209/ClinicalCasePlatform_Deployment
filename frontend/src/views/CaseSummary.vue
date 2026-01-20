@@ -3,14 +3,15 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Bệnh án tổng hợp</h1>
+        <h1 class="text-xl font-bold text-gray-900">Bệnh án tổng hợp</h1>
         <p class="text-gray-600 mt-1">Tổng quan và phân tích các ca bệnh của bạn</p>
       </div>
-      <Button variant="outline" @click="refreshData">
+      <Button variant="outline" @click="refreshData" class="bg-white hover:bg-blue-800 hover:text-white">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        Làm mới
+        <p>Làm mới</p>
       </Button>
     </div>
 
@@ -24,8 +25,8 @@
       <!-- Statistics Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Total Cases -->
-        <Card>
-          <CardContent class="p-6">
+        <Card class="bg-white hover:drop-shadow-lg transition">
+          <CardContent class="p-6 mt-6">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-gray-600">Tổng số ca bệnh</p>
@@ -33,7 +34,8 @@
               </div>
               <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
             </div>
@@ -41,8 +43,8 @@
         </Card>
 
         <!-- Completion Rate -->
-        <Card>
-          <CardContent class="p-6">
+        <Card class="bg-white hover:drop-shadow-lg transition">
+          <CardContent class="p-6 mt-6">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-gray-600">Tỷ lệ hoàn thành</p>
@@ -50,7 +52,8 @@
               </div>
               <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
@@ -58,8 +61,8 @@
         </Card>
 
         <!-- Study Hours -->
-        <Card>
-          <CardContent class="p-6">
+        <Card class="bg-white hover:drop-shadow-lg transition">
+          <CardContent class="p-6 mt-6">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-gray-600">Tổng giờ học</p>
@@ -67,7 +70,8 @@
               </div>
               <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
@@ -75,16 +79,18 @@
         </Card>
 
         <!-- This Week -->
-        <Card>
-          <CardContent class="p-6">
+        <Card class="bg-white hover:drop-shadow-lg transition">
+          <CardContent class="p-6 mt-6">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-gray-600">Ca bệnh tuần này</p>
-                <p class="text-3xl font-bold text-orange-600 mt-2">{{ summary.learning_metrics.cases_created_this_week }}</p>
+                <p class="text-3xl font-bold text-orange-600 mt-2">{{ summary.learning_metrics.cases_created_this_week
+                  }}</p>
               </div>
               <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                 <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
             </div>
@@ -95,9 +101,9 @@
       <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Status Distribution -->
-        <Card>
+        <Card class="bg-white hover:drop-shadow-lg transition">
           <CardHeader>
-            <CardTitle>Phân bố theo trạng thái</CardTitle>
+            <p class="text-xl font-bold">Phân bố theo trạng thái</p>
           </CardHeader>
           <CardContent>
             <div class="space-y-3">
@@ -108,11 +114,8 @@
                 </div>
                 <div class="flex items-center gap-2">
                   <div class="w-32 bg-gray-200 rounded-full h-2">
-                    <div 
-                      class="h-2 rounded-full transition-all"
-                      :class="getStatusBarClass(key)"
-                      :style="{ width: status.percentage + '%' }"
-                    ></div>
+                    <div class="h-2 rounded-full transition-all" :class="getStatusBarClass(key)"
+                      :style="{ width: status.percentage + '%' }"></div>
                   </div>
                   <span class="text-sm font-medium text-gray-700 w-12 text-right">{{ status.percentage }}%</span>
                 </div>
@@ -122,16 +125,18 @@
         </Card>
 
         <!-- Top Specialties -->
-        <Card>
+        <Card class="bg-white hover:drop-shadow-lg transition">
           <CardHeader>
-            <CardTitle>Chuyên khoa hàng đầu</CardTitle>
+            <p class="text-xl font-bold">Chuyên khoa hàng đầu</p>
           </CardHeader>
           <CardContent>
             <div class="space-y-3">
-              <div v-for="(item, index) in summary.top_specialties" :key="index" class="flex items-center justify-between">
+              <div v-for="(item, index) in summary.top_specialties" :key="index"
+                class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
-                    {{ index + 1 }}
+                  <span
+                    class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                    {{ Number(index) + 1 }}
                   </span>
                   <span class="text-sm font-medium text-gray-700">{{ item.specialty }}</span>
                 </div>
@@ -145,19 +150,21 @@
         </Card>
 
         <!-- Priority Distribution -->
-        <Card>
+        <Card class="bg-white hover:drop-shadow-lg transition">
           <CardHeader>
-            <CardTitle>Phân bố mức độ ưu tiên</CardTitle>
+            <p class="text-xl font-bold">Phân bố mức độ ưu tiên</p>
           </CardHeader>
           <CardContent>
             <div class="space-y-3">
-              <div v-for="(count, priority) in summary.by_priority" :key="priority" class="flex items-center justify-between">
+              <div v-for="(count, priority) in summary.by_priority" :key="priority"
+                class="flex items-center justify-between">
                 <Badge :class="getPriorityBadgeClass(priority)">
                   {{ getPriorityLabel(priority) }}
                 </Badge>
-                <span class="text-sm font-medium text-gray-700">{{ count }} ca</span>
+                <span class="text-sm font-medium text-gray-600">{{ count }} ca</span>
               </div>
-              <div v-if="!summary.by_priority || Object.keys(summary.by_priority).length === 0" class="text-center text-gray-500 py-4">
+              <div v-if="!summary.by_priority || Object.keys(summary.by_priority).length === 0"
+                class="text-center text-gray-500 py-4">
                 Chưa có dữ liệu mức độ ưu tiên
               </div>
             </div>
@@ -165,19 +172,21 @@
         </Card>
 
         <!-- Complexity Distribution -->
-        <Card>
+        <Card class="bg-white hover:drop-shadow-lg transition">
           <CardHeader>
-            <CardTitle>Phân bố mức độ phức tạp</CardTitle>
+            <p class="text-xl font-bold">Phân bố mức độ phức tạp</p>
           </CardHeader>
           <CardContent>
             <div class="space-y-3">
-              <div v-for="(count, complexity) in summary.by_complexity" :key="complexity" class="flex items-center justify-between">
+              <div v-for="(count, complexity) in summary.by_complexity" :key="complexity"
+                class="flex items-center justify-between">
                 <Badge :class="getComplexityBadgeClass(complexity)">
                   {{ getComplexityLabel(complexity) }}
                 </Badge>
-                <span class="text-sm font-medium text-gray-700">{{ count }} ca</span>
+                <span class="text-sm font-medium text-gray-600">{{ count }} ca</span>
               </div>
-              <div v-if="!summary.by_complexity || Object.keys(summary.by_complexity).length === 0" class="text-center text-gray-500 py-4">
+              <div v-if="!summary.by_complexity || Object.keys(summary.by_complexity).length === 0"
+                class="text-center text-gray-500 py-4">
                 Chưa có dữ liệu mức độ phức tạp
               </div>
             </div>
@@ -186,18 +195,15 @@
       </div>
 
       <!-- Recent Cases -->
-      <Card>
+      <Card class="bg-white hover:drop-shadow-lg transition">
         <CardHeader>
-          <CardTitle>Ca bệnh gần đây</CardTitle>
+          <p class="text-xl font-bold">Ca bệnh gần đây</p>
         </CardHeader>
         <CardContent>
           <div class="space-y-3">
-            <div 
-              v-for="caseItem in summary.recent_cases" 
-              :key="caseItem.id"
+            <div v-for="caseItem in summary.recent_cases" :key="caseItem.id"
               class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-              @click="viewCase(caseItem.id)"
-            >
+              @click="viewCase(caseItem.id)">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
                   <h4 class="font-medium text-gray-900">{{ caseItem.title }}</h4>
@@ -328,45 +334,45 @@ const getComplexityBadgeClass = (complexity: string | number) => {
 const fetchSummary = async () => {
   loading.value = true
   error.value = ''
-  
+
   try {
     // Use the new backend statistics API
     const response = await casesService.getCaseSummaryStatistics()
-    
+
     // Extract daily trends data from backend response
     const dailyTrends = response.trends?.last_30_days?.daily || []
     const recentWeekCount = dailyTrends.slice(-7).reduce((sum: number, day: any) => sum + (day.count || 0), 0)
-    
+
     // Convert status distribution to object format with percentage calculation
     const statusObj: any = {}
     const totalCases = response.summary?.total_cases || 1
     response.distributions?.by_status?.forEach((item: any) => {
       const percentage = Math.round((item.count / totalCases) * 100)
-      statusObj[item.case_status] = { 
-        count: item.count, 
+      statusObj[item.case_status] = {
+        count: item.count,
         label: getStatusLabel(item.case_status),
         percentage: percentage
       }
     })
-    
+
     // Convert priority distribution to object format
     const priorityObj: any = {}
     response.distributions?.by_priority?.forEach((item: any) => {
       priorityObj[item.priority_level] = item.count
     })
-    
+
     // Convert complexity distribution to object format
     const complexityObj: any = {}
     response.distributions?.by_complexity?.forEach((item: any) => {
       complexityObj[item.complexity_level] = item.count
     })
-    
+
     // Get top specialties (sorted by count, limit to 5)
     const topSpecialties = (response.distributions?.by_specialty || [])
       .sort((a: any, b: any) => b.count - a.count)
       .slice(0, 5)
       .map((item: any) => ({ specialty: item.specialty, count: item.count }))
-    
+
     // Transform backend response to match component expectations
     summary.value = {
       total_cases: response.summary?.total_cases || 0,
@@ -388,7 +394,7 @@ const fetchSummary = async () => {
       department_performance: response.distributions?.by_department || [],
       recent_cases: [] // Will fetch separately if needed
     }
-    
+
     console.log('Case summary loaded:', summary.value)
   } catch (err: any) {
     error.value = err.response?.data?.detail || 'Không thể tải dữ liệu tổng hợp'
@@ -408,10 +414,10 @@ const viewCase = (caseId: number) => {
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
-  return date.toLocaleDateString('vi-VN', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  return date.toLocaleDateString('vi-VN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   })
 }
 

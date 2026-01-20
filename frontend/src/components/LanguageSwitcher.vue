@@ -1,27 +1,17 @@
 <template>
   <div class="language-switcher">
     <div class="language-toggle">
-      <button 
-        @click="setLanguage('vi')"
-        :class="['lang-button', { active: currentLanguage === 'vi' }]"
-        type="button"
-      >
-        <span class="flag">🇻🇳</span>
+      <button @click="setLanguage('vi')" :class="['lang-button', { active: currentLanguage === 'vi' }]" type="button">
         <span class="lang-text">VI</span>
       </button>
-      <button 
-        @click="setLanguage('en')"
-        :class="['lang-button', { active: currentLanguage === 'en' }]"
-        type="button"
-      >
-        <span class="flag">🇺🇸</span>
+      <button @click="setLanguage('en')" :class="['lang-button', { active: currentLanguage === 'en' }]" type="button">
         <span class="lang-text">EN</span>
       </button>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">  
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useLanguage } from '@/composables/useLanguage'
 
@@ -78,11 +68,6 @@ watch(currentLang, (newLang) => {
   background: white;
   color: #1f2937;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.flag {
-  font-size: 1.125rem;
-  line-height: 1;
 }
 
 .lang-text {

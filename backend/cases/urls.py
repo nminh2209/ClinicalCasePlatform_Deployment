@@ -1,63 +1,79 @@
-from django.urls import path, include
+# cases/urls.py
+
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import (
-    CaseListCreateView,
-    CaseDetailView,
-    CasePermissionListCreateView,
-    MedicalAttachmentListCreateView,
-    MedicalAttachmentDetailView,
-    StudentNotesListCreateView,
-    StudentNotesDetailView,
-    DepartmentListCreateView,
-    DepartmentDetailView,
-    submit_case_for_review,
-    review_case,
-    approve_case,
-    reject_case,
-    revoke_case_permission,
-    check_case_permission,
-    # Enhanced permission management views
-    EnhancedCasePermissionViewSet,
-    GuestAccessViewSet,
-    # CaseGroupViewSet, # Now imported in main urls.py
-    guest_access_case,
-    my_shared_cases,
-    accessible_cases,
-    cleanup_expired_permissions,
-    MedicalTermListCreateView,
-    MedicalTermRetrieveUpdateDestroyView,
-    MedicalTermAutocompleteView,
-    ICD10ListView,
-    AbbreviationListCreateView,
-    case_summary_view,
+
+# Specialty API ViewSet
+from .specialty_views import (
+    SpecialtyViewSet,
+    CasePriorityLevelViewSet,
+    CaseComplexityLevelViewSet,
 )
+
+# PDF Export
+from .pdf_views import export_case_pdf
 
 # Public Feed Views
 from .feed_views import (
-    PublicFeedListView,
     PublicFeedDetailView,
+    PublicFeedListView,
+    feed_statistics,
+    get_case_reactions,
     publish_to_feed,
-    unpublish_from_feed,
     react_to_case,
     remove_reaction,
-    get_case_reactions,
-    feed_statistics,
+    unpublish_from_feed,
 )
 
 # Case Summarization Views
 from .summary_views import (
-    case_summary_statistics,
     case_summary_list,
+    case_summary_statistics,
     export_case_summary,
 )
+from .views import (
+    AbbreviationListCreateView,
+    CaseCloneView,
+    CaseDetailView,
+    CaseListCreateView,
+    CasePermissionListCreateView,
+    DepartmentDetailView,
+    DepartmentListCreateView,
+    # Enhanced permission management views
+    EnhancedCasePermissionViewSet,
+    GuestAccessViewSet,
+    ICD10ListView,
+    InstructorCaseAuditLogView,
+    # New Instructor Views
+    InstructorCaseCreateView,
+    MedicalAttachmentDetailView,
+    MedicalAttachmentListCreateView,
+    MedicalTermAutocompleteView,
+    MedicalTermListCreateView,
+    MedicalTermRetrieveUpdateDestroyView,
+    StudentNotesDetailView,
+    StudentNotesListCreateView,
+    accessible_cases,
+    approve_case,
+    case_summary_view,
+    check_case_permission,
+    cleanup_expired_permissions,
+    # CaseGroupViewSet, # Now imported in main urls.py
+    guest_access_case,
+    my_shared_cases,
+    reject_case,
+    review_case,
+    revoke_case_permission,
+    submit_case_for_review,
+)
 
-# Router for ViewSets - case-groups now handled at main level
-# router = DefaultRouter()
-# router.register(r'case-groups', CaseGroupViewSet, basename='case-groups')
+# Router for ViewSets
+router = DefaultRouter()
+router.register(r'specialties', SpecialtyViewSet, basename='specialty')
+router.register(r'priority-levels', CasePriorityLevelViewSet, basename='priority-level')
+router.register(r'complexity-levels', CaseComplexityLevelViewSet, basename='complexity-level')
 
 urlpatterns = [
-    # Include router URLs - removed case-groups (now at main level)
-    # path('', include(router.urls)),
     # Departments
     path("departments/", DepartmentListCreateView.as_view(), name="department-list"),
     path(
@@ -68,6 +84,17 @@ urlpatterns = [
     # Case CRUD
     path("", CaseListCreateView.as_view(), name="case-list-create"),
     path("<int:pk>/", CaseDetailView.as_view(), name="case-detail"),
+    path("<int:pk>/export_pdf/", export_case_pdf, name="case-export-pdf"),
+    # Instructor Template Features
+    path(
+        "instructor/", InstructorCaseCreateView.as_view(), name="instructor-case-create"
+    ),
+    path("<int:pk>/clone/", CaseCloneView.as_view(), name="case-clone"),
+    path(
+        "instructor/audit-log/",
+        InstructorCaseAuditLogView.as_view(),
+        name="instructor-case-audit-log",
+    ),
     # Enhanced Permission Management System
     # Case Permissions (Enhanced)
     path(
@@ -203,21 +230,29 @@ urlpatterns = [
         AbbreviationListCreateView.as_view(),
         name="terminology-abbreviations",
     ),
-    
     # Public Feed / Social Media endpoints
     path("public-feed/", PublicFeedListView.as_view(), name="public-feed-list"),
-    path("public-feed/<int:pk>/", PublicFeedDetailView.as_view(), name="public-feed-detail"),
+    path(
+        "public-feed/<int:pk>/",
+        PublicFeedDetailView.as_view(),
+        name="public-feed-detail",
+    ),
     path("<int:pk>/publish-to-feed/", publish_to_feed, name="publish-to-feed"),
-    path("<int:pk>/unpublish-from-feed/", unpublish_from_feed, name="unpublish-from-feed"),
+    path(
+        "<int:pk>/unpublish-from-feed/", unpublish_from_feed, name="unpublish-from-feed"
+    ),
     path("<int:pk>/react/", react_to_case, name="react-to-case"),
     path("<int:pk>/reactions/", get_case_reactions, name="case-reactions"),
     path("feed-statistics/", feed_statistics, name="feed-statistics"),
-    
     # Case Summary / Analytics
     path("summary/", case_summary_view, name="case-summary"),
-    
     # Case Summarization & Aggregation API (NEW)
-    path("summary/statistics/", case_summary_statistics, name="case-summary-statistics"),
+    path(
+        "summary/statistics/", case_summary_statistics, name="case-summary-statistics"
+    ),
     path("summary/list/", case_summary_list, name="case-summary-list"),
     path("summary/export/", export_case_summary, name="case-summary-export"),
+    
+    # Include router URLs for specialties (at the end to avoid conflicts)
+    path('', include(router.urls)),
 ]

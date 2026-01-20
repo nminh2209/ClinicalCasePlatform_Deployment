@@ -1,12 +1,15 @@
 <template>
-  <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click="$emit('update:open', false)">
+  <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    @click="$emit('update:open', false)">
     <div class="bg-white rounded-lg p-6 w-full max-w-md m-4" @click.stop>
       <div class="mb-4">
         <h2 class="text-xl font-bold">
           {{ currentLang === 'vi' ? 'Cấp quyền truy cập' : 'Grant Access Permission' }}
         </h2>
         <p class="text-gray-600">
-          {{ currentLang === 'vi' ? 'Chia sẻ ca bệnh này với người dùng hoặc nhóm' : 'Share this case with users or groups' }}
+          {{ currentLang === 'vi' ?
+            'Chia sẻ ca bệnh này với người dùng hoặc nhóm'
+            : 'Share this case with users or groups' }}
         </p>
       </div>
 
@@ -36,30 +39,23 @@
               {{ currentLang === 'vi' ? 'Người dùng' : 'User' }}
             </label>
             <div class="relative">
-              <input 
-                v-model="form.searchQuery" 
-                type="text"
-                class="w-full border rounded-md p-2"
+              <input v-model="form.searchQuery" type="text" class="w-full border rounded-md p-2"
                 :placeholder="form.selectedUser ? form.selectedUser.full_name : (currentLang === 'vi' ? 'Tìm kiếm giảng viên...' : 'Search instructors...')"
-                autocomplete="off"
-                @focus="showSearchResults = true"
-                @blur="hideSearchResults"
-              />
+                autocomplete="off" @focus="showSearchResults = true" @blur="hideSearchResults" />
               <!-- Search Results Dropdown -->
-              <div v-if="showSearchResults && !form.selectedUser && searchResults.length > 0" class="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-40 overflow-y-auto">
-                <div 
-                  v-for="user in searchResults" 
-                  :key="user.id"
-                  @click="selectUser(user)"
-                  class="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
-                >
+              <div v-if="showSearchResults && !form.selectedUser && searchResults.length > 0"
+                class="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-40 overflow-y-auto">
+                <div v-for="user in searchResults" :key="user.id" @click="selectUser(user)"
+                  class="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0">
                   <div class="font-medium">{{ user.full_name }}</div>
                   <div class="text-sm text-gray-500">{{ user.email }}</div>
                   <div class="text-xs text-gray-400">{{ user.department }}</div>
                 </div>
               </div>
               <!-- No Results Message -->
-              <div v-else-if="showSearchResults && !form.selectedUser && form.searchQuery.length >= 2 && searchResults.length === 0" class="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg">
+              <div
+                v-else-if="showSearchResults && !form.selectedUser && form.searchQuery.length >= 2 && searchResults.length === 0"
+                class="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg">
                 <div class="p-3 text-gray-500 text-center">
                   {{ currentLang === 'vi' ? 'Không tìm thấy người dùng nào' : 'No users found' }}
                 </div>
@@ -71,11 +67,7 @@
                 <span class="font-medium">{{ currentLang === 'vi' ? 'Đã chọn:' : 'Selected:' }}</span>
                 {{ form.selectedUser.full_name }} ({{ form.selectedUser.email }})
               </div>
-              <button 
-                type="button" 
-                @click="clearSelectedUser" 
-                class="text-red-500 hover:text-red-700 ml-2"
-              >
+              <button type="button" @click="clearSelectedUser" class="text-red-500 hover:text-red-700 ml-2">
                 ✕
               </button>
             </div>
@@ -94,7 +86,9 @@
                     {{ userDepartment?.vietnamese_name || userDepartment?.name || 'Unknown Department' }}
                   </div>
                   <div class="text-sm text-blue-600">
-                    {{ currentLang === 'vi' ? 'Tất cả sinh viên trong khôa này sẽ có thể xem ca bệnh' : 'All students in this department will be able to view the case' }}
+                    {{ currentLang === 'vi' ?
+                      'Tất cả sinh viên trong khoa này sẽ có thể xem ca bệnh'
+                      : 'All students in this department will be able to view the case ' }}
                   </div>
                 </div>
               </div>
@@ -127,12 +121,8 @@
             <label class="block text-sm font-medium mb-1">
               {{ currentLang === 'vi' ? 'Ngày hết hạn (tuỳ chọn)' : 'Expiry Date (Optional)' }}
             </label>
-            <input 
-              type="datetime-local" 
-              v-model="form.expiresAt"
-              class="w-full border rounded-md p-2"
-              :min="new Date().toISOString().slice(0, 16)"
-            />
+            <input type="datetime-local" v-model="form.expiresAt" class="w-full border rounded-md p-2"
+              :min="new Date().toISOString().slice(0, 16)" />
           </div>
 
           <!-- Custom Message -->
@@ -140,28 +130,20 @@
             <label class="block text-sm font-medium mb-1">
               {{ currentLang === 'vi' ? 'Tin nhắn (tuỳ chọn)' : 'Message (Optional)' }}
             </label>
-            <textarea 
-              v-model="form.message"
-              class="w-full border rounded-md p-2"
+            <textarea v-model="form.message" class="w-full border rounded-md p-2"
               :placeholder="currentLang === 'vi' ? 'Thêm tin nhắn cho người nhận...' : 'Add a message for the recipient...'"
-              rows="3"
-            ></textarea>
+              rows="3"></textarea>
           </div>
         </div>
 
         <div class="flex justify-end space-x-2 mt-6">
-          <button 
-            type="button" 
-            class="px-4 py-2 border rounded-md hover:bg-gray-50"
-            @click="$emit('update:open', false)"
-          >
+          <button type="button" class="px-4 py-2 border rounded-md hover:bg-gray-50"
+            @click="$emit('update:open', false)">
             {{ currentLang === 'vi' ? 'Huỷ' : 'Cancel' }}
           </button>
-          <button 
-            type="submit" 
+          <button type="submit"
             class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-            :disabled="!canSubmit || loading"
-          >
+            :disabled="!canSubmit || loading">
             <span v-if="loading">⏳</span>
             {{ currentLang === 'vi' ? 'Cấp quyền' : 'Grant Access' }}
           </button>
@@ -330,7 +312,7 @@ const loadDepartments = async () => {
   if (departments.value.length > 0) {
     return
   }
-  
+
   try {
     const list = await sharingService.getDepartments({
       ordering: 'name',
@@ -341,8 +323,8 @@ const loadDepartments = async () => {
     console.error('Failed to load departments:', error)
     departments.value = []
     toast.toast.error(
-      currentLang.value === 'vi' 
-        ? 'Không thể tải danh sách khoa' 
+      currentLang.value === 'vi'
+        ? 'Không thể tải danh sách khoa'
         : 'Failed to load departments'
     )
   }
@@ -358,9 +340,9 @@ const loadUserDepartment = async () => {
     // Get current user's profile to find their department
     const response = await api.get('/auth/profile/')
     const user = response.data
-    
+
     console.log('User profile:', user) // Debug log
-    
+
     if (user.department) {
       // Handle both ID reference and nested object
       if (typeof user.department === 'object') {
@@ -370,21 +352,21 @@ const loadUserDepartment = async () => {
         const departments = await sharingService.getDepartments()
         userDepartment.value = departments.find((dept: Department) => dept.id === user.department)
       }
-      
+
       console.log('User department set:', userDepartment.value) // Debug log
     } else {
       console.warn('User has no department assigned')
       toast.toast.error(
-        currentLang.value === 'vi' 
-          ? 'Bạn chưa được phân vào khôa nào' 
+        currentLang.value === 'vi'
+          ? 'Bạn chưa được phân vào khôa nào'
           : 'You are not assigned to any department'
       )
     }
   } catch (error) {
     console.error('Failed to load user department:', error)
     toast.toast.error(
-      currentLang.value === 'vi' 
-        ? 'Không thể tải thông tin khôa' 
+      currentLang.value === 'vi'
+        ? 'Không thể tải thông tin khôa'
         : 'Failed to load department information'
     )
   }
@@ -405,7 +387,7 @@ const searchUsers = async () => {
         page_size: 10 // Limit results for performance
       }
     })
-    
+
     // Handle paginated response
     const users = Array.isArray(response.data) ? response.data : response.data.results || []
     searchResults.value = users.map((user: any) => ({
@@ -418,8 +400,8 @@ const searchUsers = async () => {
     console.error('Failed to search users:', error)
     searchResults.value = []
     toast.toast.error(
-      currentLang.value === 'vi' 
-        ? 'Không thể tìm kiếm người dùng' 
+      currentLang.value === 'vi'
+        ? 'Không thể tìm kiếm người dùng'
         : 'Failed to search users'
     )
   }
@@ -452,32 +434,32 @@ const handleSubmit = async () => {
     // For department sharing, we'll share with all students in that department
     // The backend should handle creating individual permissions for each student
     const permission = await sharingService.createPermission(props.caseId, permissionData)
-    
+
     let successMessage = ''
     if (form.value.shareType === 'department') {
       const deptName = userDepartment.value ? (currentLang.value === 'vi' ? userDepartment.value.vietnamese_name || userDepartment.value.name : userDepartment.value.name) : 'department'
-      successMessage = currentLang.value === 'vi' 
-        ? `Đã chia sẻ với tất cả sinh viên trong khôa ${deptName}!` 
+      successMessage = currentLang.value === 'vi'
+        ? `Đã chia sẻ với tất cả sinh viên trong khôa ${deptName}!`
         : `Shared with all students in ${deptName} department!`
     } else if (form.value.shareType === 'public') {
-      successMessage = currentLang.value === 'vi' 
-        ? 'Ca bệnh đã được công khai!' 
+      successMessage = currentLang.value === 'vi'
+        ? 'Ca bệnh đã được công khai!'
         : 'Case has been made public!'
     } else {
       const userName = form.value.selectedUser?.full_name || 'user'
-      successMessage = currentLang.value === 'vi' 
-        ? `Đã chia sẻ với ${userName}!` 
+      successMessage = currentLang.value === 'vi'
+        ? `Đã chia sẻ với ${userName}!`
         : `Shared with ${userName}!`
     }
-    
+
     toast.toast.success(successMessage)
-    
+
     emit('permission-created', permission)
     emit('update:open', false)
   } catch (error: any) {
     console.error('Failed to create permission:', error)
     console.error('Error response:', error.response?.data) // Additional debug info
-    
+
     let errorMessage = ''
     if (error.response?.data?.error) {
       errorMessage = error.response.data.error
@@ -486,11 +468,11 @@ const handleSubmit = async () => {
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message
     } else {
-      errorMessage = currentLang.value === 'vi' 
-        ? 'Không thể cấp quyền truy cập' 
+      errorMessage = currentLang.value === 'vi'
+        ? 'Không thể cấp quyền truy cập'
         : 'Failed to grant access permission'
     }
-    
+
     toast.toast.error(errorMessage)
   } finally {
     loading.value = false

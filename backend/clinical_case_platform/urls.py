@@ -73,13 +73,16 @@ urlpatterns = [
     # API endpoints
     path("api/auth/", include("accounts.urls")),
     path("api/cases/", include("cases.urls")),
-    path("api/templates/", include("templates.urls")),
     path("api/repositories/", include("repositories.urls")),
     path("api/comments/", include("comments.urls")),
     path("api/feedback/", include("feedback.urls")),
     path("api/exports/", include("exports.urls")),
     path("api/grades/", include("grades.urls")),
     path("api/notifications/", include("notifications.urls")),
+    path("api/ocr/", include("ai.ocr.urls")),
+    path("api/inquiries/", include("inquiries.urls")),
+    # ASR (Speech Recognition) URLs
+    path("api/asr/", include("ai.asr.urls")),
     # Analytics URLs
     path("api/", include("cases.analytics_urls")),
     # Validation URLs

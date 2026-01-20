@@ -19,6 +19,15 @@
         @change="handleFileSelect" />
     </div>
 
+    <!-- OCR Processing Status -->
+    <div v-if="ocrProcessing" class="bg-blue-50 p-4 rounded-lg flex items-center gap-3">
+      <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-blue-800">Đang xử lý OCR...</p>
+        <p class="text-xs text-blue-600">Đang trích xuất văn bản từ tài liệu của bạn</p>
+      </div>
+    </div>
+
     <!-- Attachments List -->
     <div v-if="loading" class="text-center py-8">
       <p class="text-gray-500">Đang tải tệp đính kèm...</p>
@@ -42,6 +51,9 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
+            <Button variant="ghost" size="sm" @click="runOCR(attachment)" title="Trích xuất văn bản (OCR)">
+              <span class="text-xs font-bold border border-gray-400 rounded px-1">OCR</span>
+            </Button>
             <Button variant="ghost" size="sm" @click="downloadFile(attachment)">
               <Download class="h-4 w-4" />
             </Button>
@@ -50,6 +62,31 @@
               <X class="h-4 w-4" />
             </Button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OCR Result Modal -->
+    <div v-if="ocrResult" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click="ocrResult = null">
+      <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col" @click.stop>
+        <div class="p-4 border-b flex justify-between items-center">
+          <h3 class="font-semibold text-lg">Kết quả OCR</h3>
+          <button @click="ocrResult = null" class="text-gray-500 hover:text-gray-700">&times;</button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1">
+          <div class="bg-gray-50 p-3 rounded border text-sm whitespace-pre-wrap font-mono">{{ ocrResult.text }}</div>
+          
+          <div v-if="ocrResult.pages && ocrResult.pages.length > 0" class="mt-4">
+            <h4 class="font-medium mb-2">Chi tiết theo trang</h4>
+            <div v-for="page in ocrResult.pages" :key="page.page" class="mb-2 text-xs text-gray-600">
+              <p>Trang {{ page.page }} (Độ tin cậy: {{ (page.confidence * 100).toFixed(1) }}%)</p>
+              <p v-if="page.warnings.length" class="text-orange-600">⚠️ {{ page.warnings.join(', ') }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 border-t flex justify-end gap-2">
+          <Button variant="outline" @click="ocrResult = null">Đóng</Button>
+          <Button @click="copyOCRText">Sao chép văn bản</Button>
         </div>
       </div>
     </div>
@@ -67,6 +104,7 @@ import { ref, onMounted } from 'vue'
 import Button from '@/components/ui/Button.vue'
 import { Upload, FileText, Download, X } from '@/components/icons'
 import api from '@/services/api'
+import { ocrService, type OCRResult } from '@/services/ocr'
 
 const props = defineProps({
   caseId: String,
@@ -87,9 +125,12 @@ const attachments = ref<Array<{
   url?: string,
   uploadedAt?: string,
   description?: string,
-  is_confidential: boolean
+  is_confidential: boolean,
+  file?: File // Keep reference if just uploaded
 }>>([])
 const loading = ref(false)
+const ocrProcessing = ref(false)
+const ocrResult = ref<OCRResult | null>(null)
 
 // Fetch attachments from backend
 onMounted(async () => {
@@ -138,7 +179,7 @@ const handleFiles = async (files: File[]) => {
   }
 
   for (const file of files) {
-    // Validate file size (50MB limit)
+    // Validate file size (10MB limit for OCR, 50MB general)
     if (file.size > 50 * 1024 * 1024) {
       alert(`Tệp ${file.name} quá lớn. Kích thước tối đa là 50MB.`)
       continue
@@ -166,7 +207,7 @@ const handleFiles = async (files: File[]) => {
       })
 
       // Add uploaded file to list
-      attachments.value.push({
+      const newAttachment = {
         id: response.data.id,
         name: response.data.title,
         type: response.data.attachment_type_display,
@@ -174,8 +215,15 @@ const handleFiles = async (files: File[]) => {
         uploadedAt: response.data.uploaded_at,
         url: response.data.file,
         description: response.data.description,
-        is_confidential: response.data.is_confidential
-      })
+        is_confidential: response.data.is_confidential,
+        file: file // Store file object for immediate OCR if needed
+      }
+      attachments.value.push(newAttachment)
+
+      // Ask user if they want to run OCR immediately
+      if (['.pdf', '.jpg', '.jpeg', '.png'].includes(fileExtension) && confirm(`Bạn có muốn trích xuất văn bản (OCR) từ ${file.name} không?`)) {
+        runOCR(newAttachment)
+      }
 
       alert(`Đã tải lên tệp ${file.name}`)
     } catch (error) {
@@ -185,6 +233,50 @@ const handleFiles = async (files: File[]) => {
   }
 
   emit('attachmentsChanged', attachments.value)
+}
+
+const runOCR = async (attachment: any) => {
+  if (ocrProcessing.value) return
+  
+  let fileToProcess = attachment.file
+  
+  // If we don't have the File object (loaded from server), we need to fetch it
+  if (!fileToProcess && attachment.url) {
+    try {
+      ocrProcessing.value = true
+      const response = await fetch(attachment.url)
+      const blob = await response.blob()
+      fileToProcess = new File([blob], attachment.name, { type: blob.type })
+    } catch (e) {
+      console.error("Failed to fetch file for OCR", e)
+      alert("Không thể tải tệp để xử lý OCR")
+      ocrProcessing.value = false
+      return
+    }
+  }
+
+  if (!fileToProcess) {
+    alert("Không tìm thấy dữ liệu tệp")
+    return
+  }
+
+  try {
+    ocrProcessing.value = true
+    const result = await ocrService.extractText(fileToProcess)
+    ocrResult.value = result
+  } catch (error: any) {
+    console.error("OCR Failed:", error)
+    alert(`Lỗi OCR: ${error.message || 'Không thể xử lý tệp'}`)
+  } finally {
+    ocrProcessing.value = false
+  }
+}
+
+const copyOCRText = () => {
+  if (ocrResult.value?.text) {
+    navigator.clipboard.writeText(ocrResult.value.text)
+    alert("Đã sao chép văn bản vào clipboard")
+  }
 }
 
 const removeFile = async (id: number) => {

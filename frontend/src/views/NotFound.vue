@@ -4,13 +4,16 @@
       <div class="error-illustration">
         <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
           <circle cx="100" cy="100" r="80" fill="#EFF6FF" />
-          <path d="M70 90C70 85.5817 73.5817 82 78 82H122C126.418 82 130 85.5817 130 90V130C130 134.418 126.418 138 122 138H78C73.5817 138 70 134.418 70 130V90Z" fill="#3B82F6" />
+          <path
+            d="M70 90C70 85.5817 73.5817 82 78 82H122C126.418 82 130 85.5817 130 90V130C130 134.418 126.418 138 122 138H78C73.5817 138 70 134.418 70 130V90Z"
+            fill="#3B82F6" />
           <circle cx="88" cy="105" r="6" fill="white" />
           <circle cx="112" cy="105" r="6" fill="white" />
-          <path d="M85 120C85 120 92 125 100 125C108 125 115 120 115 120" stroke="white" stroke-width="3" stroke-linecap="round" />
+          <path d="M85 120C85 120 92 125 100 125C108 125 115 120 115 120" stroke="white" stroke-width="3"
+            stroke-linecap="round" />
         </svg>
       </div>
-      
+
       <h1 class="error-code">404</h1>
       <h2 class="error-title">Không Tìm Thấy Trang</h2>
       <p class="error-description">
@@ -58,9 +61,12 @@
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }

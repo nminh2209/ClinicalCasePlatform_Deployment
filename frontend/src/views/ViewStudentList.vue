@@ -16,27 +16,13 @@
           </select>
 
           <div class="search-container">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              class="search-icon"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              class="search-icon">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            <input
-              v-model="searchQuery"
-              @input="searchStudents"
-              type="text"
-              :placeholder="`Tìm kiếm theo ${
-                searchField === 'email' ? 'email' : 'mã sinh viên'
-              }`"
-              class="search-input"
-            />
+            <input v-model="searchQuery" @input="searchStudents" type="text" :placeholder="`Tìm kiếm theo ${searchField === 'email' ? 'email' : 'mã sinh viên'
+              }`" class="search-input" />
           </div>
         </div>
       </div>
@@ -67,35 +53,20 @@
         </div>
 
         <!-- Empty state -->
-        <div
-          v-if="!loading && students.length === 0"
-          class="empty-state text-center"
-        >
+        <div v-if="!loading && students.length === 0" class="empty-state text-center">
           <h3>Không có sinh viên phù hợp</h3>
         </div>
       </div>
 
       <!-- Pagination -->
-      <div
-        v-if="currentPageNumber > 1 || nextPageUrl"
-        class="pagination-container"
-      >
+      <div v-if="currentPageNumber > 1 || nextPageUrl" class="pagination-container">
         <div class="pagination">
-          <button
-            @click="goToPrevious"
-            :disabled="!previousPageUrl"
-            class="page-btn"
-          >
+          <button @click="goToPrevious" :disabled="!previousPageUrl" class="page-btn">
             Trước
           </button>
 
-          <button
-            v-for="page in maxVisiblePage"
-            :key="page"
-            @click="goToPage(page)"
-            :class="{ active: page === currentPageNumber }"
-            class="page-btn page-number"
-          >
+          <button v-for="page in maxVisiblePage" :key="page" @click="goToPage(page)"
+            :class="{ active: page === currentPageNumber }" class="page-btn page-number">
             {{ page }}
           </button>
 

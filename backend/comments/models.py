@@ -1,5 +1,7 @@
-from django.db import models
+# comments/models.py
+
 from django.conf import settings
+from django.db import models
 
 
 class Comment(models.Model):

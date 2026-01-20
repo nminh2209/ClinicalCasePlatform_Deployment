@@ -100,7 +100,7 @@ import { Search } from 'lucide-vue-next'
 import { casesService } from '@/services/cases'
 
 const router = useRouter()
-requireRoles(['student','instructor'])
+requireRoles(['student', 'instructor'])
 
 const searchQuery = ref('')
 const specialtyFilter = ref('all')
@@ -142,10 +142,10 @@ onMounted(() => {
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return 'N/A'
-  return new Date(dateStr).toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
   })
 }
 

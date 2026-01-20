@@ -118,6 +118,10 @@ class GradeListSerializer(serializers.ModelSerializer):
             "score",
             "letter_grade",
             "grading_criteria",
+            "evaluation_notes",
+            "strengths",
+            "weaknesses",
+            "recommendations",
             "is_final",
             "graded_at",
         ]
