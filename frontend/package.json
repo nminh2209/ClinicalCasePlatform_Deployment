@@ -9,7 +9,6 @@
   "scripts": {
     "dev": "vite",
     "build": "npm-run-all type-check \"build-only {@}\" --",
-    "type-check": "vue-tsc --noEmit",
     "preview": "vite preview",
     "build-only": "vite build"
   },
