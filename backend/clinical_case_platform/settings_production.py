@@ -16,6 +16,11 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
     "https://clinical-case-platform-deployment.vercel.app,http://localhost:5173",
 ).split(",")
 
+# Allow all Vercel preview deployment URLs (e.g. *-nminh2209s-projects.vercel.app)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://clinical-case-platform-deployment.*\.vercel\.app$",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # Database Configuration
