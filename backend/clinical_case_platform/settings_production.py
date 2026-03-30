@@ -18,13 +18,15 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
 
 CORS_ALLOW_CREDENTIALS = True
 
+DB_SSL_REQUIRE = os.environ.get("DB_SSL_REQUIRE", "True") == "True"
+
 # Database Configuration
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
         conn_max_age=600,
         conn_health_checks=True,
-        ssl_require=True,
+        ssl_require=DB_SSL_REQUIRE,
     )
 }
 
