@@ -69,13 +69,17 @@ class Command(BaseCommand):
         import os
         import sys
 
-        # Get the path to populate_test_data.py (in backend directory)
+        # Prefer scripts/setup path, with legacy root fallback
         backend_dir = os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         )
-        script_path = os.path.join(backend_dir, "populate_test_data.py")
+        script_candidates = [
+            os.path.join(backend_dir, "scripts", "setup", "populate_test_data.py"),
+            os.path.join(backend_dir, "populate_test_data.py"),
+        ]
+        script_path = next((p for p in script_candidates if os.path.exists(p)), None)
 
-        if os.path.exists(script_path):
+        if script_path:
             try:
                 # Run the populate script using the same Python interpreter
                 result = subprocess.run(
@@ -101,7 +105,9 @@ class Command(BaseCommand):
                 )
         else:
             self.stdout.write(
-                self.style.WARNING(f"populate_test_data.py not found at {script_path}")
+                self.style.WARNING(
+                    "populate_test_data.py not found in scripts/setup or backend root"
+                )
             )
 
         self.stdout.write(self.style.SUCCESS("Database reset complete!"))

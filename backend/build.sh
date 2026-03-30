@@ -42,7 +42,7 @@ fi
 if [ "${RUN_SEED_DATA:-false}" = "true" ]; then
 	echo "Seeding data because RUN_SEED_DATA=true..."
 	python manage.py reset_test_data --skip-confirm || echo "Reset failed, continuing..."
-	python populate_medical_terms.py || echo "Medical terms already populated"
+	python scripts/setup/populate_medical_terms.py || python populate_medical_terms.py || echo "Medical terms already populated"
 fi
 
 echo "Build completed successfully!"
