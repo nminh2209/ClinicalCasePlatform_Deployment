@@ -1,6 +1,7 @@
 """
 Advanced serializer tests for Cases
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 from cases.serializers import CaseCreateUpdateSerializer, CaseListSerializer
@@ -24,10 +25,10 @@ class TestCaseCreateUpdateSerializer:
             case_summary="Original summary",
             case_status="draft",
         )
-        
+
         serializer = CaseCreateUpdateSerializer(case)
         data = serializer.data
-        
+
         assert "title" in data
         assert data["patient_age"] == 35
 
@@ -38,7 +39,7 @@ class TestCaseCreateUpdateSerializer:
             "patient_age": 42,
             "patient_gender": "F",
         }
-        
+
         # Just verify the data structure is correct
         assert data["title"] == "Serializer Created Case"
         assert data["patient_age"] == 42
@@ -53,10 +54,10 @@ class TestCaseCreateUpdateSerializer:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         data = {"title": "After Update"}
         serializer = CaseCreateUpdateSerializer(case, data=data, partial=True)
-        
+
         if serializer.is_valid():
             updated = serializer.save()
             assert updated.title == "After Update"
@@ -67,7 +68,7 @@ class TestCaseCreateUpdateSerializer:
         # Verify age range expectations
         valid_age = 30
         extreme_age = 200
-        
+
         assert valid_age < 150
         assert extreme_age > 150
 
@@ -89,10 +90,10 @@ class TestCaseListSerializer:
             )
             for i in range(3)
         ]
-        
+
         serializer = CaseListSerializer(cases, many=True)
         data = serializer.data
-        
+
         assert len(data) == 3
         assert all("title" in item for item in data)
 
@@ -106,10 +107,10 @@ class TestCaseListSerializer:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         serializer = CaseListSerializer(case)
         data = serializer.data
-        
+
         assert "id" in data
         assert "title" in data
 
@@ -124,10 +125,10 @@ class TestCaseListSerializer:
             case_summary="Bệnh nhân nam 55 tuổi, đau ngực dữ dội",
             case_status="submitted",
         )
-        
+
         serializer = CaseListSerializer(case)
         data = serializer.data
-        
+
         assert "Nhồi Máu" in data["title"]
 
 
@@ -139,7 +140,7 @@ class TestSerializerValidation:
         """Test that required fields are enforced"""
         # Verify required fields list
         required_fields = ["title", "repository", "patient_age", "patient_gender"]
-        
+
         assert "title" in required_fields
         assert len(required_fields) == 4
 
@@ -152,10 +153,10 @@ class TestSerializerValidation:
             "patient_age": 30,
             "patient_gender": "M",
         }
-        
+
         serializer = CaseCreateUpdateSerializer(data=data)
         is_valid = serializer.is_valid()
-        
+
         if not is_valid:
             assert "repository" in serializer.errors
 
@@ -163,7 +164,7 @@ class TestSerializerValidation:
         """Test gender field choices"""
         # Test valid gender choices
         valid_genders = ["M", "F", "male", "female"]
-        
+
         assert "M" in valid_genders
         assert "F" in valid_genders
         assert len(valid_genders) >= 2

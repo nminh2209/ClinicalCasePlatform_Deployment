@@ -1,28 +1,40 @@
 <template>
   <div class="oauth-callback-page">
     <div class="callback-container">
-      <div class="loading-spinner">
-        <svg class="spinner" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2">
-          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-        </svg>
-      </div>
+      <!-- Loading State -->
+      <template v-if="!error">
+        <div class="loading-spinner">
+          <ProgressSpinner
+            style="width: 56px; height: 56px"
+            strokeWidth="3"
+            animationDuration=".8s"
+            class="auth-spinner"
+          />
+        </div>
+        <h2 class="loading-title">Đang xác thực...</h2>
+        <p class="loading-text">Vui lòng đợi trong giây lát</p>
+      </template>
 
-      <h2 v-if="!error" class="loading-title">Đang xác thực...</h2>
-      <p v-if="!error" class="loading-text">Vui lòng đợi trong giây lát</p>
+      <!-- Error State -->
+      <template v-else>
+        <div class="error-icon-wrapper">
+          <i class="pi pi-times-circle error-icon" />
+        </div>
 
-      <div v-if="error" class="error-container">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
         <h2 class="error-title">Xác thực thất bại</h2>
-        <p class="error-text">{{ error }}</p>
-        <router-link to="/login" class="back-button">
-          Quay lại đăng nhập
-        </router-link>
-      </div>
+
+        <!-- PrimeVue Message for error detail -->
+        <Message severity="error" :closable="false" class="error-message-box">
+          {{ error }}
+        </Message>
+
+        <Button
+          label="Quay lại đăng nhập"
+          icon="pi pi-arrow-left"
+          class="back-btn"
+          @click="$router.push('/login')"
+        />
+      </template>
     </div>
   </div>
 </template>
@@ -32,6 +44,9 @@ import { onMounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
+import Button from "primevue/button";
+import Message from "primevue/message";
+import ProgressSpinner from "primevue/progressspinner";
 
 const router = useRouter();
 const route = useRoute();
@@ -40,7 +55,6 @@ const error = ref("");
 
 onMounted(async () => {
   try {
-    // Extract access token from URL hash
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     const accessToken = params.get("access_token");
@@ -50,30 +64,24 @@ onMounted(async () => {
       return;
     }
 
-    // Determine provider from route path
     const provider = route.path.includes("google") ? "google" : "microsoft";
     const endpoint = `/auth/${provider}/`;
 
-    // Exchange token with backend
     const response = await api.post(endpoint, { access_token: accessToken });
 
-    // Update Pinia store
     const { user, tokens } = response.data;
     authStore.user = user;
     authStore.token = tokens.access;
 
-    // Persist and save auth data
     localStorage.setItem("access_token", tokens.access);
     localStorage.setItem("refresh_token", tokens.refresh);
     localStorage.setItem("user", JSON.stringify(user));
 
-    // Redirect to home
     router.push("/home");
   } catch (err: any) {
     console.error("OAuth callback error: ", err);
     error.value =
-      err.response?.data?.error ||
-      "Xác thực thất bại. Vui lòng thử lại sau.";
+      err.response?.data?.error || "Xác thực thất bại. Vui lòng thử lại sau.";
   }
 });
 </script>
@@ -85,89 +93,91 @@ onMounted(async () => {
   justify-content: center;
   min-height: 100vh;
   padding: 2rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+  background: var(--background);
 }
 
 .callback-container {
   text-align: center;
-  background: white;
-  border-radius: 16px;
+  background: var(--card);
+  border-radius: 24px;
   padding: 3rem 2.5rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px var(--shadow-grey);
+  border: 1px solid var(--border);
   max-width: 480px;
   width: 100%;
-}
-
-.loading-spinner {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.spinner {
-  color: #6366f1;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.loading-text {
-  font-size: 0.9375rem;
-  color: #64748b;
-}
-
-.error-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
 }
 
-.error-container svg {
-  color: #dc2626;
+/* Loading */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+/* Override PrimeVue ProgressSpinner color to use --primary */
+:deep(.auth-spinner .p-progressspinner-circle) {
+  stroke: var(--primary) !important;
+}
+
+.loading-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.loading-text {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Error */
+.error-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.error-icon {
+  font-size: 3rem;
+  color: var(--destructive);
 }
 
 .error-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--foreground);
+  margin: 0;
 }
 
-.error-text {
-  font-size: 0.9375rem;
-  color: #64748b;
-  line-height: 1.6;
+.error-message-box {
+  width: 100%;
+  border-radius: 12px !important;
+  font-size: 0.9375rem !important;
+  text-align: left;
 }
 
-.back-button {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s;
-  display: inline-block;
+/* Back button */
+.back-btn {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1.5rem !important;
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px var(--shadow-blue) !important;
 }
 
-.back-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+.back-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px var(--shadow-blue-hover) !important;
+  background: rgba(30, 58, 138, 0.9) !important;
 }
 </style>

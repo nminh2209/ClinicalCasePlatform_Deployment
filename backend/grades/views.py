@@ -4,12 +4,23 @@ from .models import Grade
 from .serializers import GradeSerializer, GradeListSerializer
 
 
+class IsInstructorPermission(permissions.BasePermission):
+    """Only instructors can create / modify grades; authenticated users can read."""
+
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.method in permissions.SAFE_METHODS:
+            return True  # Any authenticated user can read grades
+        return getattr(request.user, "is_instructor", False) or request.user.is_staff
+
+
 class GradeListCreateView(generics.ListCreateAPIView):
     """
     List grades and create new grades with proper filtering
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsInstructorPermission]
 
     def get_queryset(self):
         """

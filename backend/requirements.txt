@@ -91,6 +91,7 @@ opencv-python-headless>=4.8.0
 numpy>=1.26
 PyMuPDF>=1.24.0  # Faster PDF streaming, constant RAM usage
 python-doctr[torch]>=0.9.0
+vietocr>=0.3.5  # Vietnamese OCR recognition engine (used by ocr_service.py)
 
 # Vietnamese SBERT for semantic heading matching (OCR auto-fill)
 sentence-transformers>=2.2.0
@@ -101,3 +102,7 @@ transformers>=4.35.0
 accelerate>=0.24.0
 soundfile>=0.12.0
 librosa>=0.10.0
+
+
+#Full text search segmenter using NLP:
+py_vncorenlp

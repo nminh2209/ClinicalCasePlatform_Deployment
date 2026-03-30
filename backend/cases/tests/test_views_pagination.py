@@ -1,6 +1,7 @@
 """
 Tests for Case list pagination and ordering
 """
+
 import pytest
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -25,10 +26,10 @@ class TestCasePagination:
                 patient_gender="M" if i % 2 == 0 else "F",
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?page=1&page_size=10')
-        
+        response = api_client.get("/api/cases/?page=1&page_size=10")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -46,10 +47,10 @@ class TestCasePagination:
                 patient_gender="F",
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?page_size=5')
-        
+        response = api_client.get("/api/cases/?page_size=5")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -67,10 +68,10 @@ class TestCasePagination:
                 patient_gender="M",
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?page=2')
-        
+        response = api_client.get("/api/cases/?page=2")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -88,10 +89,10 @@ class TestCasePagination:
                 patient_gender="F",
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?page=3&page_size=5')
-        
+        response = api_client.get("/api/cases/?page=3&page_size=5")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -114,10 +115,10 @@ class TestCaseOrdering:
                 patient_gender="M",
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?ordering=-created_at')
-        
+        response = api_client.get("/api/cases/?ordering=-created_at")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -136,10 +137,10 @@ class TestCaseOrdering:
                 patient_gender="F",
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?ordering=patient_age')
-        
+        response = api_client.get("/api/cases/?ordering=patient_age")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -158,10 +159,10 @@ class TestCaseOrdering:
                 patient_gender="M",
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?ordering=title')
-        
+        response = api_client.get("/api/cases/?ordering=title")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -171,8 +172,8 @@ class TestCaseOrdering:
     def test_multiple_ordering_fields(self, api_client, student_user, test_repository):
         """Order by multiple fields"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?ordering=-case_status,created_at')
-        
+        response = api_client.get("/api/cases/?ordering=-case_status,created_at")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -196,10 +197,10 @@ class TestCaseFiltersAdvanced:
                 patient_gender="M",
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?min_age=30&max_age=50')
-        
+        response = api_client.get("/api/cases/?min_age=30&max_age=50")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -217,10 +218,10 @@ class TestCaseFiltersAdvanced:
                 patient_gender=gender,
                 case_status="approved",
             )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?patient_gender=F')
-        
+        response = api_client.get("/api/cases/?patient_gender=F")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -230,8 +231,10 @@ class TestCaseFiltersAdvanced:
     def test_filter_by_date_range(self, api_client, student_user, test_repository):
         """Filter cases by creation date range"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?created_after=2025-01-01&created_before=2025-12-31')
-        
+        response = api_client.get(
+            "/api/cases/?created_after=2025-01-01&created_before=2025-12-31"
+        )
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -241,8 +244,10 @@ class TestCaseFiltersAdvanced:
     def test_combined_filters(self, api_client, student_user, test_repository):
         """Combine multiple filters"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?case_status=approved&patient_gender=M&min_age=30')
-        
+        response = api_client.get(
+            "/api/cases/?case_status=approved&patient_gender=M&min_age=30"
+        )
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -260,10 +265,10 @@ class TestCaseFiltersAdvanced:
             case_summary="Bệnh nhân có triệu chứng đau ngực",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?search=đau ngực')
-        
+        response = api_client.get("/api/cases/?search=đau ngực")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,

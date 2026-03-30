@@ -25,13 +25,19 @@ export const casesService = {
       try {
         const attachmentsResponse = await api.get(`/cases/${id}/attachments/`);
         caseData.medical_attachments = attachmentsResponse.data;
-        console.log('📎 Fetched attachments from separate endpoint:', caseData.medical_attachments);
+        console.log(
+          "📎 Fetched attachments from separate endpoint:",
+          caseData.medical_attachments,
+        );
       } catch (error) {
         console.warn("Failed to fetch medical attachments:", error);
         caseData.medical_attachments = [];
       }
     } else {
-      console.log('📎 Attachments already in case response:', caseData.medical_attachments);
+      console.log(
+        "📎 Attachments already in case response:",
+        caseData.medical_attachments,
+      );
     }
 
     return caseData;
@@ -74,6 +80,22 @@ export const casesService = {
     return response.data;
   },
 
+  async getSearchSuggestions(query: string): Promise<string[]> {
+    const response = await api.get("/cases/search/suggestion/", {
+      params: { q: query },
+    });
+    // Handle paginated response and extract display field
+    const results = response.data.results || response.data;
+
+    // Backend returns array of objects with 'display' field: [{display: "đại tràng"}, ...]
+    // Extract just the display strings
+    if (Array.isArray(results)) {
+      return results.map((item: any) => item.display || item);
+    }
+
+    return [];
+  },
+
   // Medical Attachments
   async getCaseAttachments(caseId: string) {
     const response = await api.get(`/cases/${caseId}/attachments/`);
@@ -100,7 +122,7 @@ export const casesService = {
   async getStudentNotes(caseId: string) {
     try {
       const response = await api.get(`/cases/${caseId}/notes/`);
-      console.log('getStudentNotes API response:', response.data);
+      console.log("getStudentNotes API response:", response.data);
       // Handle paginated response
       if (response.data.results && response.data.results.length > 0) {
         return response.data.results[0];
@@ -139,17 +161,19 @@ export const casesService = {
     return response.data;
   },
 
-  async exportCaseSummary(options: {
-    format?: 'json' | 'csv';
-    include_statistics?: boolean;
-    include_details?: boolean;
-    department?: string;
-    date_from?: string;
-    date_to?: string;
-    status?: string;
-  } = {}) {
+  async exportCaseSummary(
+    options: {
+      format?: "json" | "csv";
+      include_statistics?: boolean;
+      include_details?: boolean;
+      department?: string;
+      date_from?: string;
+      date_to?: string;
+      status?: string;
+    } = {},
+  ) {
     const response = await api.post("/cases/summary/export/", options, {
-      responseType: options.format === 'csv' ? 'blob' : 'json'
+      responseType: options.format === "csv" ? "blob" : "json",
     });
     return response;
   },
@@ -162,7 +186,9 @@ export const casesService = {
    * Create a new instructor template case (auto-approved, public by default)
    * Accessible only by instructors via IsInstructorPermission
    */
-  async createInstructorCase(caseData: CreateInstructorCaseRequest): Promise<InstructorCase> {
+  async createInstructorCase(
+    caseData: CreateInstructorCaseRequest,
+  ): Promise<InstructorCase> {
     const response = await api.post("/cases/instructor/", caseData);
     return response.data;
   },
@@ -172,7 +198,10 @@ export const casesService = {
    * Creates a deep copy with medical sections and attachments
    * Sets cloned_from to original case ID
    */
-  async cloneCase(caseId: string | number, cloneData?: CloneCaseRequest): Promise<CloneCaseResponse> {
+  async cloneCase(
+    caseId: string | number,
+    cloneData?: CloneCaseRequest,
+  ): Promise<CloneCaseResponse> {
     const response = await api.post(`/cases/${caseId}/clone/`, cloneData || {});
     return response.data;
   },
@@ -181,7 +210,9 @@ export const casesService = {
    * Get instructor case audit logs
    * Shows who changed the template, what changed, and when
    */
-  async getInstructorCaseAuditLogs(caseId?: string | number): Promise<InstructorCaseAuditLog[]> {
+  async getInstructorCaseAuditLogs(
+    caseId?: string | number,
+  ): Promise<InstructorCaseAuditLog[]> {
     if (caseId) {
       const response = await api.get(`/cases/${caseId}/audit/`);
       return response.data;
@@ -194,7 +225,9 @@ export const casesService = {
   /**
    * Get a specific audit log entry
    */
-  async getAuditLogDetail(auditId: string | number): Promise<InstructorCaseAuditLog> {
+  async getAuditLogDetail(
+    auditId: string | number,
+  ): Promise<InstructorCaseAuditLog> {
     const response = await api.get(`/instructor-cases/audit/${auditId}/`);
     return response.data;
   },

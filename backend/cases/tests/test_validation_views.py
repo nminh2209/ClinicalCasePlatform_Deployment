@@ -1,6 +1,7 @@
 """
 Tests for Validation views
 """
+
 import pytest
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -23,10 +24,10 @@ class TestValidationViews:
             patient_gender="F",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.post(f'/api/cases/{case.id}/validate/', format='json')
-        
+        response = api_client.post(f"/api/cases/{case.id}/validate/", format="json")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_400_BAD_REQUEST,
@@ -34,7 +35,9 @@ class TestValidationViews:
             status.HTTP_404_NOT_FOUND,
         ]
 
-    def test_validate_medical_terminology(self, api_client, instructor_user, test_repository):
+    def test_validate_medical_terminology(
+        self, api_client, instructor_user, test_repository
+    ):
         """Test medical terminology validation"""
         case = Case.objects.create(
             title="Nhồi Máu Cơ Tim",
@@ -45,10 +48,10 @@ class TestValidationViews:
             case_summary="Bệnh nhân có triệu chứng đau ngực",
             case_status="submitted",
         )
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.get(f'/api/cases/{case.id}/validate-terminology/')
-        
+        response = api_client.get(f"/api/cases/{case.id}/validate-terminology/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -65,10 +68,10 @@ class TestValidationViews:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get(f'/api/cases/{case.id}/validate-completeness/')
-        
+        response = api_client.get(f"/api/cases/{case.id}/validate-completeness/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_400_BAD_REQUEST,
@@ -87,10 +90,10 @@ class TestValidationViews:
                 patient_gender="M" if i % 2 == 0 else "F",
                 case_status="draft",
             )
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.post('/api/cases/validate-bulk/', format='json')
-        
+        response = api_client.post("/api/cases/validate-bulk/", format="json")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_400_BAD_REQUEST,
@@ -108,10 +111,10 @@ class TestValidationViews:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.get(f'/api/cases/{case.id}/validation-report/')
-        
+        response = api_client.get(f"/api/cases/{case.id}/validation-report/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,

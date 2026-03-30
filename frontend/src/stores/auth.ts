@@ -60,7 +60,7 @@ export const useAuthStore = defineStore("auth", () => {
       const casesStore = useCasesStore();
       casesStore.$reset();
     } catch (err: any) {
-      console.warn("Logout error: ", err)
+      console.warn("Logout error: ", err);
     } finally {
       loading.value = false;
     }
@@ -74,6 +74,47 @@ export const useAuthStore = defineStore("auth", () => {
     // Check if user is already logged in with proper token from local storage
     user.value = authService.getCurrentUser();
     token.value = authService.getAccessToken();
+  }
+
+  async function refreshUser() {
+    try {
+      const updated = await authService.getProfile();
+      user.value = updated;
+    } catch {
+      // silently ignore — token may be expired
+    }
+  }
+
+  async function updateProfile(data: Record<string, any>) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const updated = await authService.updateProfile(data);
+      user.value = updated;
+      return updated;
+    } catch (err: any) {
+      error.value = err.response?.data?.detail || "Profile update failed";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function changePassword(data: {
+    current_password: string;
+    new_password: string;
+    new_password_confirm: string;
+  }) {
+    loading.value = true;
+    error.value = null;
+    try {
+      return await authService.changePassword(data);
+    } catch (err: any) {
+      error.value = err.response?.data?.detail || "Password change failed";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
   }
 
   return {
@@ -90,6 +131,8 @@ export const useAuthStore = defineStore("auth", () => {
     logout,
     clearError,
     checkAuth,
+    refreshUser,
+    updateProfile,
+    changePassword,
   };
 });
-

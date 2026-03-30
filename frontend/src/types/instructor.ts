@@ -25,7 +25,12 @@ export interface InstructorCase {
 export interface MedicalSection {
   id: number;
   case: number;
-  section_type: 'chief_complaint' | 'hpi' | 'physical_exam' | 'assessment' | 'plan';
+  section_type:
+    | "chief_complaint"
+    | "hpi"
+    | "physical_exam"
+    | "assessment"
+    | "plan";
   content: string;
   created_at: string;
   updated_at: string;
@@ -44,7 +49,7 @@ export interface InstructorCaseAuditLog {
   id: number;
   case: number;
   changed_by: User;
-  change_type: 'create' | 'update' | 'approve' | 'clone';
+  change_type: "create" | "update" | "approve" | "clone";
   summary: string;
   diff?: Record<string, any>;
   timestamp: string;

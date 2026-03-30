@@ -25,8 +25,10 @@ OPTIONS:
 Set REPOPULATE = True to automatically run populate_test_data after reset
 Set REPOPULATE = False to just clear the database
 """
+
 import os
 import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 import django
 
@@ -64,17 +66,19 @@ def reset_database():
     print("🗑️  DATABASE RESET")
     print("=" * 60)
     print("\n⚠️  WARNING: This will delete ALL data from the database!")
-    
-    response = input("\nAre you sure you want to continue? (yes/y/no/n): ").lower().strip()
+
+    response = (
+        input("\nAre you sure you want to continue? (yes/y/no/n): ").lower().strip()
+    )
     if response not in ["yes", "y"]:
         print("❌ Operation cancelled.")
         return False
-    
+
     print("\n🧹 Starting database cleanup...\n")
-    
+
     # Use raw SQL with CASCADE to force delete all tables
     from django.db import connection
-    
+
     # First delete all child tables, then parent tables
     tables_to_clear_raw = [
         # Child tables first (those that reference other tables)
@@ -96,7 +100,7 @@ def reset_database():
         ("accounts_user", "Users"),
         ("cases_department", "Departments"),
     ]
-    
+
     try:
         with connection.cursor() as cursor:
             for table_name, display_name in tables_to_clear_raw:
@@ -117,10 +121,10 @@ def reset_database():
                         print(f"   ⚠️  Skipped {display_name}: {str(e2)[:50]}")
     except Exception as e:
         print(f"   ⚠️  Database error: {str(e)[:80]}")
-    
+
     # No need for ORM deletion since we already cleared everything
     models_to_clear = []
-    
+
     for model, name in models_to_clear:
         try:
             count = model.objects.count()
@@ -131,7 +135,7 @@ def reset_database():
                 print(f"   ⚪ No {name} to delete")
         except Exception as e:
             print(f"   ⚠️  Skipped {name}: {str(e)[:60]}")
-    
+
     print("\n✅ Database cleanup complete!")
     return True
 
@@ -143,9 +147,10 @@ def repopulate_database():
     print("\n" + "=" * 60)
     print("📦 REPOPULATING DATABASE")
     print("=" * 60)
-    
+
     try:
         from populate_test_data import create_test_data
+
         # Department-scoped test data; keep existing admin or recreate
         create_test_data(clear_existing=False)
         print("\n✅ Database repopulation complete!")
@@ -162,16 +167,20 @@ def main():
     # Reset the database
     if not reset_database():
         return
-    
+
     # Optionally repopulate
     if REPOPULATE:
         print("\n")
-        repopulate = input("Do you want to repopulate with test data? (yes/no): ").lower()
+        repopulate = input(
+            "Do you want to repopulate with test data? (yes/no): "
+        ).lower()
         if repopulate == "yes":
             repopulate_database()
         else:
-            print("\n💡 Tip: Run 'python populate_test_data.py' to create test data later.")
-    
+            print(
+                "\n💡 Tip: Run 'python populate_test_data.py' to create test data later."
+            )
+
     print("\n" + "=" * 60)
     print("🎉 RESET COMPLETE")
     print("=" * 60)

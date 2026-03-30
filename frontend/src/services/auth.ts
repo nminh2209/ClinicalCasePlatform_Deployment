@@ -55,5 +55,27 @@ export const authService = {
   isAuthenticated() {
     return !!localStorage.getItem(ACCESS_TOKEN_KEY);
   },
-};
 
+  async getProfile() {
+    const response = await api.get("/auth/profile/");
+    const user = response.data;
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    return user;
+  },
+
+  async updateProfile(data: Record<string, any>) {
+    const response = await api.patch("/auth/profile/", data);
+    const user = response.data;
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    return user;
+  },
+
+  async changePassword(data: {
+    current_password: string;
+    new_password: string;
+    new_password_confirm: string;
+  }) {
+    const response = await api.post("/auth/change-password/", data);
+    return response.data;
+  },
+};

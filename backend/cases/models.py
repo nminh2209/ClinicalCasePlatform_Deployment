@@ -2,6 +2,8 @@
 
 from django.conf import settings
 from django.db import models
+from django.contrib.postgres.search import SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
 
 from .medical_models import (
     # Department,
@@ -13,6 +15,7 @@ from .medical_models import (
     StudentNotes,
 )
 from .specialty_models import Specialty, CasePriorityLevel, CaseComplexityLevel
+
 
 class Case(models.Model):
     """
@@ -197,6 +200,19 @@ class Case(models.Model):
         help_text="Người lưu trữ ca bệnh",
     )
 
+    # Search support fields (computed, not user-editable)
+
+    search_document = SearchVectorField(
+        null=True, editable=False, help_text="Precomputed full-text search vector"
+    )
+
+    search_text = models.TextField(
+        null=True,
+        blank=True,
+        editable=False,
+        help_text="Normalized text for trigram similarity search",
+    )
+
     class Meta:
         db_table = "cases_case"
         verbose_name = "Hồ sơ bệnh án"
@@ -206,6 +222,11 @@ class Case(models.Model):
             models.Index(fields=["specialty"]),
             models.Index(fields=["case_status"]),
             models.Index(fields=["created_at"]),
+            # Full-text search index
+            GinIndex(
+                fields=["search_document"],
+                name="cases_case_search_document_gin",
+            ),
         ]
 
     def __str__(self):
@@ -702,3 +723,14 @@ class InstructorCaseAuditLog(models.Model):
 
     def __str__(self):
         return f"{self.action} by {self.actor} on {self.case}"
+
+
+class CaseSearchToken(models.Model):
+    token = models.CharField(max_length=255, unique=True)
+    display = models.CharField(max_length=255, default ="default")              # UI display
+    frequency = models.IntegerField(default=1)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["token"], name="idx_token_prefix"),
+        ]

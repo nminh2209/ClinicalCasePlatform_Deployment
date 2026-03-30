@@ -33,7 +33,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         # Send initial connection success message
         await self.send(
             text_data=json.dumps(
-                {"type": "connection_established", "message": "Connected to notifications"}
+                {
+                    "type": "connection_established",
+                    "message": "Connected to notifications",
+                }
             )
         )
 
@@ -85,6 +88,4 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         count = event["count"]
 
         # Send unread count update to WebSocket
-        await self.send(
-            text_data=json.dumps({"type": "unread_count", "count": count})
-        )
+        await self.send(text_data=json.dumps({"type": "unread_count", "count": count}))

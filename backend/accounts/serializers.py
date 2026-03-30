@@ -26,9 +26,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "role",
+            "department",
+            "student_id",
+            "employee_id",
             "password",
             "password_confirm",
         ]
+        extra_kwargs = {
+            "department": {"required": False, "allow_null": True},
+            "student_id": {"required": False, "allow_blank": True},
+            "employee_id": {"required": False, "allow_blank": True},
+        }
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         if attrs["password"] != attrs["password_confirm"]:
@@ -63,6 +71,7 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source="get_full_name", read_only=True)
     department_name = serializers.CharField(source="department.name", read_only=True)
     department_vietnamese_name = serializers.CharField(
         source="department.vietnamese_name", read_only=True
@@ -76,6 +85,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "username",
             "first_name",
             "last_name",
+            "full_name",
             "role",
             "department",
             "department_name",
@@ -83,9 +93,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "specialization",
             "student_id",
             "employee_id",
+            "phone_number",
+            "bio",
+            "academic_year",
+            "profile_picture_url",
+            "language_preference",
+            "notification_settings",
             "created_at",
+            "updated_at",
         ]
-        read_only_fields = ["id", "email", "created_at"]
+        # role and email cannot be changed through the profile endpoint
+        read_only_fields = ["id", "email", "role", "created_at", "updated_at"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -121,7 +139,10 @@ class AdminUserSerializer(serializers.ModelSerializer):
     Admin-only serializer for full user CRUD operations.
     Includes password setting and all user fields.
     """
-    password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
+
+    password = serializers.CharField(
+        write_only=True, required=False, validators=[validate_password]
+    )
     department_name = serializers.CharField(source="department.name", read_only=True)
     department_vietnamese_name = serializers.CharField(
         source="department.vietnamese_name", read_only=True
@@ -154,7 +175,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: Dict[str, Any]) -> User:
         """Create user with hashed password"""
-        password = validated_data.pop('password', None)
+        password = validated_data.pop("password", None)
         user = User(**validated_data)
         if password:
             user.set_password(password)
@@ -166,22 +187,51 @@ class AdminUserSerializer(serializers.ModelSerializer):
 
     def update(self, instance: User, validated_data: Dict[str, Any]) -> User:
         """Update user, hash password if provided"""
-        password = validated_data.pop('password', None)
-        
+        password = validated_data.pop("password", None)
+
         # Update all other fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        
+
         # Update password if provided
         if password:
             instance.set_password(password)
-        
+
         instance.save()
         return instance
 
 
+class ChangePasswordSerializer(serializers.Serializer):
+    """Serializer for authenticated users to change their own password"""
+
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    new_password_confirm = serializers.CharField(write_only=True)
+
+    def validate_current_password(self, value: str) -> str:
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Mật khẩu hiện tại không đúng")
+        return value
+
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        if attrs["new_password"] != attrs["new_password_confirm"]:
+            raise serializers.ValidationError("Mật khẩu mới không khớp")
+        return attrs
+
+    def save(self) -> User:  # type: ignore[override]
+        from django.utils import timezone
+
+        user = self.context["request"].user
+        user.set_password(self.validated_data["new_password"])
+        user.password_changed_at = timezone.now()
+        user.save(update_fields=["password", "password_changed_at"])
+        return user
+
+
 class PasswordResetRequestSerializer(serializers.Serializer):
     """Serializer for requesting password reset"""
+
     email = serializers.EmailField()
 
     def validate_email(self, value: str) -> str:
@@ -197,17 +247,17 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     def save(self) -> Dict[str, str]:
         """Send password reset email"""
         email = self.validated_data["email"]
-        
+
         try:
             user = User.objects.get(email=email, is_active=True)
-            
+
             # Generate token
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            
+
             # Create reset link
             reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
-            
+
             # Send email
             subject = "Đặt lại mật khẩu - Clinical Case Platform"
             message = f"""
@@ -225,7 +275,7 @@ Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua emai
 Trân trọng,
 Clinical Case Platform Team
             """
-            
+
             send_mail(
                 subject,
                 message,
@@ -236,32 +286,39 @@ Clinical Case Platform Team
         except User.DoesNotExist:
             # For security, don't reveal if email doesn't exist
             pass
-        
+
         return {"detail": "If the email exists, a password reset link has been sent."}
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Serializer for confirming password reset"""
+
     uid = serializers.CharField()
     token = serializers.CharField()
-    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    new_password = serializers.CharField(
+        write_only=True, validators=[validate_password]
+    )
     new_password_confirm = serializers.CharField(write_only=True)
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         """Validate passwords match and token is valid"""
         if attrs["new_password"] != attrs["new_password_confirm"]:
-            raise serializers.ValidationError({"new_password_confirm": "Passwords don't match"})
-        
+            raise serializers.ValidationError(
+                {"new_password_confirm": "Passwords don't match"}
+            )
+
         # Decode uid and validate token
         try:
             uid = force_str(urlsafe_base64_decode(attrs["uid"]))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             raise serializers.ValidationError({"uid": "Invalid reset link"})
-        
+
         if not default_token_generator.check_token(user, attrs["token"]):
-            raise serializers.ValidationError({"token": "Invalid or expired reset link"})
-        
+            raise serializers.ValidationError(
+                {"token": "Invalid or expired reset link"}
+            )
+
         attrs["user"] = user
         return attrs
 

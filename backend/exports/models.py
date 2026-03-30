@@ -278,4 +278,3 @@ class BatchExport(models.Model):
     @property
     def filename(self):
         return os.path.basename(self.zip_file.name) if self.zip_file else None
-

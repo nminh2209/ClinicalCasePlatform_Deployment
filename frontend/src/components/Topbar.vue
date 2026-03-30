@@ -1,32 +1,46 @@
 <template>
   <header class="top-header">
     <div class="header-left flex items-center gap-4">
-      <!-- Menu button for mobile -->
-      <button class="md:hidden p-2 rounded-lg hover:bg-gray-100" @click="$emit('menu-click')">
-        <Menu class="w-6 h-6" />
-      </button>
+      <div class="md:hidden">
+        <Button
+          text
+          rounded
+          aria-label="Toggle menu"
+          icon="pi pi-bars"
+          @click="$emit('menu-click')"
+          class="p-2"
+        />
+      </div>
+
       <div class="search-container">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          class="search-icon">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <input type="text" placeholder="Tìm kiếm bệnh nhân, hồ sơ bệnh án..." class="search-input"
-          v-model="searchQuery" />
+        <IconField>
+          <InputIcon class="pi pi-search" />
+          <InputText
+            v-model="searchQuery"
+            placeholder="Tìm kiếm bệnh nhân, hồ sơ bệnh án..."
+            class="search-input"
+          />
+        </IconField>
       </div>
     </div>
 
     <div class="header-right">
-
       <NotificationCenter :user-role="user?.role" />
 
-      <div class="user-profile">
-        <img :src="user?.avatar || '/api/placeholder/32/32'" :alt="user?.first_name || 'User'" class="user-avatar" />
+      <RouterLink to="/profile" class="user-profile" title="Hồ sơ cá nhân">
+        <Avatar
+          :image="user?.avatar || undefined"
+          :label="!user?.avatar ? userInitials : undefined"
+          shape="circle"
+          class="user-avatar"
+        />
         <div class="user-info">
-          <span class="user-name">{{ user?.first_name }} {{ user?.last_name }}</span>
+          <span class="user-name"
+            >{{ user?.first_name }} {{ user?.last_name }}</span
+          >
           <span class="user-role">{{ formatRole(user?.role) }}</span>
         </div>
-      </div>
+      </RouterLink>
     </div>
   </header>
 </template>
@@ -35,7 +49,11 @@
 import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
-import { Menu } from "lucide-vue-next";
+import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
+import Avatar from "primevue/avatar";
 import NotificationCenter from "./NotificationCenter.vue";
 
 defineEmits(["menu-click"]);
@@ -46,11 +64,17 @@ const searchQuery = ref("");
 
 const user = computed(() => authStore.user);
 
+const userInitials = computed(() => {
+  const first = user.value?.first_name?.[0] ?? "";
+  const last = user.value?.last_name?.[0] ?? "";
+  return (first + last).toUpperCase() || "?";
+});
+
 const formatRole = (role) => {
   const roleMap = {
-    STUDENT: "Sinh viên Y khoa",
-    INSTRUCTOR: "Giảng viên Lâm sàng",
-    ADMIN: "Quản trị viên",
+    student: "Sinh viên Y khoa",
+    instructor: "Giảng viên Lâm sàng",
+    admin: "Quản trị viên",
   };
   return roleMap[role] || role;
 };
@@ -62,14 +86,6 @@ const logout = () => {
 </script>
 
 <style scoped>
-/* Main Content Styles */
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .top-header {
   height: 80px;
   background: white;
@@ -86,67 +102,29 @@ const logout = () => {
 }
 
 .search-container {
-  position: relative;
   max-width: 400px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #64748b;
+  width: 100%;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  background: #f8fafc;
+  padding: 0.75rem 1rem 0.75rem 2.75rem !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  background: #f8fafc !important;
 }
 
 .search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6 !important;
+  background: white !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 1rem;
-}
-
-.notification-btn {
-  position: relative;
-  padding: 0.5rem;
-  border: none;
-  background: #f8fafc;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.notification-btn:hover {
-  background: #e2e8f0;
-}
-
-.notification-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: #ef4444;
-  color: white;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .user-profile {
@@ -164,10 +142,8 @@ const logout = () => {
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
+  width: 40px !important;
+  height: 40px !important;
   border: 2px solid #e2e8f0;
 }
 
@@ -187,18 +163,20 @@ const logout = () => {
   color: #6b7280;
 }
 
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .page-content {
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
 }
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 240px;
-  }
-
   .top-header {
     padding: 0 1rem;
     gap: 0.5rem;
@@ -213,12 +191,6 @@ const logout = () => {
     width: 100%;
   }
 
-  .search-input {
-    width: 100%;
-    padding-left: 2.5rem;
-    padding-right: 0.5rem;
-  }
-
   .header-right {
     gap: 0.5rem;
   }
@@ -227,13 +199,9 @@ const logout = () => {
     display: none;
   }
 
-  .notification-btn {
-    padding: 0.375rem;
-  }
-
   .user-avatar {
-    width: 32px;
-    height: 32px;
+    width: 32px !important;
+    height: 32px !important;
   }
 }
 </style>

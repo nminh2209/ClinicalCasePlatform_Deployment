@@ -41,14 +41,17 @@ export const exportService = {
   sanitizeFilename(filename: string): string {
     // Allow all Unicode letters, numbers, spaces, hyphens, and underscores
     // Replace other characters with underscores
-    const sanitized = filename.replace(/[^\p{L}\p{N}\s\-_]/gu, '_');
+    const sanitized = filename.replace(/[^\p{L}\p{N}\s\-_]/gu, "_");
 
     // Replace multiple consecutive underscores with single underscore
     // Remove leading/trailing underscores
     // Limit length to prevent filesystem issues
-    return sanitized.replace(/_+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .substring(0, 100) || 'export';
+    return (
+      sanitized
+        .replace(/_+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .substring(0, 100) || "export"
+    );
   },
 
   // Export and download case in specified format

@@ -232,9 +232,11 @@ class ExportUtils:
             if hasattr(case, "learning_outcomes"):
                 lo = case.learning_outcomes  # type: ignore[attr-defined]
                 data["learning_outcomes"] = {
-                    "learning_objectives": getattr(lo, "learning_objectives", "") or "Không có",
+                    "learning_objectives": getattr(lo, "learning_objectives", "")
+                    or "Không có",
                     "key_concepts": getattr(lo, "key_concepts", "") or "Không có",
-                    "clinical_reasoning": getattr(lo, "clinical_pearls", "") or "Không có",  # Fixed: was clinical_reasoning_points
+                    "clinical_reasoning": getattr(lo, "clinical_pearls", "")
+                    or "Không có",  # Fixed: was clinical_reasoning_points
                 }
                 # For backward compatibility
                 data["learning_objectives"] = (

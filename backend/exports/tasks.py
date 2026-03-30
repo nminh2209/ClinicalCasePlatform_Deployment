@@ -171,9 +171,7 @@ def process_batch_export(self, batch_export_id):
 
         # Save ZIP file
         zip_buffer.seek(0)
-        zip_filename = (
-            f"batch_export_{batch.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.zip"  # type: ignore[attr-defined]
-        )
+        zip_filename = f"batch_export_{batch.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.zip"  # type: ignore[attr-defined]
 
         batch.zip_file.save(
             zip_filename, ContentFile(zip_buffer.getvalue()), save=False

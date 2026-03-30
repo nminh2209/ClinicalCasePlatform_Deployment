@@ -1,6 +1,7 @@
 """
 Tests for Feed views
 """
+
 import pytest
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -16,8 +17,8 @@ class TestFeedViews:
     def test_user_feed_authenticated(self, api_client, student_user):
         """Authenticated user can access their feed"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/feed/')
-        
+        response = api_client.get("/api/cases/feed/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -26,7 +27,7 @@ class TestFeedViews:
 
     def test_user_feed_unauthenticated(self, api_client):
         """Unauthenticated users cannot access feed"""
-        response = api_client.get('/api/cases/feed/')
+        response = api_client.get("/api/cases/feed/")
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
@@ -36,8 +37,8 @@ class TestFeedViews:
     def test_department_feed(self, api_client, instructor_user, cardiology_department):
         """Test department activity feed"""
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.get('/api/cases/feed/department/')
-        
+        response = api_client.get("/api/cases/feed/department/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -55,10 +56,10 @@ class TestFeedViews:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/feed/recent/')
-        
+        response = api_client.get("/api/cases/feed/recent/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -68,8 +69,8 @@ class TestFeedViews:
     def test_feed_pagination(self, api_client, student_user):
         """Test feed pagination"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/feed/?page=1&page_size=10')
-        
+        response = api_client.get("/api/cases/feed/?page=1&page_size=10")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,

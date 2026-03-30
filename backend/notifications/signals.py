@@ -44,6 +44,7 @@ def create_grade_notification(sender, instance, created, **kwargs):
             except Exception as e:
                 # Log but don't fail - notification is already saved to database
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.warning(f"Failed to send real-time notification: {e}")
 
@@ -71,6 +72,7 @@ def create_comment_notification(sender, instance, created, **kwargs):
             except Exception as e:
                 # Log but don't fail - notification is already saved to database
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.warning(f"Failed to send real-time notification: {e}")
 
@@ -101,6 +103,7 @@ def create_case_notification(sender, instance, created, **kwargs):
                 except Exception as e:
                     # Log but don't fail - notification is already saved to database
                     import logging
+
                     logger = logging.getLogger(__name__)
                     logger.warning(f"Failed to send real-time notification: {e}")
 
@@ -109,7 +112,9 @@ def create_case_notification(sender, instance, created, **kwargs):
 def create_feedback_notification(sender, instance, created, **kwargs):
     """Create notification when feedback is given"""
     if created and instance.case:
-        notification = Notification.create_feedback_notification(instance, instance.case)
+        notification = Notification.create_feedback_notification(
+            instance, instance.case
+        )
         if notification:
             # Send real-time notification (fails gracefully if Redis is down)
             try:
@@ -128,6 +133,6 @@ def create_feedback_notification(sender, instance, created, **kwargs):
             except Exception as e:
                 # Log but don't fail - notification is already saved to database
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.warning(f"Failed to send real-time notification: {e}")
-

@@ -1,481 +1,421 @@
 <template>
-  <div v-if="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    @click="$emit('update:open', false)">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md m-4" @click.stop>
-      <div class="mb-4">
-        <h2 class="text-xl font-bold">
-          {{ currentLang === 'vi' ? 'Cấp quyền truy cập' : 'Grant Access Permission' }}
-        </h2>
-        <p class="text-gray-600">
-          {{ currentLang === 'vi' ?
-            'Chia sẻ ca bệnh này với người dùng hoặc nhóm'
-            : 'Share this case with users or groups' }}
+  <Dialog
+    :visible="open"
+    @update:visible="$emit('update:open', false)"
+    modal
+    header="Cấp quyền truy cập"
+    :style="{ width: '28rem', maxWidth: '95vw' }"
+  >
+    <template #header>
+      <div>
+        <div class="font-bold text-xl text-gray-900">Cấp quyền truy cập</div>
+        <p class="text-gray-500 text-sm mt-0.5">
+          Chia sẻ ca bệnh này với người dùng hoặc nhóm
         </p>
       </div>
+    </template>
 
-      <form @submit.prevent="handleSubmit">
-        <div class="space-y-4">
-          <!-- Share Type -->
-          <div>
-            <label class="block text-sm font-medium mb-1">
-              {{ currentLang === 'vi' ? 'Loại chia sẻ' : 'Share Type' }}
-            </label>
-            <select v-model="form.shareType" class="w-full border rounded-md p-2">
-              <option value="individual">
-                {{ currentLang === 'vi' ? 'Chia sẻ cá nhân' : 'Individual User' }}
-              </option>
-              <option value="department">
-                {{ currentLang === 'vi' ? 'Chia sẻ khoa' : 'Department' }}
-              </option>
-              <option value="public">
-                {{ currentLang === 'vi' ? 'Công khai' : 'Public Access' }}
-              </option>
-            </select>
-          </div>
+    <div class="flex flex-col gap-4 pt-1">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Loại chia sẻ</label>
+        <Select
+          v-model="form.shareType"
+          fluid
+          :options="shareTypeOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
 
-          <!-- User Selection -->
-          <div v-if="form.shareType === 'individual'">
-            <label class="block text-sm font-medium mb-1">
-              {{ currentLang === 'vi' ? 'Người dùng' : 'User' }}
-            </label>
-            <div class="relative">
-              <input v-model="form.searchQuery" type="text" class="w-full border rounded-md p-2"
-                :placeholder="form.selectedUser ? form.selectedUser.full_name : (currentLang === 'vi' ? 'Tìm kiếm giảng viên...' : 'Search instructors...')"
-                autocomplete="off" @focus="showSearchResults = true" @blur="hideSearchResults" />
-              <!-- Search Results Dropdown -->
-              <div v-if="showSearchResults && !form.selectedUser && searchResults.length > 0"
-                class="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-40 overflow-y-auto">
-                <div v-for="user in searchResults" :key="user.id" @click="selectUser(user)"
-                  class="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0">
-                  <div class="font-medium">{{ user.full_name }}</div>
-                  <div class="text-sm text-gray-500">{{ user.email }}</div>
-                  <div class="text-xs text-gray-400">{{ user.department }}</div>
-                </div>
+      <div v-if="form.shareType === 'individual'" class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Người dùng</label>
+        <AutoComplete
+          v-model="form.searchQuery"
+          :suggestions="searchResults"
+          optionLabel="full_name"
+          fluid
+          placeholder="Tìm kiếm giảng viên..."
+          :delay="300"
+          :min-length="2"
+          @complete="searchUsers"
+          @item-select="onUserSelect"
+          @clear="clearSelectedUser"
+        >
+          <template #option="{ option }">
+            <div class="flex flex-col py-1">
+              <span class="font-medium text-gray-900">{{
+                option.full_name
+              }}</span>
+              <span class="text-sm text-gray-500">{{ option.email }}</span>
+              <span class="text-xs text-gray-400">{{ option.department }}</span>
+            </div>
+          </template>
+          <template #empty>
+            <span class="text-gray-500 text-sm"
+              >Không tìm thấy người dùng nào.</span
+            >
+          </template>
+        </AutoComplete>
+
+        <div
+          v-if="form.selectedUser"
+          class="flex items-center justify-between bg-blue-50 rounded-md px-3 py-2 mt-1"
+        >
+          <span class="text-sm">
+            <span class="font-medium">Đã chọn: </span>
+            {{ form.selectedUser.full_name }} ({{ form.selectedUser.email }})
+          </span>
+          <Button
+            icon="pi pi-times"
+            text
+            rounded
+            severity="danger"
+            size="small"
+            @click="clearSelectedUser"
+          />
+        </div>
+      </div>
+
+      <div v-if="form.shareType === 'department'" class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700"
+          >Chia sẻ với khoa</label
+        >
+        <div class="p-3 bg-blue-50 rounded-md border border-blue-200">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-building text-blue-500" />
+            <div>
+              <div class="font-medium text-blue-800">
+                {{
+                  userDepartment?.vietnamese_name ||
+                  userDepartment?.name ||
+                  "Unknown Department"
+                }}
               </div>
-              <!-- No Results Message -->
-              <div
-                v-else-if="showSearchResults && !form.selectedUser && form.searchQuery.length >= 2 && searchResults.length === 0"
-                class="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg">
-                <div class="p-3 text-gray-500 text-center">
-                  {{ currentLang === 'vi' ? 'Không tìm thấy người dùng nào' : 'No users found' }}
-                </div>
+              <div class="text-sm text-blue-600">
+                Tất cả sinh viên trong khoa này sẽ có thể xem ca bệnh
               </div>
             </div>
-            <!-- Selected User Display -->
-            <div v-if="form.selectedUser" class="mt-2 p-2 bg-blue-50 rounded-md flex items-center justify-between">
-              <div class="text-sm">
-                <span class="font-medium">{{ currentLang === 'vi' ? 'Đã chọn:' : 'Selected:' }}</span>
-                {{ form.selectedUser.full_name }} ({{ form.selectedUser.email }})
-              </div>
-              <button type="button" @click="clearSelectedUser" class="text-red-500 hover:text-red-700 ml-2">
-                ✕
-              </button>
-            </div>
-          </div>
-
-          <!-- Department Selection -->
-          <div v-if="form.shareType === 'department'">
-            <label class="block text-sm font-medium mb-1">
-              {{ currentLang === 'vi' ? 'Chia sẻ với khôa' : 'Share with Department' }}
-            </label>
-            <div class="p-3 bg-blue-50 rounded-md border">
-              <div class="flex items-center space-x-2">
-                <BuildingIcon class="w-5 h-5 text-blue-500" />
-                <div>
-                  <div class="font-medium text-blue-800">
-                    {{ userDepartment?.vietnamese_name || userDepartment?.name || 'Unknown Department' }}
-                  </div>
-                  <div class="text-sm text-blue-600">
-                    {{ currentLang === 'vi' ?
-                      'Tất cả sinh viên trong khoa này sẽ có thể xem ca bệnh'
-                      : 'All students in this department will be able to view the case ' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Permission Type -->
-          <div>
-            <label class="block text-sm font-medium mb-1">
-              {{ currentLang === 'vi' ? 'Loại quyền' : 'Permission Type' }}
-            </label>
-            <select v-model="form.permissionType" class="w-full border rounded-md p-2">
-              <option value="view">
-                {{ currentLang === 'vi' ? 'Chỉ xem' : 'Read Only' }}
-              </option>
-              <option value="comment">
-                {{ currentLang === 'vi' ? 'Xem và bình luận' : 'Read & Comment' }}
-              </option>
-              <option value="analyze">
-                {{ currentLang === 'vi' ? 'Xem, bình luận và phân tích' : 'Read, Comment & Analyze' }}
-              </option>
-              <option value="edit">
-                {{ currentLang === 'vi' ? 'Toàn quyền chỉnh sửa' : 'Full Edit Access' }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Expiry Date -->
-          <div>
-            <label class="block text-sm font-medium mb-1">
-              {{ currentLang === 'vi' ? 'Ngày hết hạn (tuỳ chọn)' : 'Expiry Date (Optional)' }}
-            </label>
-            <input type="datetime-local" v-model="form.expiresAt" class="w-full border rounded-md p-2"
-              :min="new Date().toISOString().slice(0, 16)" />
-          </div>
-
-          <!-- Custom Message -->
-          <div>
-            <label class="block text-sm font-medium mb-1">
-              {{ currentLang === 'vi' ? 'Tin nhắn (tuỳ chọn)' : 'Message (Optional)' }}
-            </label>
-            <textarea v-model="form.message" class="w-full border rounded-md p-2"
-              :placeholder="currentLang === 'vi' ? 'Thêm tin nhắn cho người nhận...' : 'Add a message for the recipient...'"
-              rows="3"></textarea>
           </div>
         </div>
+      </div>
 
-        <div class="flex justify-end space-x-2 mt-6">
-          <button type="button" class="px-4 py-2 border rounded-md hover:bg-gray-50"
-            @click="$emit('update:open', false)">
-            {{ currentLang === 'vi' ? 'Huỷ' : 'Cancel' }}
-          </button>
-          <button type="submit"
-            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-            :disabled="!canSubmit || loading">
-            <span v-if="loading">⏳</span>
-            {{ currentLang === 'vi' ? 'Cấp quyền' : 'Grant Access' }}
-          </button>
-        </div>
-      </form>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Loại quyền</label>
+        <Select
+          v-model="form.permissionType"
+          :options="permissionOptions"
+          optionLabel="label"
+          optionValue="value"
+          class="w-full"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700"
+          >Ngày hết hạn (tuỳ chọn)</label
+        >
+        <DatePicker
+          v-model="form.expiresAt"
+          showTime
+          hourFormat="24"
+          fluid
+          :minDate="new Date()"
+          placeholder="Chọn ngày hết hạn..."
+          showButtonBar
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700"
+          >Tin nhắn (tuỳ chọn)</label
+        >
+        <Textarea
+          v-model="form.message"
+          fluid
+          placeholder="Thêm tin nhắn cho người nhận..."
+          rows="3"
+        />
+      </div>
     </div>
-  </div>
+
+    <template #footer>
+      <div class="flex justify-end gap-2 w-full">
+        <Button
+          label="Huỷ"
+          icon="pi pi-times"
+          outlined
+          severity="secondary"
+          @click="$emit('update:open', false)"
+        />
+        <Button
+          label="Cấp quyền"
+          icon="pi pi-check"
+          :disabled="!canSubmit || loading"
+          :loading="loading"
+          @click="handleSubmit"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { useLanguage } from '@/composables/useLanguage'
-import { useToast } from '@/composables/useToast'
-import { sharingService } from '@/services/sharing'
-import api from '@/services/api'
-import type { SharePermission, CreatePermissionRequest } from '@/services/sharing'
-import BuildingIcon from '@/components/icons/BuildingIcon.vue'
+import { ref, computed, watch, onMounted } from "vue";
+import { useToast } from "@/composables/useToast";
+import { sharingService } from "@/services/sharing";
+import api from "@/services/api";
+import type {
+  SharePermission,
+  CreatePermissionRequest,
+} from "@/services/sharing";
+import Dialog from "primevue/dialog";
+import Button from "primevue/button";
+import Select from "primevue/select";
+import InputText from "primevue/inputtext";
+import AutoComplete from "primevue/autocomplete";
+import Textarea from "primevue/textarea";
+import DatePicker from "primevue/datepicker";
 
-// Debounce utility
-const debounce = <T extends (...args: any[]) => void>(func: T, delay: number): T => {
-  let timeoutId: number
-  return ((...args: any[]) => {
-    window.clearTimeout(timeoutId)
-    timeoutId = window.setTimeout(() => func(...args), delay)
-  }) as T
-}
+const shareTypeOptions = [
+  { label: "Chia sẻ cá nhân", value: "individual" },
+  { label: "Chia sẻ khoa", value: "department" },
+  { label: "Công khai", value: "public" },
+];
 
-type ShareType = 'individual' | 'department' | 'public'
-type PermissionType = 'view' | 'comment' | 'analyze' | 'edit'
+const permissionOptions = [
+  { label: "Chỉ xem", value: "view" },
+  { label: "Xem và bình luận", value: "comment" },
+  { label: "Xem, bình luận và phân tích", value: "analyze" },
+  { label: "Toàn quyền chỉnh sửa", value: "edit" },
+];
+
+type ShareType = "individual" | "department" | "public";
+type PermissionType = "view" | "comment" | "analyze" | "edit";
 
 interface Props {
-  open: boolean
-  caseId: number
-  shareType?: ShareType
+  open: boolean;
+  caseId: number;
+  shareType?: ShareType;
 }
 
 interface User {
-  id: number
-  full_name: string
-  email: string
-  department: string
+  id: number;
+  full_name: string;
+  email: string;
+  department: string;
 }
 
 interface Department {
-  id: number
-  name: string
-  vietnamese_name?: string
+  id: number;
+  name: string;
+  vietnamese_name?: string;
 }
 
 interface Emits {
-  (event: 'update:open', value: boolean): void
-  (event: 'permission-created', permission: SharePermission): void
+  (event: "update:open", value: boolean): void;
+  (event: "permission-created", permission: SharePermission): void;
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
 
-const { currentLang } = useLanguage()
-const toast = useToast()
+const toast = useToast();
 
-const loading = ref(false)
-const searchResults = ref<User[]>([])
-const departments = ref<Department[]>([])
-const userDepartment = ref<Department | null>(null)
-const searchTimeout = ref<number | null>(null)
-const showSearchResults = ref(false)
-
-// Helper to hide search results with delay
-const hideSearchResults = () => {
-  window.setTimeout(() => {
-    showSearchResults.value = false
-  }, 200)
-}
+const loading = ref(false);
+const searchResults = ref<User[]>([]);
+const departments = ref<Department[]>([]);
+const userDepartment = ref<Department | null>(null);
 
 const form = ref({
-  shareType: 'individual' as 'individual' | 'department' | 'public',
-  permissionType: 'view' as 'view' | 'comment' | 'analyze' | 'edit',
-  searchQuery: '',
+  shareType: "individual" as ShareType,
+  permissionType: "view" as PermissionType,
+  searchQuery: "" as string | User,
   selectedUser: null as User | null,
-  departmentId: '',
-  expiresAt: '',
-  message: ''
-})// Backend-compatible form data
+  departmentId: "",
+  expiresAt: null as Date | null,
+  message: "",
+});
+
 const getPermissionData = (): CreatePermissionRequest => {
   const data: CreatePermissionRequest = {
     share_type: form.value.shareType,
     permission_type: form.value.permissionType,
-  }
+  };
 
-  // Add optional fields
   if (form.value.expiresAt) {
-    data.expires_at = form.value.expiresAt
+    data.expires_at = (form.value.expiresAt as Date).toISOString();
   }
   if (form.value.message) {
-    data.notes = form.value.message
+    data.notes = form.value.message;
+  }
+  if (form.value.shareType === "individual" && form.value.selectedUser) {
+    data.user = form.value.selectedUser.id;
+  } else if (form.value.shareType === "department" && userDepartment.value) {
+    data.target_department = userDepartment.value.id;
   }
 
-  // Add type-specific fields
-  if (form.value.shareType === 'individual' && form.value.selectedUser) {
-    data.user = form.value.selectedUser.id
-  } else if (form.value.shareType === 'department' && userDepartment.value) {
-    data.target_department = userDepartment.value.id
-  }
-  // For 'public' type, no additional fields needed
-
-  console.log('Permission data being sent:', data) // Debug log
-  return data
-}
+  return data;
+};
 
 const canSubmit = computed(() => {
-  if (form.value.shareType === 'individual') {
-    return form.value.selectedUser && form.value.permissionType
-  } else if (form.value.shareType === 'department') {
-    return userDepartment.value && form.value.permissionType
-  } else if (form.value.shareType === 'public') {
-    return form.value.permissionType
-  }
-  return false
-})
+  if (form.value.shareType === "individual")
+    return !!form.value.selectedUser && !!form.value.permissionType;
+  if (form.value.shareType === "department")
+    return !!userDepartment.value && !!form.value.permissionType;
+  if (form.value.shareType === "public") return !!form.value.permissionType;
+  return false;
+});
 
-// Reset form when modal opens/closes
-watch(() => props.open, (isOpen) => {
-  if (isOpen) {
-    form.value.shareType = props.shareType || 'individual'
-    loadDepartments()
-    loadUserDepartment()
-  } else {
-    resetForm()
-  }
-})
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      form.value.shareType = props.shareType || "individual";
+      loadDepartments();
+      loadUserDepartment();
+    } else {
+      resetForm();
+    }
+  },
+);
 
-// Watch search query with debouncing
-watch(() => form.value.searchQuery, () => {
-  if (form.value.shareType === 'individual') {
-    debouncedSearchUsers()
-  }
-})
-
-// Watch share type changes
-watch(() => form.value.shareType, (newType) => {
-  // Clear relevant form data when switching types
-  if (newType !== 'individual') {
-    clearSelectedUser()
-  }
-  if (newType !== 'department') {
-    form.value.departmentId = ''
-  }
-})
+watch(
+  () => form.value.shareType,
+  (newType) => {
+    if (newType !== "individual") clearSelectedUser();
+    if (newType !== "department") form.value.departmentId = "";
+  },
+);
 
 const resetForm = () => {
   form.value = {
-    shareType: 'individual',
-    searchQuery: '',
+    shareType: "individual",
+    searchQuery: "",
     selectedUser: null,
-    departmentId: '',
-    permissionType: 'view',
-    expiresAt: '',
-    message: ''
-  }
-  searchResults.value = []
-  showSearchResults.value = false
-}
+    departmentId: "",
+    permissionType: "view",
+    expiresAt: null,
+    message: "",
+  };
+  searchResults.value = [];
+};
 
 const loadDepartments = async () => {
-  // Simple caching to avoid repeated API calls
-  if (departments.value.length > 0) {
-    return
-  }
-
+  if (departments.value.length > 0) return;
   try {
     const list = await sharingService.getDepartments({
-      ordering: 'name',
-      page_size: 100 // Get more departments at once
-    })
-    departments.value = list
+      ordering: "name",
+      page_size: 100,
+    });
+    departments.value = list;
   } catch (error) {
-    console.error('Failed to load departments:', error)
-    departments.value = []
-    toast.toast.error(
-      currentLang.value === 'vi'
-        ? 'Không thể tải danh sách khoa'
-        : 'Failed to load departments'
-    )
+    console.error("Failed to load departments:", error);
+    departments.value = [];
+    toast.toast.error("Không thể tải danh sách khoa");
   }
-}
+};
 
-// Load departments on component mount for caching
 onMounted(() => {
-  loadDepartments()
-})
+  loadDepartments();
+});
 
 const loadUserDepartment = async () => {
   try {
-    // Get current user's profile to find their department
-    const response = await api.get('/auth/profile/')
-    const user = response.data
-
-    console.log('User profile:', user) // Debug log
+    const response = await api.get("/auth/profile/");
+    const user = response.data;
 
     if (user.department) {
-      // Handle both ID reference and nested object
-      if (typeof user.department === 'object') {
-        userDepartment.value = user.department
+      if (typeof user.department === "object") {
+        userDepartment.value = user.department;
       } else {
-        // If department is just an ID, we need to get the full department data
-        const departments = await sharingService.getDepartments()
-        userDepartment.value = departments.find((dept: Department) => dept.id === user.department)
+        const depts = await sharingService.getDepartments();
+        userDepartment.value = depts.find(
+          (dept: Department) => dept.id === user.department,
+        );
       }
-
-      console.log('User department set:', userDepartment.value) // Debug log
     } else {
-      console.warn('User has no department assigned')
-      toast.toast.error(
-        currentLang.value === 'vi'
-          ? 'Bạn chưa được phân vào khôa nào'
-          : 'You are not assigned to any department'
-      )
+      toast.toast.error("Bạn chưa được phân vào khoa nào");
     }
   } catch (error) {
-    console.error('Failed to load user department:', error)
-    toast.toast.error(
-      currentLang.value === 'vi'
-        ? 'Không thể tải thông tin khôa'
-        : 'Failed to load department information'
-    )
+    console.error("Failed to load user department:", error);
+    toast.toast.error("Không thể tải thông tin khoa");
   }
-}
+};
 
-const searchUsers = async () => {
-  if (form.value.searchQuery.length < 2) {
-    searchResults.value = []
-    return
+const searchUsers = async (event: { query: string }) => {
+  if (event.query.length < 2) {
+    searchResults.value = [];
+    return;
   }
-
   try {
-    // Use the correct API endpoint for user search
-    const response = await api.get('/auth/users/', {
-      params: {
-        search: form.value.searchQuery,
-        role: 'instructor', // Only search for instructors for sharing
-        page_size: 10 // Limit results for performance
-      }
-    })
-
-    // Handle paginated response
-    const users = Array.isArray(response.data) ? response.data : response.data.results || []
+    const response = await api.get("/auth/users/", {
+      params: { search: event.query, role: "instructor", page_size: 10 },
+    });
+    const users = Array.isArray(response.data)
+      ? response.data
+      : response.data.results || [];
     searchResults.value = users.map((user: any) => ({
       id: user.id,
-      full_name: user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username,
+      full_name:
+        user.first_name && user.last_name
+          ? `${user.first_name} ${user.last_name}`
+          : user.username,
       email: user.email,
-      department: user.department?.name || 'Unknown Department'
-    }))
+      department: user.department?.name || "Unknown Department",
+    }));
   } catch (error) {
-    console.error('Failed to search users:', error)
-    searchResults.value = []
-    toast.toast.error(
-      currentLang.value === 'vi'
-        ? 'Không thể tìm kiếm người dùng'
-        : 'Failed to search users'
-    )
+    console.error("Failed to search users:", error);
+    searchResults.value = [];
+    toast.toast.error("Không thể tìm kiếm người dùng");
   }
-}
+};
 
-// Debounced search function
-const debouncedSearchUsers = debounce(searchUsers, 300)
-
-const selectUser = (user: User) => {
-  form.value.selectedUser = user
-  form.value.searchQuery = user.full_name
-  searchResults.value = []
-  showSearchResults.value = false
-}
+const onUserSelect = (event: { value: User }) => {
+  form.value.selectedUser = event.value;
+  form.value.searchQuery = event.value.full_name;
+};
 
 const clearSelectedUser = () => {
-  form.value.selectedUser = null
-  form.value.searchQuery = ''
-  searchResults.value = []
-  showSearchResults.value = false
-}
+  form.value.selectedUser = null;
+  form.value.searchQuery = "";
+  searchResults.value = [];
+};
 
 const handleSubmit = async () => {
-  if (!canSubmit.value) return
+  if (!canSubmit.value) return;
 
-  loading.value = true
+  loading.value = true;
   try {
-    const permissionData = getPermissionData()
+    const permissionData = getPermissionData();
+    const permission = await sharingService.createPermission(
+      props.caseId,
+      permissionData,
+    );
 
-    // For department sharing, we'll share with all students in that department
-    // The backend should handle creating individual permissions for each student
-    const permission = await sharingService.createPermission(props.caseId, permissionData)
-
-    let successMessage = ''
-    if (form.value.shareType === 'department') {
-      const deptName = userDepartment.value ? (currentLang.value === 'vi' ? userDepartment.value.vietnamese_name || userDepartment.value.name : userDepartment.value.name) : 'department'
-      successMessage = currentLang.value === 'vi'
-        ? `Đã chia sẻ với tất cả sinh viên trong khôa ${deptName}!`
-        : `Shared with all students in ${deptName} department!`
-    } else if (form.value.shareType === 'public') {
-      successMessage = currentLang.value === 'vi'
-        ? 'Ca bệnh đã được công khai!'
-        : 'Case has been made public!'
+    let successMessage = "";
+    if (form.value.shareType === "department") {
+      const deptName =
+        userDepartment.value?.vietnamese_name || userDepartment.value?.name;
+      successMessage = `Đã chia sẻ với tất cả sinh viên trong khoa ${deptName}!`;
+    } else if (form.value.shareType === "public") {
+      successMessage = "Ca bệnh đã được công khai!";
     } else {
-      const userName = form.value.selectedUser?.full_name || 'user'
-      successMessage = currentLang.value === 'vi'
-        ? `Đã chia sẻ với ${userName}!`
-        : `Shared with ${userName}!`
+      successMessage = `Đã chia sẻ với ${form.value.selectedUser?.full_name || "user"}!`;
     }
 
-    toast.toast.success(successMessage)
-
-    emit('permission-created', permission)
-    emit('update:open', false)
+    toast.toast.success(successMessage);
+    emit("permission-created", permission);
+    emit("update:open", false);
   } catch (error: any) {
-    console.error('Failed to create permission:', error)
-    console.error('Error response:', error.response?.data) // Additional debug info
-
-    let errorMessage = ''
-    if (error.response?.data?.error) {
-      errorMessage = error.response.data.error
-    } else if (error.response?.data?.detail) {
-      errorMessage = error.response.data.detail
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message
-    } else {
-      errorMessage = currentLang.value === 'vi'
-        ? 'Không thể cấp quyền truy cập'
-        : 'Failed to grant access permission'
-    }
-
-    toast.toast.error(errorMessage)
+    console.error("Failed to create permission:", error);
+    const errorMessage =
+      error.response?.data?.error ||
+      error.response?.data?.detail ||
+      error.response?.data?.message ||
+      "Không thể cấp quyền truy cập";
+    toast.toast.error(errorMessage);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>

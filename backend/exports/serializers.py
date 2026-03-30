@@ -426,4 +426,3 @@ class ExportStatsSerializer(serializers.Serializer):
     total_file_size = serializers.IntegerField()
     recent_exports = CaseExportListSerializer(many=True)
     popular_templates = serializers.ListField()
-

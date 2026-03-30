@@ -23,7 +23,7 @@ export interface FeedPost {
     full_name: string;
   };
   published_to_feed_at: string;
-  feed_visibility: 'department' | 'university';
+  feed_visibility: "department" | "university";
   is_featured: boolean;
   view_count: number;
   reaction_count: number;
@@ -37,7 +37,7 @@ export interface FeedPost {
       learned?: number;
     };
   };
-  user_reaction?: 'like' | 'love' | 'insightful' | 'learned' | null;
+  user_reaction?: "like" | "love" | "insightful" | "learned" | null;
 }
 
 export interface ReactionSummary {
@@ -87,13 +87,13 @@ export const feedService = {
    * @param params Filter parameters
    */
   async getFeed(params?: {
-    filter?: 'all' | 'department' | 'featured';
+    filter?: "all" | "department" | "featured";
     specialty?: string;
     department_id?: number;
     page?: number;
     page_size?: number;
   }) {
-    const response = await api.get('/cases/public-feed/', { params });
+    const response = await api.get("/cases/public-feed/", { params });
     return response.data;
   },
 
@@ -114,9 +114,9 @@ export const feedService = {
   async publishToFeed(
     caseId: number,
     data: {
-      feed_visibility?: 'department' | 'university';
+      feed_visibility?: "department" | "university";
       is_featured?: boolean;
-    }
+    },
   ) {
     const response = await api.post(`/cases/${caseId}/publish-to-feed/`, data);
     return response.data;
@@ -138,7 +138,7 @@ export const feedService = {
    */
   async reactToCase(
     caseId: number,
-    reactionType: 'like' | 'love' | 'insightful' | 'learned'
+    reactionType: "like" | "love" | "insightful" | "learned",
   ) {
     const response = await api.post(`/cases/${caseId}/react/`, {
       reaction_type: reactionType,
@@ -168,7 +168,7 @@ export const feedService = {
    * Get feed statistics
    */
   async getStatistics(): Promise<FeedStatistics> {
-    const response = await api.get('/cases/feed-statistics/');
+    const response = await api.get("/cases/feed-statistics/");
     return response.data;
   },
 
@@ -180,8 +180,8 @@ export const feedService = {
    */
   async toggleReaction(
     caseId: number,
-    reactionType: 'like' | 'love' | 'insightful' | 'learned',
-    currentReaction: string | null
+    reactionType: "like" | "love" | "insightful" | "learned",
+    currentReaction: string | null,
   ) {
     if (currentReaction === reactionType) {
       // Remove reaction if clicking same type

@@ -3,10 +3,10 @@
  * Runs before all tests
  */
 
-import { vi } from 'vitest'
+import { vi } from "vitest";
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
     matches: false,
@@ -18,26 +18,26 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-})
+});
 
 // Mock IntersectionObserver
 globalThis.IntersectionObserver = class IntersectionObserver {
-  constructor() { }
-  disconnect() { }
-  observe() { }
+  constructor() {}
+  disconnect() {}
+  observe() {}
   takeRecords() {
-    return []
+    return [];
   }
-  unobserve() { }
-} as any
+  unobserve() {}
+} as any;
 
 // Mock ResizeObserver
 globalThis.ResizeObserver = class ResizeObserver {
-  constructor() { }
-  disconnect() { }
-  observe() { }
-  unobserve() { }
-} as any
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+} as any;
 
 // Mock localStorage
 const localStorageMock = {
@@ -45,8 +45,8 @@ const localStorageMock = {
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
-}
-globalThis.localStorage = localStorageMock as any
+};
+globalThis.localStorage = localStorageMock as any;
 
 // Mock sessionStorage
 const sessionStorageMock = {
@@ -54,8 +54,8 @@ const sessionStorageMock = {
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
-}
-globalThis.sessionStorage = sessionStorageMock as any
+};
+globalThis.sessionStorage = sessionStorageMock as any;
 
 // Mock WebSocket
 globalThis.WebSocket = vi.fn().mockImplementation(() => ({
@@ -63,4 +63,4 @@ globalThis.WebSocket = vi.fn().mockImplementation(() => ({
   close: vi.fn(),
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
-})) as any
+})) as any;

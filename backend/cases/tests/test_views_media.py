@@ -1,6 +1,7 @@
 """
 Tests for Case attachments and media handling
 """
+
 import pytest
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -23,13 +24,15 @@ class TestCaseAttachments:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
         # Test the endpoint - may not exist yet
-        response = api_client.post(f'/api/cases/{case.id}/attachments/', {
-            'description': 'X-quang ngực'
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/cases/{case.id}/attachments/",
+            {"description": "X-quang ngực"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -48,10 +51,10 @@ class TestCaseAttachments:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get(f'/api/cases/{case.id}/attachments/')
-        
+        response = api_client.get(f"/api/cases/{case.id}/attachments/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -68,10 +71,10 @@ class TestCaseAttachments:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.delete(f'/api/cases/{case.id}/attachments/1/')
-        
+        response = api_client.delete(f"/api/cases/{case.id}/attachments/1/")
+
         assert response.status_code in [
             status.HTTP_204_NO_CONTENT,
             status.HTTP_403_FORBIDDEN,
@@ -88,10 +91,10 @@ class TestCaseAttachments:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get(f'/api/cases/{case.id}/attachments/1/download/')
-        
+        response = api_client.get(f"/api/cases/{case.id}/attachments/1/download/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -108,13 +111,15 @@ class TestCaseAttachments:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
         # Test size validation
-        response = api_client.post(f'/api/cases/{case.id}/attachments/', {
-            'description': 'Large file test'
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/cases/{case.id}/attachments/",
+            {"description": "Large file test"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_400_BAD_REQUEST,
@@ -137,13 +142,14 @@ class TestCaseImages:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.post(f'/api/cases/{case.id}/images/', {
-            'image_type': 'xray',
-            'description': 'Hình ảnh X-quang phổi'
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/cases/{case.id}/images/",
+            {"image_type": "xray", "description": "Hình ảnh X-quang phổi"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -162,10 +168,10 @@ class TestCaseImages:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get(f'/api/cases/{case.id}/images/')
-        
+        response = api_client.get(f"/api/cases/{case.id}/images/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -182,12 +188,14 @@ class TestCaseImages:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.patch(f'/api/cases/{case.id}/images/1/', {
-            'description': 'Cập nhật mô tả hình ảnh'
-        }, format='json')
-        
+        response = api_client.patch(
+            f"/api/cases/{case.id}/images/1/",
+            {"description": "Cập nhật mô tả hình ảnh"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_400_BAD_REQUEST,
@@ -210,10 +218,10 @@ class TestCaseHistory:
             patient_gender="F",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get(f'/api/cases/{case.id}/history/')
-        
+        response = api_client.get(f"/api/cases/{case.id}/history/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -230,10 +238,10 @@ class TestCaseHistory:
             patient_gender="M",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get(f'/api/cases/{case.id}/versions/1/')
-        
+        response = api_client.get(f"/api/cases/{case.id}/versions/1/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -250,10 +258,10 @@ class TestCaseHistory:
             patient_gender="F",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.post(f'/api/cases/{case.id}/restore/1/', format='json')
-        
+        response = api_client.post(f"/api/cases/{case.id}/restore/1/", format="json")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_400_BAD_REQUEST,
@@ -271,10 +279,10 @@ class TestCaseHistory:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.get(f'/api/cases/{case.id}/compare/?v1=1&v2=2')
-        
+        response = api_client.get(f"/api/cases/{case.id}/compare/?v1=1&v2=2")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_400_BAD_REQUEST,
@@ -290,8 +298,8 @@ class TestCaseStatistics:
     def test_user_case_statistics(self, api_client, student_user):
         """Get statistics for user's cases"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/my-statistics/')
-        
+        response = api_client.get("/api/cases/my-statistics/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -301,19 +309,23 @@ class TestCaseStatistics:
     def test_repository_statistics(self, api_client, instructor_user, test_repository):
         """Get statistics for repository"""
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.get(f'/api/repositories/{test_repository.id}/statistics/')
-        
+        response = api_client.get(f"/api/repositories/{test_repository.id}/statistics/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
             status.HTTP_404_NOT_FOUND,
         ]
 
-    def test_department_case_statistics(self, api_client, instructor_user, test_department):
+    def test_department_case_statistics(
+        self, api_client, instructor_user, test_department
+    ):
         """Get case statistics by department"""
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.get(f'/api/departments/{test_department.id}/case-statistics/')
-        
+        response = api_client.get(
+            f"/api/departments/{test_department.id}/case-statistics/"
+        )
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -330,14 +342,14 @@ class TestCaseStatistics:
             patient_gender="M",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
         # View the case multiple times
         for _ in range(3):
-            api_client.get(f'/api/cases/{case.id}/')
-        
-        response = api_client.get(f'/api/cases/{case.id}/view-count/')
-        
+            api_client.get(f"/api/cases/{case.id}/")
+
+        response = api_client.get(f"/api/cases/{case.id}/view-count/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -359,12 +371,14 @@ class TestCaseTags:
             patient_gender="F",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.post(f'/api/cases/{case.id}/tags/', {
-            'tags': ['tim mạch', 'cấp cứu', 'điển hình']
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/cases/{case.id}/tags/",
+            {"tags": ["tim mạch", "cấp cứu", "điển hình"]},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_201_CREATED,
@@ -383,10 +397,10 @@ class TestCaseTags:
             patient_gender="M",
             case_status="draft",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.delete(f'/api/cases/{case.id}/tags/1/')
-        
+        response = api_client.delete(f"/api/cases/{case.id}/tags/1/")
+
         assert response.status_code in [
             status.HTTP_204_NO_CONTENT,
             status.HTTP_403_FORBIDDEN,
@@ -396,8 +410,8 @@ class TestCaseTags:
     def test_search_cases_by_tag(self, api_client, student_user):
         """Search cases by tag"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/cases/?tags=tim%20mạch')
-        
+        response = api_client.get("/api/cases/?tags=tim%20mạch")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -407,8 +421,8 @@ class TestCaseTags:
     def test_get_popular_tags(self, api_client, instructor_user):
         """Get most popular tags"""
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.get('/api/tags/popular/')
-        
+        response = api_client.get("/api/tags/popular/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,

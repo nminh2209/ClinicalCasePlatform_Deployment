@@ -1,9 +1,14 @@
 """
 Unit tests for Case serializers
 """
+
 import pytest
 from django.contrib.auth import get_user_model
-from cases.serializers import CaseListSerializer, CaseDetailSerializer, CaseCreateUpdateSerializer
+from cases.serializers import (
+    CaseListSerializer,
+    CaseDetailSerializer,
+    CaseCreateUpdateSerializer,
+)
 from cases.models import Case
 
 User = get_user_model()
@@ -23,10 +28,10 @@ class TestCaseListSerializer:
             patient_gender="M",
             case_status="approved",
         )
-        
+
         serializer = CaseListSerializer(case)
         data = serializer.data
-        
+
         assert "id" in data
         assert "title" in data
         assert data["title"] == "Nhồi Máu Cơ Tim Cấp"
@@ -47,10 +52,10 @@ class TestCaseDetailSerializer:
             case_summary="Bệnh nhân nữ 42 tuổi, sốt cao và ho",
             case_status="submitted",
         )
-        
+
         serializer = CaseDetailSerializer(case)
         data = serializer.data
-        
+
         assert data["title"] == "Viêm Phổi Cộng Đồng"
         assert data["patient_age"] == 42
         assert data["patient_gender"] == "F"

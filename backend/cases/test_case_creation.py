@@ -62,4 +62,3 @@ class CaseCreationTest(APITestCase):
             print(f"Error: {response.data}")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-

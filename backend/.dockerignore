@@ -1,0 +1,74 @@
+# ── Security / Secrets ────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Python bytecode ───────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pycache
+
+# ── Virtual environments ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+.python-version
+
+# ── Media & Uploads (large runtime data, mounted via volume) ──────────────────
+media/
+media_test/
+
+# ── Logs (written at runtime) ─────────────────────────────────────────────────
+logs/*.log
+*.log
+
+# ── Celery persisted state (regenerated at runtime) ──────────────────────────
+celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+celerybeat.pid
+
+# ── Downloaded AI models (downloaded at runtime / via volume) ────────────────
+ai/asr/phowhisper/
+ai/ocr/vgg_transformer/
+ai/ocr/models/
+
+# ── Node.js (frontend tooling, not needed in backend image) ──────────────────
+node_modules/
+
+# ── Test & Dev tooling ────────────────────────────────────────────────────────
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# ── IDE / Editor ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ── Git ───────────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── Agent / AI assistant files ────────────────────────────────────────────────
+.agent/
+.gemini/
+
+# ── JMeter (load testing) ─────────────────────────────────────────────────────
+jmeter/results.jtl
+jmeter/report/
+jmeter/*.log
+jmeter/*.jtl
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+Dockerfile
+docker-compose.yml
+*.md

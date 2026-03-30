@@ -155,10 +155,14 @@ class ExportTemplateViewSet(viewsets.ModelViewSet):
             raise permissions.PermissionDenied("Cannot delete system templates")  # type: ignore[attr-defined]
 
         # Only creator, instructors, or admins can delete
-        if instance.created_by != self.request.user and self.request.user.role not in [  # type: ignore[attr-defined]
-            "admin",
-            "instructor",
-        ]:
+        if (
+            instance.created_by != self.request.user
+            and self.request.user.role
+            not in [  # type: ignore[attr-defined]
+                "admin",
+                "instructor",
+            ]
+        ):
             raise permissions.PermissionDenied(  # type: ignore[attr-defined]
                 "You don't have permission to delete this template"
             )
@@ -674,4 +678,3 @@ def export_formats(request):
 # ============================================================================
 # Export Format Utility Views
 # ============================================================================
-

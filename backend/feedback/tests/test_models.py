@@ -23,14 +23,14 @@ def instructor_user(db):
 @pytest.mark.django_db
 def test_feedback_model_fields():
     """Test feedback model has correct fields"""
-    assert hasattr(Feedback, 'case')
-    assert hasattr(Feedback, 'instructor')
-    assert hasattr(Feedback, 'content')
-    assert hasattr(Feedback, 'feedback_type')
-    assert hasattr(Feedback, 'is_public')
+    assert hasattr(Feedback, "case")
+    assert hasattr(Feedback, "instructor")
+    assert hasattr(Feedback, "content")
+    assert hasattr(Feedback, "feedback_type")
+    assert hasattr(Feedback, "is_public")
 
 
-@pytest.mark.django_db  
+@pytest.mark.django_db
 def test_feedback_type_choices():
     """Test feedback type choices are defined"""
     assert Feedback.FeedbackType.GENERAL == "general"

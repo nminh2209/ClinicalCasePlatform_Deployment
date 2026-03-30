@@ -5,10 +5,11 @@ Run this to verify PhoWhisper model is working correctly
 Usage:
   cd backend
   python ai/asr/test_asr_service.py
-  
+
   Or from ai/asr directory:
   python test_asr_service.py
 """
+
 import os
 import sys
 import django
@@ -19,7 +20,7 @@ backend_dir = os.path.dirname(os.path.dirname(script_dir))
 sys.path.insert(0, backend_dir)
 
 # Setup Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'clinical_case_platform.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "clinical_case_platform.settings")
 
 try:
     django.setup()
@@ -39,7 +40,7 @@ def test_asr_service():
     print("ASR Service Test")
     print("=" * 60)
     print()
-    
+
     # Check dependencies first
     if not DEPENDENCIES_AVAILABLE:
         print("❌ ASR dependencies not installed")
@@ -59,14 +60,14 @@ def test_asr_service():
         print()
         print("=" * 60)
         return
-    
+
     # Get service info
     info = asr_service.get_model_info()
-    
+
     print("Service Status:")
     print(f"  Available: {'✅ YES' if info['available'] else '❌ NO'}")
-    
-    if info['available']:
+
+    if info["available"]:
         print(f"  Model: {info['model_name']}")
         print(f"  Device: {info['device']}")
         print(f"  Languages: {', '.join(info['language_support'])}")
@@ -90,15 +91,17 @@ def test_asr_service():
         print("     pip install torch transformers accelerate soundfile librosa")
         print()
         print("  3. Download model:")
-        print("     python -c \"from transformers import pipeline; pipeline('automatic-speech-recognition', model='vinai/PhoWhisper-medium')\"")
+        print(
+            "     python -c \"from transformers import pipeline; pipeline('automatic-speech-recognition', model='vinai/PhoWhisper-medium')\""
+        )
         print()
         print("  4. Run this test again")
-    
+
     print()
     print("=" * 60)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         test_asr_service()
     except Exception as e:

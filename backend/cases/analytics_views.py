@@ -5,7 +5,7 @@ Views for Analytics System
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Count, Avg, Q, Sum
+from django.db.models import Count, Avg, Q, Sum, Subquery, OuterRef, F
 from django.utils import timezone
 from datetime import timedelta
 
@@ -143,11 +143,11 @@ class StudentEngagementViewSet(viewsets.ReadOnlyModelViewSet):
         # Get grade history
         from grades.models import Grade
 
-        grades = Grade.objects.filter(case__student=student).order_by("created_at")
+        grades = Grade.objects.filter(case__student=student).order_by("graded_at")
         grade_history = [
             {
-                "date": g.created_at.date().isoformat(),  # type: ignore[attr-defined]
-                "score": g.total_score,  # type: ignore[attr-defined]
+                "date": g.graded_at.date().isoformat(),
+                "score": g.score,
                 "case_title": g.case.title,
             }
             for g in grades
@@ -316,7 +316,7 @@ class AnalyticsDashboardViewSet(viewsets.ViewSet):
         if user.role == "instructor" and user.department:
             grades_qs = grades_qs.filter(case__student__department=user.department)
 
-        avg_grade = grades_qs.aggregate(Avg("total_score"))["total_score__avg"] or 0.0
+        avg_grade = grades_qs.aggregate(Avg("score"))["score__avg"] or 0.0
 
         # Completion rate
         completed_cases = cases_qs.filter(case_status="approved").count()
@@ -343,13 +343,24 @@ class AnalyticsDashboardViewSet(viewsets.ViewSet):
 
         most_viewed = most_viewed_qs.order_by("-total_views")[:5]
 
-        # Department stats
+        # Department stats — one most-recent record per department
         department_stats = []
         if user.role == "admin":
+            # Use correlated subquery to get the latest record per department
+            # (avoids DISTINCT ON ordering constraints on PostgreSQL)
+            latest_id_per_dept = Subquery(
+                DepartmentAnalytics.objects.filter(
+                    department=OuterRef("department"),
+                    period_start__gte=week_ago,
+                )
+                .order_by("-period_start")
+                .values("id")[:1]
+            )
             recent_dept_analytics = (
                 DepartmentAnalytics.objects.filter(period_start__gte=week_ago)
-                .order_by("department", "-period_start")
-                .distinct("department")[:10]
+                .annotate(latest_id=latest_id_per_dept)
+                .filter(id=F("latest_id"))
+                .order_by("-period_start")[:10]
             )
             department_stats = DepartmentAnalyticsSerializer(
                 recent_dept_analytics, many=True
@@ -478,11 +489,11 @@ class PlatformStatisticsViewSet(viewsets.ReadOnlyModelViewSet):
 
         comments = Comment.objects.filter(created_at__date=today).count()
         feedback = Feedback.objects.filter(created_at__date=today).count()
-        grades = Grade.objects.filter(created_at__date=today).count()
+        grades = Grade.objects.filter(graded_at__date=today).count()
 
-        avg_grade = Grade.objects.filter(created_at__date=today).aggregate(
-            Avg("total_score")
-        )["total_score__avg"]
+        avg_grade = Grade.objects.filter(graded_at__date=today).aggregate(
+            Avg("score")
+        )["score__avg"]
 
         # Create statistics
         stats = PlatformUsageStatistics.objects.create(

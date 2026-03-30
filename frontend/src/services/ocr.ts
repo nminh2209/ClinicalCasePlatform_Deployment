@@ -21,7 +21,7 @@ export interface OCRResult {
 }
 
 export interface OCRJobStatus {
-  status: 'queued' | 'running' | 'done' | 'failed';
+  status: "queued" | "running" | "done" | "failed";
   progress?: any;
   result?: OCRResult;
   error?: string;
@@ -42,7 +42,7 @@ export interface ImageResult {
 }
 
 export interface TableImageJobResult {
-  status: 'queued' | 'running' | 'done' | 'failed';
+  status: "queued" | "running" | "done" | "failed";
   tables: TableResult[];
   images: ImageResult[];
   error?: string;
@@ -50,11 +50,14 @@ export interface TableImageJobResult {
 
 export interface AutofillResult {
   structured: Record<string, any>;
-  matches: Record<string, {
-    value: string;
-    confidence: number;
-    matched_heading: string;
-  }>;
+  matches: Record<
+    string,
+    {
+      value: string;
+      confidence: number;
+      matched_heading: string;
+    }
+  >;
   metadata: {
     fields_matched: number;
     elapsed_ms: number;
@@ -64,12 +67,16 @@ export interface AutofillResult {
 export const ocrService = {
   /**
    * Extract text from image or PDF
-   * 
+   *
    * @param file - The file to process
    * @param mode - "text" (default) for fast text only, "full" to also extract tables/images
    * @param signal - Optional AbortController signal for request cancellation
    */
-  async extractText(file: File, mode: 'text' | 'full' = 'text', signal?: AbortSignal): Promise<OCRResult> {
+  async extractText(
+    file: File,
+    mode: "text" | "full" = "text",
+    signal?: AbortSignal,
+  ): Promise<OCRResult> {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("mode", mode);
@@ -94,7 +101,12 @@ export const ocrService = {
   /**
    * Poll for async OCR job completion (text extraction)
    */
-  async pollJobStatus(jobId: string, intervalMs = 1000, timeoutMs = 120000, signal?: AbortSignal): Promise<OCRResult> {
+  async pollJobStatus(
+    jobId: string,
+    intervalMs = 1000,
+    timeoutMs = 120000,
+    signal?: AbortSignal,
+  ): Promise<OCRResult> {
     const startTime = Date.now();
 
     return new Promise((resolve, reject) => {
@@ -114,9 +126,9 @@ export const ocrService = {
           const response = await api.get(`/ocr/jobs/${jobId}/`, { signal });
           const data = response.data as OCRJobStatus;
 
-          if (data.status === 'done' && data.result) {
+          if (data.status === "done" && data.result) {
             resolve(data.result);
-          } else if (data.status === 'failed') {
+          } else if (data.status === "failed") {
             reject(new Error(data.error || "OCR processing failed"));
           } else {
             // Still running/queued, wait and retry
@@ -124,7 +136,7 @@ export const ocrService = {
           }
         } catch (error: any) {
           // Handle abort error gracefully
-          if (error.name === 'AbortError' || error.name === 'CanceledError') {
+          if (error.name === "AbortError" || error.name === "CanceledError") {
             reject(new Error("OCR request was cancelled"));
           } else {
             reject(error);
@@ -139,7 +151,11 @@ export const ocrService = {
   /**
    * Poll for table/image extraction job completion
    */
-  async pollTableImageJob(jobId: string, intervalMs = 2000, timeoutMs = 300000): Promise<TableImageJobResult> {
+  async pollTableImageJob(
+    jobId: string,
+    intervalMs = 2000,
+    timeoutMs = 300000,
+  ): Promise<TableImageJobResult> {
     const startTime = Date.now();
 
     return new Promise((resolve, reject) => {
@@ -153,9 +169,9 @@ export const ocrService = {
           const response = await api.get(`/ocr/jobs/${jobId}/`);
           const data = response.data as TableImageJobResult;
 
-          if (data.status === 'done') {
+          if (data.status === "done") {
             resolve(data);
-          } else if (data.status === 'failed') {
+          } else if (data.status === "failed") {
             reject(new Error(data.error || "Table/image extraction failed"));
           } else {
             // Still running/queued, wait and retry
@@ -174,10 +190,13 @@ export const ocrService = {
    * Auto-fill case template fields from OCR text using semantic matching.
    * Uses Vietnamese SBERT for heading-to-field matching.
    */
-  async autofill(ocrText: string, confidenceThreshold = 0.6): Promise<AutofillResult> {
+  async autofill(
+    ocrText: string,
+    confidenceThreshold = 0.6,
+  ): Promise<AutofillResult> {
     const response = await api.post("/ocr/autofill/", {
       text: ocrText,
-      confidence_threshold: confidenceThreshold
+      confidence_threshold: confidenceThreshold,
     });
     return response.data;
   },
@@ -187,26 +206,31 @@ export const ocrService = {
    * Optionally queues table/image extraction (mode="full").
    * @param signal - Optional AbortController signal for request cancellation
    */
-  async extractAndAutofill(file: File, confidenceThreshold = 0.6, mode: 'text' | 'full' = 'text', signal?: AbortSignal): Promise<{
+  async extractAndAutofill(
+    file: File,
+    confidenceThreshold = 0.6,
+    mode: "text" | "full" = "text",
+    signal?: AbortSignal,
+  ): Promise<{
     ocr: OCRResult;
     autofill: AutofillResult;
   }> {
     const ocr = await this.extractText(file, mode, signal);
-    
+
     // Skip autofill if OCR returned no text
-    if (!ocr.text || ocr.text.trim() === '') {
-      console.warn('OCR returned empty text, skipping autofill');
+    if (!ocr.text || ocr.text.trim() === "") {
+      console.warn("OCR returned empty text, skipping autofill");
       return {
         ocr,
         autofill: {
           structured: {},
           matches: {},
-          metadata: { fields_matched: 0, elapsed_ms: 0 }
-        }
+          metadata: { fields_matched: 0, elapsed_ms: 0 },
+        },
       };
     }
-    
+
     const autofill = await this.autofill(ocr.text, confidenceThreshold);
     return { ocr, autofill };
-  }
+  },
 };

@@ -1,44 +1,50 @@
 <template>
   <div class="not-found-page">
-    <div class="not-found-container">
-      <div class="error-illustration">
-        <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
-          <circle cx="100" cy="100" r="80" fill="#EFF6FF" />
-          <path
-            d="M70 90C70 85.5817 73.5817 82 78 82H122C126.418 82 130 85.5817 130 90V130C130 134.418 126.418 138 122 138H78C73.5817 138 70 134.418 70 130V90Z"
-            fill="#3B82F6" />
-          <circle cx="88" cy="105" r="6" fill="white" />
-          <circle cx="112" cy="105" r="6" fill="white" />
-          <path d="M85 120C85 120 92 125 100 125C108 125 115 120 115 120" stroke="white" stroke-width="3"
-            stroke-linecap="round" />
-        </svg>
-      </div>
+    <Card class="not-found-container">
+      <template #content>
+        <div class="not-found-content">
+          <h1 class="error-code">404</h1>
+          <h2 class="error-title">Không Tìm Thấy Trang</h2>
+          <p class="error-description">
+            Trang mà bạn đang tìm kiếm hiện không tồn tại hoặc đã bị chuyển qua
+            địa chỉ khác.
+          </p>
 
-      <h1 class="error-code">404</h1>
-      <h2 class="error-title">Không Tìm Thấy Trang</h2>
-      <p class="error-description">
-        Trang mà bạn đang tìm kiếm hiện không tồn tại hoặc đã bị chuyển qua địa chỉ khác.
-      </p>
-
-      <div class="error-actions">
-        <router-link to="/home" class="btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          Quay về Bảng điều khiển
-        </router-link>
-        <button @click="$router.go(-1)" class="btn-secondary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          Quay về Trang trước đó
-        </button>
-      </div>
-    </div>
+          <div class="error-actions">
+            <Button
+              icon="pi pi-home"
+              label="Quay về Bảng điều khiển"
+              @click="goHome"
+            />
+            <Button
+              icon="pi pi-arrow-left"
+              label="Quay về Trang trước đó"
+              severity="secondary"
+              outlined
+              @click="goBack"
+            />
+          </div>
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
+
+<script setup lang="ts">
+import Button from "primevue/button";
+import Card from "primevue/card";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const goHome = () => {
+  router.push("/home");
+};
+
+const goBack = () => {
+  router.go(-1);
+};
+</script>
 
 <style scoped>
 .not-found-page {
@@ -46,36 +52,48 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
-  padding: 2rem;
+  background: var(--background);
+  padding: 2.5rem 2rem;
+}
+
+/*
+  Card border-radius fix:
+  - Set a single clean radius (20px) on the outer .p-card element
+  - Reset all child elements (body, content) to 0 or inherit so no
+    double-stacked radius appears at the inner boundary
+  - The overflow:hidden on .p-card clips children cleanly
+*/
+:deep(.p-card) {
+  border-radius: 20px !important;
+  overflow: hidden;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  background: var(--card) !important;
+}
+
+:deep(.p-card-body) {
+  border-radius: 0 !important;
+  padding: 3rem 2.5rem !important;
+}
+
+:deep(.p-card-content) {
+  border-radius: 0 !important;
+  padding: 0 !important;
 }
 
 .not-found-container {
-  text-align: center;
   max-width: 600px;
+  width: 100%;
 }
 
-.error-illustration {
-  margin-bottom: 2rem;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-20px);
-  }
+.not-found-content {
+  text-align: center;
 }
 
 .error-code {
   font-size: 6rem;
   font-weight: 800;
-  color: #1e40af;
+  color: var(--primary);
   margin-bottom: 1rem;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -84,13 +102,13 @@
 .error-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--foreground);
   margin-bottom: 1rem;
 }
 
 .error-description {
   font-size: 1.125rem;
-  color: #6b7280;
+  color: var(--muted-foreground);
   margin-bottom: 2.5rem;
   line-height: 1.6;
 }
@@ -102,53 +120,13 @@
   flex-wrap: wrap;
 }
 
-.btn-primary,
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.75rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 1rem;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-  color: white;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-}
-
-.btn-secondary {
-  background: white;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.btn-secondary:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-}
-
 @media (max-width: 640px) {
   .error-code {
     font-size: 4rem;
   }
-
   .error-title {
     font-size: 1.5rem;
   }
-
   .error-description {
     font-size: 1rem;
   }
@@ -157,8 +135,7 @@
     flex-direction: column;
   }
 
-  .btn-primary,
-  .btn-secondary {
+  .error-actions :deep(.p-button) {
     width: 100%;
     justify-content: center;
   }

@@ -10,15 +10,17 @@
     "dev": "vite",
     "build": "npm-run-all type-check \"build-only {@}\" --",
     "preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "build-only": "vite build"
   },
   "dependencies": {
+    "@primeuix/themes": "^2.0.3",
     "@vueuse/core": "^13.9.0",
     "axios": "^1.12.2",
     "chart.js": "^4.5.1",
     "lucide-vue-next": "^0.552.0",
     "pinia": "^3.0.3",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.5.4",
     "recharts": "^3.4.1",
     "tailwindcss": "^4.1.17",
     "vue": "^3.5.22",
@@ -35,6 +37,7 @@
     "typescript": "^5.9.3",
     "vite": "^7.1.7",
     "vite-plugin-vue-devtools": "^8.0.2",
+    "vitest": "^4.0.16",
     "vue-tsc": "^3.1.3"
   }
 }

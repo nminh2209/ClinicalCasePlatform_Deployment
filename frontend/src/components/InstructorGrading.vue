@@ -1,1093 +1,1950 @@
 <template>
   <div class="p-6 space-y-6">
-    <!-- Header -->
-  <div class="bg-white border-b border-gray-200 px-6 py-5">
-  <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
-    <!-- Left Section: Navigation & Case Info -->
-    <div class="flex gap-4">
-      <!-- Back Button -->
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        @click="router.back()"
-        class="shrink-0 h-10 w-10 rounded-lg hover:bg-gray-100 transition-colors"
+    <div class="bg-white border-b border-gray-200 px-6 py-5">
+      <div
+        class="flex flex-col md:flex-row md:items-start justify-between gap-6"
       >
-        <ArrowLeft class="h-5 w-5 text-gray-600" />
-      </Button>
-
-      <!-- Case Details -->
-      <div class="min-w-0 flex-1">
-        <h1 class="text-2xl font-semibold text-gray-900 mb-2 leading-tight">
-          {{ caseData.title }}
-        </h1>
-        
-        <!-- Badges Row -->
-        <div class="flex flex-wrap items-center gap-2 mb-2">
-          <Badge 
-            variant="secondary" 
-            class="bg-blue-50 text-blue-700 border border-blue-200 font-medium"
-          >
-            {{ caseData.specialty }}
-          </Badge>
-          <Badge :class="getStatusBadgeClass(caseData.case_status)">
-            {{ getStatusLabel(caseData.case_status) }}
-          </Badge>
-          <Badge 
-            v-if="caseData.created_by_role === 'instructor'" 
-            class="bg-gradient-to-r from-purple-600 to-purple-700 text-white border-0 shadow-sm"
-          >
-            <span class="mr-1">📚</span>
-            Hồ sơ mẫu
-          </Badge>
+        <div class="flex gap-4">
+          <Button
+            icon="pi pi-arrow-left"
+            text
+            rounded
+            severity="secondary"
+            class="shrink-0 h-10 w-10"
+            @click="router.back()"
+          />
+          <div class="min-w-0 flex-1">
+            <h1 class="text-2xl font-semibold text-gray-900 mb-2 leading-tight">
+              {{ caseData.title }}
+            </h1>
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+              <Tag severity="info" class="text-xs">{{
+                caseData.specialty
+              }}</Tag>
+              <Tag
+                :severity="getStatusSeverity(caseData.case_status)"
+                class="text-xs"
+              >
+                {{ getStatusLabel(caseData.case_status) }}
+              </Tag>
+              <Tag
+                v-if="caseData.created_by_role === 'instructor'"
+                severity="warn"
+                class="text-xs"
+              >
+                <i class="pi pi-pen-to-square mr-1" />Hồ sơ mẫu
+              </Tag>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+              <span class="font-medium">
+                {{
+                  caseData.created_by_role === "instructor"
+                    ? "Giảng viên"
+                    : "Sinh viên"
+                }}:
+              </span>
+              <span class="text-gray-900">{{ caseData.created_by_name }}</span>
+              <span class="text-gray-400">•</span>
+              <span class="text-gray-500">{{ caseData.created_by_id }}</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Creator Info -->
-        <div class="flex items-center gap-2 text-sm text-gray-600">
-          <span class="font-medium">
-            {{ caseData.created_by_role === 'instructor' ? 'Giảng viên' : 'Sinh viên' }}:
-          </span>
-          <span class="text-gray-900">{{ caseData.created_by_name }}</span>
-          <span class="text-gray-400">•</span>
-          <span class="text-gray-500">{{ caseData.created_by_id }}</span>
+        <div class="flex items-center gap-3 md:shrink-0">
+          <Button
+            icon="pi pi-share-alt"
+            label="Chia sẻ ca bệnh"
+            outlined
+            severity="secondary"
+            @click="showShareModal = true"
+          />
         </div>
       </div>
     </div>
 
-    <!-- Right Section: Actions -->
-    <div class="flex items-center gap-3 md:shrink-0">
-      <Button 
-        variant="outline" 
-        @click="showShareModal = true" 
-        class="flex items-center gap-2 px-4 py-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm"
-      >
-        <svg 
-          class="w-4 h-4" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-          stroke-width="2"
-        >
-          <path 
-            stroke-linecap="round" 
-            stroke-linejoin="round"
-            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" 
-          />
-        </svg>
-        <span class="font-medium">Chia sẻ ca bệnh</span>
-      </Button>
-    </div>
-  </div>
-</div>
-
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Case Information (Read-only for instructors) -->
       <div class="space-y-3">
-        <!-- Basic Information -->
-        <Card class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <button @click="toggleSection('basic')"
-            class="w-full p-4 flex items-center justify-between hover:bg-blue-50/50 transition-colors border-l-4 border-blue-500">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <button
+            type="button"
+            @click="toggleSection('basic')"
+            class="w-full p-4 flex items-center justify-between hover:bg-blue-50/50 transition-colors border-l-4 border-blue-500"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                <InfoIcon stroke="#3b82f6" class="w-4 h-4" />
+              <div
+                class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"
+              >
+                <i class="pi pi-info-circle text-blue-600" />
               </div>
-              <CardTitle class="text-base font-semibold text-gray-800">Thông tin cơ bản</CardTitle>
+              <span class="text-base font-semibold text-gray-800"
+                >Thông tin cơ bản</span
+              >
             </div>
-            <ChevronDown :class="['h-5 w-5 text-gray-400 transition-transform duration-200', expandedSections.basic && 'rotate-180']" />
+            <i
+              :class="[
+                'pi text-gray-400 transition-transform duration-200',
+                expandedSections.basic ? 'pi-chevron-up' : 'pi-chevron-down',
+              ]"
+            />
           </button>
-          <CardContent v-show="expandedSections.basic" class="pt-0 pb-4 px-4 bg-gray-50/30">
-            <!-- Case Information Section -->
+          <div v-if="expandedSections.basic" class="pb-4 px-4 bg-gray-50/30">
+            <!-- Case Info -->
             <div class="pt-3">
-              <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <DocumentIcon class="w-4 h-4 text-blue-500" stroke="#3b82f6" />
-                Thông tin hồ sơ
+              <h4
+                class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"
+              >
+                <i class="pi pi-file text-blue-500" />Thông tin hồ sơ
               </h4>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Tiêu đề hồ sơ</label>
-                  <p class="text-gray-800 mt-1 font-medium">{{ caseData.title || "—" }}</p>
+                <div
+                  class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2"
+                >
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Tiêu đề hồ sơ</label
+                  >
+                  <p class="text-gray-800 mt-1 font-medium">
+                    {{ caseData.title || "—" }}
+                  </p>
                 </div>
                 <div class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Chuyên khoa</label>
-                  <p class="text-gray-800 mt-1">{{ caseData.specialty || "—" }}</p>
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Chuyên khoa</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ caseData.specialty || "—" }}
+                  </p>
                 </div>
                 <div class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Mức độ phức tạp</label>
-                  <p class="text-gray-800 mt-1">{{ getComplexityLabel(caseData.complexity_level) || "—" }}</p>
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Mức độ phức tạp</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{
+                      getComplexityLabel(caseData.complexity_level || "") || "—"
+                    }}
+                  </p>
                 </div>
                 <div class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Mức độ ưu tiên</label>
-                  <p class="text-gray-800 mt-1">{{ getPriorityLabel(caseData.priority_level) || "—" }}</p>
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Mức độ ưu tiên</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ getPriorityLabel(caseData.priority_level || "") || "—" }}
+                  </p>
                 </div>
-                <div v-if="caseData.estimated_study_hours" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Thời gian học ước tính</label>
-                  <p class="text-gray-800 mt-1">{{ caseData.estimated_study_hours }} giờ</p>
+                <div
+                  v-if="caseData.estimated_study_hours"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Thời gian học ước tính</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ caseData.estimated_study_hours }} giờ
+                  </p>
                 </div>
-                <div v-if="caseData.keywords" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Từ khóa</label>
+                <div
+                  v-if="caseData.keywords"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Từ khóa</label
+                  >
                   <p class="text-gray-800 mt-1">{{ caseData.keywords }}</p>
                 </div>
-                <div v-if="caseData.learning_tags" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Nhãn học tập</label>
+                <div
+                  v-if="caseData.learning_tags"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Nhãn học tập</label
+                  >
                   <p class="text-gray-800 mt-1">{{ caseData.learning_tags }}</p>
                 </div>
-                <div v-if="caseData.chief_complaint_brief" class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Lý do khám tóm tắt</label>
-                  <p class="text-gray-800 mt-1">{{ caseData.chief_complaint_brief }}</p>
+                <div
+                  v-if="caseData.chief_complaint_brief"
+                  class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2"
+                >
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Lý do khám tóm tắt</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ caseData.chief_complaint_brief }}
+                  </p>
                 </div>
-                <div v-if="caseData.case_summary" class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Tóm tắt ca bệnh</label>
-                  <p class="text-gray-800 mt-1 whitespace-pre-wrap">{{ caseData.case_summary }}</p>
+                <div
+                  v-if="caseData.case_summary"
+                  class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2"
+                >
+                  <label
+                    class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                    >Tóm tắt ca bệnh</label
+                  >
+                  <p class="text-gray-800 mt-1 whitespace-pre-wrap">
+                    {{ caseData.case_summary }}
+                  </p>
                 </div>
               </div>
             </div>
-            
-            <!-- Patient Demographics Section -->
+
+            <!-- Patient Demographics -->
             <div class="pt-4 mt-4 border-t border-gray-200">
-              <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <User class="w-4 h-4 text-green-500" />
-                Thông tin bệnh nhân
+              <h4
+                class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"
+              >
+                <i class="pi pi-user text-green-600" />Thông tin bệnh nhân
               </h4>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-green-600 uppercase tracking-wide">Tuổi</label>
-                  <p class="text-gray-800 mt-1">{{ caseData.patient_age || "—" }}</p>
+                  <label
+                    class="text-xs font-medium text-green-600 uppercase tracking-wide"
+                    >Tuổi</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ caseData.patient_age || "—" }}
+                  </p>
                 </div>
                 <div class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-green-600 uppercase tracking-wide">Giới tính</label>
-                  <p class="text-gray-800 mt-1">{{ getGenderLabel(caseData.patient_gender) || "—" }}</p>
+                  <label
+                    class="text-xs font-medium text-green-600 uppercase tracking-wide"
+                    >Giới tính</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ getGenderLabel(caseData.patient_gender) || "—" }}
+                  </p>
                 </div>
-                <div v-if="caseData.patient_ethnicity" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-green-600 uppercase tracking-wide">Dân tộc</label>
-                  <p class="text-gray-800 mt-1">{{ caseData.patient_ethnicity }}</p>
+                <div
+                  v-if="caseData.patient_ethnicity"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-green-600 uppercase tracking-wide"
+                    >Dân tộc</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ caseData.patient_ethnicity }}
+                  </p>
                 </div>
-                <div v-if="caseData.patient_occupation" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-green-600 uppercase tracking-wide">Nghề nghiệp</label>
-                  <p class="text-gray-800 mt-1">{{ caseData.patient_occupation }}</p>
+                <div
+                  v-if="caseData.patient_occupation"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-green-600 uppercase tracking-wide"
+                    >Nghề nghiệp</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ caseData.patient_occupation }}
+                  </p>
                 </div>
-                <div v-if="caseData.medical_record_number" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-green-600 uppercase tracking-wide">Số hồ sơ bệnh án</label>
-                  <p class="text-gray-800 mt-1">{{ caseData.medical_record_number }}</p>
+                <div
+                  v-if="caseData.medical_record_number"
+                  class="p-3 bg-white rounded-lg border border-gray-200 col-span-2"
+                >
+                  <label
+                    class="text-xs font-medium text-green-600 uppercase tracking-wide"
+                    >Số hồ sơ bệnh án</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ caseData.medical_record_number }}
+                  </p>
                 </div>
-                <div v-if="caseData.admission_date" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-green-600 uppercase tracking-wide">Ngày nhập viện</label>
-                  <p class="text-gray-800 mt-1">{{ formatDate(caseData.admission_date) }}</p>
+                <div
+                  v-if="caseData.admission_date"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-green-600 uppercase tracking-wide"
+                    >Ngày nhập viện</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ formatDate(caseData.admission_date) }}
+                  </p>
                 </div>
-                <div v-if="caseData.discharge_date" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-green-600 uppercase tracking-wide">Ngày xuất viện</label>
-                  <p class="text-gray-800 mt-1">{{ formatDate(caseData.discharge_date) }}</p>
+                <div
+                  v-if="caseData.discharge_date"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-green-600 uppercase tracking-wide"
+                    >Ngày xuất viện</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{ formatDate(caseData.discharge_date) }}
+                  </p>
                 </div>
-                <div v-if="caseData.requires_follow_up" class="p-3 bg-white rounded-lg border border-orange-100 bg-orange-50/30">
-                  <label class="text-xs font-medium text-orange-600 uppercase tracking-wide">Cần theo dõi</label>
-                  <p class="text-gray-800 mt-1">{{ caseData.follow_up_date ? formatDate(caseData.follow_up_date) : 'Có' }}</p>
+                <div
+                  v-if="caseData.requires_follow_up"
+                  class="p-3 bg-white rounded-lg border border-orange-100 bg-orange-50/30"
+                >
+                  <label
+                    class="text-xs font-medium text-orange-600 uppercase tracking-wide"
+                    >Cần theo dõi</label
+                  >
+                  <p class="text-gray-800 mt-1">
+                    {{
+                      caseData.follow_up_date
+                        ? formatDate(caseData.follow_up_date)
+                        : "Có"
+                    }}
+                  </p>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Clinical History -->
-        <Card class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <button @click="toggleSection('clinical')"
-            class="w-full p-4 flex items-center justify-between hover:bg-amber-50/50 transition-colors border-l-4 border-amber-500">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <button
+            type="button"
+            @click="toggleSection('clinical')"
+            class="w-full p-4 flex items-center justify-between hover:bg-amber-50/50 transition-colors border-l-4 border-amber-500"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                <DocumentIcon class="w-4 h-4 text-amber-600" stroke="#d97706" />
+              <div
+                class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center"
+              >
+                <i class="pi pi-file text-yellow-600" />
               </div>
               <div class="flex items-center gap-2">
-                <CardTitle class="text-base font-semibold text-gray-800">Tiền sử lâm sàng</CardTitle>
-                <span v-if="!hasData('clinical_history')" class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full">
-                  Chưa có dữ liệu
-                </span>
+                <span class="text-base font-semibold text-gray-800"
+                  >Tiền sử lâm sàng</span
+                >
+                <span
+                  v-if="!hasData('clinical_history')"
+                  class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full"
+                  >Chưa có dữ liệu</span
+                >
               </div>
             </div>
-            <ChevronDown :class="['h-5 w-5 text-gray-400 transition-transform duration-200', expandedSections.clinical && 'rotate-180']" />
+            <i
+              :class="[
+                'pi text-gray-400 transition-transform duration-200',
+                expandedSections.clinical ? 'pi-chevron-up' : 'pi-chevron-down',
+              ]"
+            />
           </button>
-          <CardContent v-show="expandedSections.clinical" class="pt-0 pb-4 px-4 bg-gray-50/30">
-            <!-- Empty State -->
+          <div v-if="expandedSections.clinical" class="pb-4 px-4 bg-gray-50/30">
             <div v-if="!hasData('clinical_history')" class="py-8 text-center">
-              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                <DocumentIcon class="w-6 h-6 text-gray-400" stroke="#9ca3af" />
+              <div
+                class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <i class="pi pi-file text-gray-400 text-2xl" />
               </div>
-              <p class="text-gray-500 text-sm">Chưa có thông tin tiền sử lâm sàng</p>
-              <p class="text-gray-400 text-xs mt-1">Sinh viên chưa điền phần này</p>
+              <p class="text-gray-500 text-sm">
+                Chưa có thông tin tiền sử lâm sàng
+              </p>
+              <p class="text-gray-400 text-xs mt-1">
+                Sinh viên chưa điền phần này
+              </p>
             </div>
-            <!-- Data Display -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
-              <div v-if="caseData.clinical_history?.chief_complaint" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Lý do khám chính</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.chief_complaint"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Lý do khám chính</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.chief_complaint }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.history_present_illness" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Bệnh sử hiện tại</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.history_present_illness"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Bệnh sử hiện tại</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.history_present_illness }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.past_medical_history" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Tiền sử bệnh tật</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.past_medical_history"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Tiền sử bệnh tật</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.past_medical_history }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.family_history" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Tiền sử gia đình</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.family_history"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Tiền sử gia đình</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.family_history }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.social_history" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Tiền sử xã hội</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.social_history"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Tiền sử xã hội</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.social_history }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.allergies" class="p-3 bg-white rounded-lg border border-red-100 bg-red-50/30">
-                <label class="text-xs font-medium text-red-600 uppercase tracking-wide">⚠️ Dị ứng</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.allergies"
+                class="p-3 bg-white rounded-lg border border-red-100 bg-red-50/30"
+              >
+                <label
+                  class="text-xs font-medium text-red-600 uppercase tracking-wide flex items-center gap-1"
+                >
+                  <i class="pi pi-exclamation-triangle" /> Dị ứng
+                </label>
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.allergies }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.medications" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Thuốc đang sử dụng</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.medications"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Thuốc đang sử dụng</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.medications }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.review_systems" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Đánh giá hệ thống</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.review_systems"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Đánh giá hệ thống</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.review_systems }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.immunizations" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Tiêm chủng</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.immunizations"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Tiêm chủng</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.immunizations }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.surgical_history" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Tiền sử phẫu thuật</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.surgical_history"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Tiền sử phẫu thuật</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.surgical_history }}
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.symptom_onset || caseData.clinical_history?.symptom_duration_days" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Triệu chứng khởi phát</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
-                  <span v-if="caseData.clinical_history?.symptom_onset">{{ caseData.clinical_history?.symptom_onset }}</span>
-                  <span v-if="caseData.clinical_history?.symptom_duration_days"> ({{ caseData.clinical_history?.symptom_duration_days }} ngày)</span>
+              <div
+                v-if="
+                  caseData.clinical_history?.symptom_onset ||
+                  caseData.clinical_history?.symptom_duration_days
+                "
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Triệu chứng khởi phát</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
+                  <span v-if="caseData.clinical_history?.symptom_onset">{{
+                    caseData.clinical_history?.symptom_onset
+                  }}</span>
+                  <span v-if="caseData.clinical_history?.symptom_duration_days">
+                    ({{
+                      caseData.clinical_history?.symptom_duration_days
+                    }}
+                    ngày)</span
+                  >
                 </p>
               </div>
-              <div v-if="caseData.clinical_history?.symptom_progression" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-amber-600 uppercase tracking-wide">Diễn tiến triệu chứng</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.clinical_history?.symptom_progression"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-amber-600 uppercase tracking-wide"
+                  >Diễn tiến triệu chứng</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.clinical_history?.symptom_progression }}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Physical Examination -->
-        <Card class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <button @click="toggleSection('physical')"
-            class="w-full p-4 flex items-center justify-between hover:bg-purple-50/50 transition-colors border-l-4 border-purple-500">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <button
+            type="button"
+            @click="toggleSection('physical')"
+            class="w-full p-4 flex items-center justify-between hover:bg-purple-50/50 transition-colors border-l-4 border-purple-500"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Stethoscope class="w-4 h-4 text-purple-600" stroke="#9333ea" />
+              <div
+                class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center"
+              >
+                <i class="pi pi-heart text-purple-600" />
               </div>
               <div class="flex items-center gap-2">
-                <CardTitle class="text-base font-semibold text-gray-800">Khám lâm sàng</CardTitle>
-                <span v-if="!hasData('physical_examination')" class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full">
-                  Chưa có dữ liệu
-                </span>
+                <span class="text-base font-semibold text-gray-800"
+                  >Khám lâm sàng</span
+                >
+                <span
+                  v-if="!hasData('physical_examination')"
+                  class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full"
+                  >Chưa có dữ liệu</span
+                >
               </div>
             </div>
-            <ChevronDown :class="['h-5 w-5 text-gray-400 transition-transform duration-200', expandedSections.physical && 'rotate-180']" />
+            <i
+              :class="[
+                'pi text-gray-400 transition-transform duration-200',
+                expandedSections.physical ? 'pi-chevron-up' : 'pi-chevron-down',
+              ]"
+            />
           </button>
-          <CardContent v-show="expandedSections.physical" class="pt-0 pb-4 px-4 bg-gray-50/30">
-            <!-- Empty State -->
-            <div v-if="!hasData('physical_examination')" class="py-8 text-center">
-              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                <Stethoscope class="w-6 h-6 text-gray-400" stroke="#9ca3af" />
+          <div v-if="expandedSections.physical" class="pb-4 px-4 bg-gray-50/30">
+            <div
+              v-if="!hasData('physical_examination')"
+              class="py-8 text-center"
+            >
+              <div
+                class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <i class="pi pi-heart text-gray-400 text-2xl" />
               </div>
-              <p class="text-gray-500 text-sm">Chưa có thông tin khám lâm sàng</p>
-              <p class="text-gray-400 text-xs mt-1">Sinh viên chưa điền phần này</p>
+              <p class="text-gray-500 text-sm">
+                Chưa có thông tin khám lâm sàng
+              </p>
+              <p class="text-gray-400 text-xs mt-1">
+                Sinh viên chưa điền phần này
+              </p>
             </div>
-            <!-- Data Display -->
             <div v-else class="pt-3">
-              <!-- Vital Signs Grid -->
-              <div v-if="hasVitalSigns" class="p-3 bg-white rounded-lg border border-purple-100 mb-3">
-                <label class="text-xs font-medium text-purple-600 uppercase tracking-wide mb-3 block">Sinh hiệu</label>
+              <div
+                v-if="hasVitalSigns"
+                class="p-3 bg-white rounded-lg border border-purple-100 mb-3"
+              >
+                <label
+                  class="text-xs font-medium text-purple-600 uppercase tracking-wide mb-3 block"
+                  >Sinh hiệu</label
+                >
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div v-if="caseData.physical_examination?.vital_signs_temp" class="text-center p-2 bg-purple-50 rounded-lg">
-                    <p class="text-lg font-bold text-purple-700">{{ caseData.physical_examination.vital_signs_temp }}°C</p>
+                  <div
+                    v-if="caseData.physical_examination?.vital_signs_temp"
+                    class="text-center p-2 bg-purple-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-purple-700">
+                      {{ caseData.physical_examination.vital_signs_temp }}°C
+                    </p>
                     <p class="text-xs text-gray-500">Nhiệt độ</p>
                   </div>
-                  <div v-if="caseData.physical_examination?.vital_signs_hr" class="text-center p-2 bg-purple-50 rounded-lg">
-                    <p class="text-lg font-bold text-purple-700">{{ caseData.physical_examination.vital_signs_hr }}</p>
+                  <div
+                    v-if="caseData.physical_examination?.vital_signs_hr"
+                    class="text-center p-2 bg-purple-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-purple-700">
+                      {{ caseData.physical_examination.vital_signs_hr }}
+                    </p>
                     <p class="text-xs text-gray-500">Nhịp tim (bpm)</p>
                   </div>
-                  <div v-if="caseData.physical_examination?.vital_signs_bp" class="text-center p-2 bg-purple-50 rounded-lg">
-                    <p class="text-lg font-bold text-purple-700">{{ caseData.physical_examination.vital_signs_bp }}</p>
+                  <div
+                    v-if="caseData.physical_examination?.vital_signs_bp"
+                    class="text-center p-2 bg-purple-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-purple-700">
+                      {{ caseData.physical_examination.vital_signs_bp }}
+                    </p>
                     <p class="text-xs text-gray-500">Huyết áp (mmHg)</p>
                   </div>
-                  <div v-if="caseData.physical_examination?.vital_signs_rr" class="text-center p-2 bg-purple-50 rounded-lg">
-                    <p class="text-lg font-bold text-purple-700">{{ caseData.physical_examination.vital_signs_rr }}</p>
+                  <div
+                    v-if="caseData.physical_examination?.vital_signs_rr"
+                    class="text-center p-2 bg-purple-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-purple-700">
+                      {{ caseData.physical_examination.vital_signs_rr }}
+                    </p>
                     <p class="text-xs text-gray-500">Nhịp thở (/phút)</p>
                   </div>
-                  <div v-if="caseData.physical_examination?.vital_signs_spo2" class="text-center p-2 bg-purple-50 rounded-lg">
-                    <p class="text-lg font-bold text-purple-700">{{ caseData.physical_examination.vital_signs_spo2 }}%</p>
+                  <div
+                    v-if="caseData.physical_examination?.vital_signs_spo2"
+                    class="text-center p-2 bg-purple-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-purple-700">
+                      {{ caseData.physical_examination.vital_signs_spo2 }}%
+                    </p>
                     <p class="text-xs text-gray-500">SpO2</p>
                   </div>
-                  <div v-if="caseData.physical_examination?.weight_kg" class="text-center p-2 bg-purple-50 rounded-lg">
-                    <p class="text-lg font-bold text-purple-700">{{ caseData.physical_examination.weight_kg }} kg</p>
+                  <div
+                    v-if="caseData.physical_examination?.weight_kg"
+                    class="text-center p-2 bg-purple-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-purple-700">
+                      {{ caseData.physical_examination.weight_kg }} kg
+                    </p>
                     <p class="text-xs text-gray-500">Cân nặng</p>
                   </div>
-                  <div v-if="caseData.physical_examination?.height_cm" class="text-center p-2 bg-purple-50 rounded-lg">
-                    <p class="text-lg font-bold text-purple-700">{{ caseData.physical_examination.height_cm }} cm</p>
+                  <div
+                    v-if="caseData.physical_examination?.height_cm"
+                    class="text-center p-2 bg-purple-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-purple-700">
+                      {{ caseData.physical_examination.height_cm }} cm
+                    </p>
                     <p class="text-xs text-gray-500">Chiều cao</p>
                   </div>
-                  <div v-if="caseData.physical_examination?.bmi" class="text-center p-2 bg-purple-50 rounded-lg">
-                    <p class="text-lg font-bold text-purple-700">{{ caseData.physical_examination.bmi }}</p>
+                  <div
+                    v-if="caseData.physical_examination?.bmi"
+                    class="text-center p-2 bg-purple-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-purple-700">
+                      {{ caseData.physical_examination.bmi }}
+                    </p>
                     <p class="text-xs text-gray-500">BMI</p>
                   </div>
                 </div>
               </div>
-
-              <!-- Physical Exam Fields - 2 columns -->
+              <!-- Physical Exam Fields -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div v-if="caseData.physical_examination?.general_appearance" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Tình trạng chung</label>
+                <div
+                  v-if="caseData.physical_examination?.general_appearance"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Tình trạng chung</label
+                  >
                   <p class="text-gray-800 mt-2">
                     {{ caseData.physical_examination.general_appearance }}
                   </p>
                 </div>
-                <div v-if="caseData.physical_examination?.vital_signs" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Ghi chú sinh hiệu</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.physical_examination?.vital_signs"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Ghi chú sinh hiệu</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.physical_examination.vital_signs }}
                   </p>
                 </div>
-                <div v-if="caseData.physical_examination?.cardiovascular" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Tim mạch</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.physical_examination?.cardiovascular"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Tim mạch</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.physical_examination.cardiovascular }}
                   </p>
                 </div>
-                <div v-if="caseData.physical_examination?.respiratory" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Hô hấp</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.physical_examination?.respiratory"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Hô hấp</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.physical_examination.respiratory }}
                   </p>
                 </div>
-                <div v-if="caseData.physical_examination?.abdominal" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Bụng</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.physical_examination?.abdominal"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Bụng</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.physical_examination.abdominal }}
                   </p>
                 </div>
-                <div v-if="caseData.physical_examination?.neurological" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Thần kinh</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.physical_examination?.neurological"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Thần kinh</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.physical_examination.neurological }}
                   </p>
                 </div>
-                <div v-if="caseData.physical_examination?.musculoskeletal" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Cơ xương khớp</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.physical_examination?.musculoskeletal"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Cơ xương khớp</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.physical_examination.musculoskeletal }}
                   </p>
                 </div>
-                <div v-if="caseData.physical_examination?.skin" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Da</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.physical_examination?.skin"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Da</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.physical_examination.skin }}
                   </p>
                 </div>
-                <div v-if="caseData.physical_examination?.head_neck" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-purple-600 uppercase tracking-wide">Đầu và cổ</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.physical_examination?.head_neck"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-purple-600 uppercase tracking-wide"
+                    >Đầu và cổ</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.physical_examination.head_neck }}
                   </p>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Investigations -->
-        <Card class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <button @click="toggleSection('investigations')"
-            class="w-full p-4 flex items-center justify-between hover:bg-cyan-50/50 transition-colors border-l-4 border-cyan-500">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <button
+            type="button"
+            @click="toggleSection('investigations')"
+            class="w-full p-4 flex items-center justify-between hover:bg-cyan-50/50 transition-colors border-l-4 border-cyan-500"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center">
-                <FlaskConical class="w-4 h-4 text-cyan-600" stroke="#0891b2" />
+              <div
+                class="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center"
+              >
+                <i class="pi pi-search text-cyan-600" />
               </div>
               <div class="flex items-center gap-2">
-                <CardTitle class="text-base font-semibold text-gray-800">Cận lâm sàng</CardTitle>
-                <span v-if="!hasData('investigations')" class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full">
-                  Chưa có dữ liệu
-                </span>
+                <span class="text-base font-semibold text-gray-800"
+                  >Cận lâm sàng</span
+                >
+                <span
+                  v-if="!hasData('investigations')"
+                  class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full"
+                  >Chưa có dữ liệu</span
+                >
               </div>
             </div>
-            <ChevronDown :class="['h-5 w-5 text-gray-400 transition-transform duration-200', expandedSections.investigations && 'rotate-180']" />
+            <i
+              :class="[
+                'pi text-gray-400 transition-transform duration-200',
+                expandedSections.investigations
+                  ? 'pi-chevron-up'
+                  : 'pi-chevron-down',
+              ]"
+            />
           </button>
-          <CardContent v-show="expandedSections.investigations" class="pt-0 pb-4 px-4 bg-gray-50/30">
-            <!-- Empty State -->
+          <div
+            v-if="expandedSections.investigations"
+            class="pb-4 px-4 bg-gray-50/30"
+          >
             <div v-if="!hasData('investigations')" class="py-8 text-center">
-              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                <FlaskConical class="w-6 h-6 text-gray-400" stroke="#9ca3af" />
+              <div
+                class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <i class="pi pi-search text-gray-400 text-2xl" />
               </div>
               <p class="text-gray-500 text-sm">Chưa có kết quả cận lâm sàng</p>
-              <p class="text-gray-400 text-xs mt-1">Sinh viên chưa điền phần này</p>
+              <p class="text-gray-400 text-xs mt-1">
+                Sinh viên chưa điền phần này
+              </p>
             </div>
-            <!-- Data Display -->
             <div v-else class="pt-3">
-              <!-- Lab Values Grid -->
-              <div v-if="hasLabValues" class="p-3 bg-white rounded-lg border border-cyan-100 mb-3">
-                <label class="text-xs font-medium text-cyan-600 uppercase tracking-wide mb-3 block">Chỉ số xét nghiệm</label>
+              <div
+                v-if="hasLabValues"
+                class="p-3 bg-white rounded-lg border border-cyan-100 mb-3"
+              >
+                <label
+                  class="text-xs font-medium text-cyan-600 uppercase tracking-wide mb-3 block"
+                  >Chỉ số xét nghiệm</label
+                >
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div v-if="caseData.investigations?.hemoglobin_level" class="text-center p-2 bg-cyan-50 rounded-lg">
-                    <p class="text-lg font-bold text-cyan-700">{{ caseData.investigations.hemoglobin_level }}</p>
+                  <div
+                    v-if="caseData.investigations?.hemoglobin_level"
+                    class="text-center p-2 bg-cyan-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-cyan-700">
+                      {{ caseData.investigations.hemoglobin_level }}
+                    </p>
                     <p class="text-xs text-gray-500">Hemoglobin (g/dL)</p>
                   </div>
-                  <div v-if="caseData.investigations?.white_cell_count" class="text-center p-2 bg-cyan-50 rounded-lg">
-                    <p class="text-lg font-bold text-cyan-700">{{ caseData.investigations.white_cell_count }}</p>
+                  <div
+                    v-if="caseData.investigations?.white_cell_count"
+                    class="text-center p-2 bg-cyan-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-cyan-700">
+                      {{ caseData.investigations.white_cell_count }}
+                    </p>
                     <p class="text-xs text-gray-500">WBC (×10⁹/L)</p>
                   </div>
-                  <div v-if="caseData.investigations?.platelet_count" class="text-center p-2 bg-cyan-50 rounded-lg">
-                    <p class="text-lg font-bold text-cyan-700">{{ caseData.investigations.platelet_count }}</p>
+                  <div
+                    v-if="caseData.investigations?.platelet_count"
+                    class="text-center p-2 bg-cyan-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-cyan-700">
+                      {{ caseData.investigations.platelet_count }}
+                    </p>
                     <p class="text-xs text-gray-500">Tiểu cầu (×10⁹/L)</p>
                   </div>
-                  <div v-if="caseData.investigations?.sodium_level" class="text-center p-2 bg-cyan-50 rounded-lg">
-                    <p class="text-lg font-bold text-cyan-700">{{ caseData.investigations.sodium_level }}</p>
+                  <div
+                    v-if="caseData.investigations?.sodium_level"
+                    class="text-center p-2 bg-cyan-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-cyan-700">
+                      {{ caseData.investigations.sodium_level }}
+                    </p>
                     <p class="text-xs text-gray-500">Natri (mmol/L)</p>
                   </div>
-                  <div v-if="caseData.investigations?.potassium_level" class="text-center p-2 bg-cyan-50 rounded-lg">
-                    <p class="text-lg font-bold text-cyan-700">{{ caseData.investigations.potassium_level }}</p>
+                  <div
+                    v-if="caseData.investigations?.potassium_level"
+                    class="text-center p-2 bg-cyan-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-cyan-700">
+                      {{ caseData.investigations.potassium_level }}
+                    </p>
                     <p class="text-xs text-gray-500">Kali (mmol/L)</p>
                   </div>
-                  <div v-if="caseData.investigations?.creatinine_level" class="text-center p-2 bg-cyan-50 rounded-lg">
-                    <p class="text-lg font-bold text-cyan-700">{{ caseData.investigations.creatinine_level }}</p>
+                  <div
+                    v-if="caseData.investigations?.creatinine_level"
+                    class="text-center p-2 bg-cyan-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-cyan-700">
+                      {{ caseData.investigations.creatinine_level }}
+                    </p>
                     <p class="text-xs text-gray-500">Creatinine (mg/dL)</p>
                   </div>
-                  <div v-if="caseData.investigations?.glucose_level" class="text-center p-2 bg-cyan-50 rounded-lg">
-                    <p class="text-lg font-bold text-cyan-700">{{ caseData.investigations.glucose_level }}</p>
+                  <div
+                    v-if="caseData.investigations?.glucose_level"
+                    class="text-center p-2 bg-cyan-50 rounded-lg"
+                  >
+                    <p class="text-lg font-bold text-cyan-700">
+                      {{ caseData.investigations.glucose_level }}
+                    </p>
                     <p class="text-xs text-gray-500">Glucose (mg/dL)</p>
                   </div>
                 </div>
               </div>
-
-              <!-- Investigation Fields - 2 columns -->
+              <!-- Investigation Fields -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div v-if="caseData.investigations?.laboratory_results" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-cyan-600 uppercase tracking-wide">Xét nghiệm tổng quát</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.investigations?.laboratory_results"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-cyan-600 uppercase tracking-wide"
+                    >Xét nghiệm tổng quát</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.investigations.laboratory_results }}
                   </p>
                 </div>
-                <div v-if="caseData.investigations?.imaging_studies" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-cyan-600 uppercase tracking-wide">Chẩn đoán hình ảnh</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.investigations?.imaging_studies"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-cyan-600 uppercase tracking-wide"
+                    >Chẩn đoán hình ảnh</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.investigations.imaging_studies }}
                   </p>
                 </div>
-                <div v-if="caseData.investigations?.ecg_findings" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-cyan-600 uppercase tracking-wide">Điện tâm đồ</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.investigations?.ecg_findings"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-cyan-600 uppercase tracking-wide"
+                    >Điện tâm đồ</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.investigations.ecg_findings }}
                   </p>
                 </div>
-                <div v-if="caseData.investigations?.pathology_results" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-cyan-600 uppercase tracking-wide">Giải phẫu bệnh</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.investigations?.pathology_results"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-cyan-600 uppercase tracking-wide"
+                    >Giải phẫu bệnh</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.investigations.pathology_results }}
                   </p>
                 </div>
-                <div v-if="caseData.investigations?.microbiology_results" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-cyan-600 uppercase tracking-wide">Vi sinh</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.investigations?.microbiology_results"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-cyan-600 uppercase tracking-wide"
+                    >Vi sinh</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.investigations.microbiology_results }}
                   </p>
                 </div>
-                <div v-if="caseData.investigations?.other_investigations" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-cyan-600 uppercase tracking-wide">Xét nghiệm khác</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.investigations?.other_investigations"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-cyan-600 uppercase tracking-wide"
+                    >Xét nghiệm khác</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.investigations.other_investigations }}
                   </p>
                 </div>
-                <div v-if="caseData.investigations?.arterial_blood_gas" class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-cyan-600 uppercase tracking-wide">Khí máu động mạch</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+                <div
+                  v-if="caseData.investigations?.arterial_blood_gas"
+                  class="p-3 bg-white rounded-lg border border-gray-200"
+                >
+                  <label
+                    class="text-xs font-medium text-cyan-600 uppercase tracking-wide"
+                    >Khí máu động mạch</label
+                  >
+                  <p
+                    class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                  >
                     {{ caseData.investigations.arterial_blood_gas }}
-                    <span v-if="caseData.investigations?.ph_level"> (pH: {{ caseData.investigations.ph_level }})</span>
+                    <span v-if="caseData.investigations?.ph_level">
+                      (pH: {{ caseData.investigations.ph_level }})</span
+                    >
                   </p>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Diagnosis and Management -->
-        <Card class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <button @click="toggleSection('diagnosis')"
-            class="w-full p-4 flex items-center justify-between hover:bg-rose-50/50 transition-colors border-l-4 border-rose-500">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <button
+            type="button"
+            @click="toggleSection('diagnosis')"
+            class="w-full p-4 flex items-center justify-between hover:bg-rose-50/50 transition-colors border-l-4 border-rose-500"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center">
-                <Activity class="w-4 h-4 text-rose-600" stroke="#e11d48" />
+              <div
+                class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center"
+              >
+                <i class="pi pi-heart-fill text-rose-600" />
               </div>
               <div class="flex items-center gap-2">
-                <CardTitle class="text-base font-semibold text-gray-800">Chẩn đoán và điều trị</CardTitle>
-                <span v-if="!hasData('diagnosis_management')" class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full">
-                  Chưa có dữ liệu
-                </span>
+                <span class="text-base font-semibold text-gray-800"
+                  >Chẩn đoán và điều trị</span
+                >
+                <span
+                  v-if="!hasData('diagnosis_management')"
+                  class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full"
+                  >Chưa có dữ liệu</span
+                >
               </div>
             </div>
-            <ChevronDown :class="['h-5 w-5 text-gray-400 transition-transform duration-200', expandedSections.diagnosis && 'rotate-180']" />
+            <i
+              :class="[
+                'pi text-gray-400 transition-transform duration-200',
+                expandedSections.diagnosis
+                  ? 'pi-chevron-up'
+                  : 'pi-chevron-down',
+              ]"
+            />
           </button>
-          <CardContent v-show="expandedSections.diagnosis" class="pt-0 pb-4 px-4 bg-gray-50/30">
-            <!-- Empty State -->
-            <div v-if="!hasData('diagnosis_management')" class="py-8 text-center">
-              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                <Activity class="w-6 h-6 text-gray-400" stroke="#9ca3af" />
+          <div
+            v-if="expandedSections.diagnosis"
+            class="pb-4 px-4 bg-gray-50/30"
+          >
+            <div
+              v-if="!hasData('diagnosis_management')"
+              class="py-8 text-center"
+            >
+              <div
+                class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <i class="pi pi-heart-fill text-gray-400 text-2xl" />
               </div>
-              <p class="text-gray-500 text-sm">Chưa có thông tin chẩn đoán và điều trị</p>
-              <p class="text-gray-400 text-xs mt-1">Sinh viên chưa điền phần này</p>
+              <p class="text-gray-500 text-sm">
+                Chưa có thông tin chẩn đoán và điều trị
+              </p>
+              <p class="text-gray-400 text-xs mt-1">
+                Sinh viên chưa điền phần này
+              </p>
             </div>
-            <!-- Data Display -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
-              <div v-if="caseData.diagnosis_management?.primary_diagnosis" class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-                <label class="text-xs font-medium text-rose-600 uppercase tracking-wide">Chẩn đoán chính</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed font-medium">
+              <div
+                v-if="caseData.diagnosis_management?.primary_diagnosis"
+                class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2"
+              >
+                <label
+                  class="text-xs font-medium text-rose-600 uppercase tracking-wide"
+                  >Chẩn đoán chính</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed font-medium"
+                >
                   {{ caseData.diagnosis_management.primary_diagnosis }}
                 </p>
               </div>
-              <div v-if="caseData.diagnosis_management?.differential_diagnosis" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-rose-600 uppercase tracking-wide">Chẩn đoán phân biệt</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.diagnosis_management?.differential_diagnosis"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-rose-600 uppercase tracking-wide"
+                  >Chẩn đoán phân biệt</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.diagnosis_management.differential_diagnosis }}
                 </p>
               </div>
-              <div v-if="caseData.diagnosis_management?.icd10_codes" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-rose-600 uppercase tracking-wide">Mã ICD-10</label>
+              <div
+                v-if="caseData.diagnosis_management?.icd10_codes"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-rose-600 uppercase tracking-wide"
+                  >Mã ICD-10</label
+                >
                 <p class="text-gray-800 mt-2 font-mono text-sm">
                   {{ caseData.diagnosis_management.icd10_codes }}
                 </p>
               </div>
-              <div v-if="caseData.diagnosis_management?.treatment_plan" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-rose-600 uppercase tracking-wide">Kế hoạch điều trị</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.diagnosis_management?.treatment_plan"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-rose-600 uppercase tracking-wide"
+                  >Kế hoạch điều trị</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.diagnosis_management.treatment_plan }}
                 </p>
               </div>
-              <div v-if="caseData.diagnosis_management?.medications_prescribed" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-rose-600 uppercase tracking-wide">Thuốc được kê đơn</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.diagnosis_management?.medications_prescribed"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-rose-600 uppercase tracking-wide"
+                  >Thuốc được kê đơn</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.diagnosis_management.medications_prescribed }}
                 </p>
               </div>
-              <div v-if="caseData.diagnosis_management?.procedures_performed" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-rose-600 uppercase tracking-wide">Thủ thuật đã thực hiện</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.diagnosis_management?.procedures_performed"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-rose-600 uppercase tracking-wide"
+                  >Thủ thuật đã thực hiện</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.diagnosis_management.procedures_performed }}
                 </p>
               </div>
-              <div v-if="caseData.diagnosis_management?.follow_up_plan" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-rose-600 uppercase tracking-wide">Kế hoạch theo dõi</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.diagnosis_management?.follow_up_plan"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-rose-600 uppercase tracking-wide"
+                  >Kế hoạch theo dõi</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.diagnosis_management.follow_up_plan }}
                 </p>
               </div>
-              <div v-if="caseData.diagnosis_management?.prognosis" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-rose-600 uppercase tracking-wide">Tiên lượng</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.diagnosis_management?.prognosis"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-rose-600 uppercase tracking-wide"
+                  >Tiên lượng</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.diagnosis_management.prognosis }}
                 </p>
               </div>
-              <div v-if="caseData.diagnosis_management?.complications" class="p-3 bg-white rounded-lg border border-orange-100 bg-orange-50/30">
-                <label class="text-xs font-medium text-orange-600 uppercase tracking-wide">Biến chứng</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.diagnosis_management?.complications"
+                class="p-3 bg-white rounded-lg border border-orange-100 bg-orange-50/30"
+              >
+                <label
+                  class="text-xs font-medium text-orange-600 uppercase tracking-wide"
+                  >Biến chứng</label
+                >
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.diagnosis_management.complications }}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Student Notes -->
-        <Card class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <button @click="toggleSection('notes')"
-            class="w-full p-4 flex items-center justify-between hover:bg-indigo-50/50 transition-colors border-l-4 border-indigo-500">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <button
+            type="button"
+            @click="toggleSection('notes')"
+            class="w-full p-4 flex items-center justify-between hover:bg-indigo-50/50 transition-colors border-l-4 border-indigo-500"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                <FileText class="w-4 h-4 text-indigo-600" stroke="#4f46e5" />
+              <div
+                class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center"
+              >
+                <i class="pi pi-file-check text-blue-700" />
               </div>
               <div class="flex items-center gap-2">
-                <CardTitle class="text-base font-semibold text-gray-800">Ghi chú của sinh viên</CardTitle>
-                <span v-if="!hasStudentNotes" class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full">
-                  Chưa có ghi chú
-                </span>
+                <span class="text-base font-semibold text-gray-800"
+                  >Ghi chú của sinh viên</span
+                >
+                <span
+                  v-if="!hasStudentNotes"
+                  class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full"
+                  >Chưa có ghi chú</span
+                >
               </div>
             </div>
-            <ChevronDown :class="['h-5 w-5 text-gray-400 transition-transform duration-200', expandedSections.notes && 'rotate-180']" />
+            <i
+              :class="[
+                'pi text-gray-400 transition-transform duration-200',
+                expandedSections.notes ? 'pi-chevron-up' : 'pi-chevron-down',
+              ]"
+            />
           </button>
-          <CardContent v-show="expandedSections.notes" class="pt-0 pb-4 px-4 bg-gray-50/30">
-            <!-- Empty State -->
+          <div v-if="expandedSections.notes" class="pb-4 px-4 bg-gray-50/30">
             <div v-if="!hasStudentNotes" class="py-8 text-center">
-              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                <FileText class="w-6 h-6 text-gray-400" stroke="#9ca3af" />
+              <div
+                class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <i class="pi pi-file-check text-gray-400 text-2xl" />
               </div>
-              <p class="text-gray-500 text-sm">Sinh viên chưa thêm ghi chú nào</p>
-              <p class="text-gray-400 text-xs mt-1">Ghi chú sẽ hiển thị khi sinh viên điền vào</p>
+              <p class="text-gray-500 text-sm">
+                Sinh viên chưa thêm ghi chú nào
+              </p>
+              <p class="text-gray-400 text-xs mt-1">
+                Ghi chú sẽ hiển thị khi sinh viên điền vào
+              </p>
             </div>
-            <!-- Data Display -->
             <div v-else class="pt-3">
               <!-- Tab Navigation -->
-              <div class="flex gap-2 border-b border-gray-200 mb-4">
-                <button @click="activeNotesTab = 'clinical'" :class="[
-                  'px-4 py-2 text-sm font-medium transition-colors rounded-t-lg',
-                  activeNotesTab === 'clinical'
-                    ? 'text-indigo-600 border-b-2 border-indigo-500 bg-indigo-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50',
-                ]">
-                  Tổng quan
-                </button>
-                <button @click="activeNotesTab = 'learning'" :class="[
-                  'px-4 py-2 text-sm font-medium transition-colors rounded-t-lg',
-                  activeNotesTab === 'learning'
-                    ? 'text-indigo-600 border-b-2 border-indigo-500 bg-indigo-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50',
-                ]">
-                  Phản ánh học tập
-                </button>
-              </div>
-
-              <!-- Clinical Tab Content -->
-              <div v-if="activeNotesTab === 'clinical'" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-indigo-600 uppercase tracking-wide">Đánh giá lâm sàng</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed" :class="{ 'text-gray-400 italic': !studentNotes?.clinical_assessment }">
-                    {{ studentNotes?.clinical_assessment || "Chưa điền" }}
-                  </p>
-                </div>
-                <div class="p-3 bg-white rounded-lg border border-gray-200">
-                  <label class="text-xs font-medium text-indigo-600 uppercase tracking-wide">Chẩn đoán phân biệt</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed" :class="{ 'text-gray-400 italic': !studentNotes?.differential_diagnosis }">
-                    {{ studentNotes?.differential_diagnosis || "Chưa điền" }}
-                  </p>
-                </div>
-                <div class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-                  <label class="text-xs font-medium text-indigo-600 uppercase tracking-wide">Kế hoạch điều trị</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed" :class="{ 'text-gray-400 italic': !studentNotes?.treatment_plan }">
-                    {{ studentNotes?.treatment_plan || "Chưa điền" }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Learning Tab Content -->
-              <div v-if="activeNotesTab === 'learning'" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-                  <label class="text-xs font-medium text-indigo-600 uppercase tracking-wide">Suy ngẫm về học tập</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed" :class="{ 'text-gray-400 italic': !studentNotes?.learning_reflections }">
-                    {{ studentNotes?.learning_reflections || "Chưa điền" }}
-                  </p>
-                </div>
-                <div class="p-3 bg-white rounded-lg border border-blue-100 bg-blue-50/30">
-                  <label class="text-xs font-medium text-blue-600 uppercase tracking-wide">Câu hỏi cho giảng viên</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed" :class="{ 'text-gray-400 italic': !studentNotes?.questions_for_instructor }">
-                    {{ studentNotes?.questions_for_instructor || "Không có câu hỏi" }}
-                  </p>
-                </div>
-                <div class="p-3 bg-white rounded-lg border border-orange-100 bg-orange-50/30">
-                  <label class="text-xs font-medium text-orange-600 uppercase tracking-wide">Thách thức gặp phải</label>
-                  <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed" :class="{ 'text-gray-400 italic': !studentNotes?.challenges_faced }">
-                    {{ studentNotes?.challenges_faced || "Không có thách thức được ghi nhận" }}
-                  </p>
-                </div>
-              </div>
+              <Tabs
+                :value="activeNotesTab"
+                @update:value="activeNotesTab = String($event)"
+                class="mb-4"
+                :pt="{ panels: { class: 'p-0' } }"
+              >
+                <TabList>
+                  <Tab value="clinical">Tổng quan</Tab>
+                  <Tab value="learning">Phản ánh học tập</Tab>
+                </TabList>
+                <TabPanels>
+                  <TabPanel
+                    value="clinical"
+                    :pt="{ root: { class: 'p-0 pt-3' } }"
+                  >
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div
+                        class="p-3 bg-white rounded-lg border border-gray-200"
+                      >
+                        <label
+                          class="text-xs font-medium text-indigo-600 uppercase tracking-wide"
+                          >Đánh giá lâm sàng</label
+                        >
+                        <p
+                          class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                          :class="{
+                            'text-gray-400 italic':
+                              !studentNotes?.clinical_assessment,
+                          }"
+                        >
+                          {{ studentNotes?.clinical_assessment || "Chưa điền" }}
+                        </p>
+                      </div>
+                      <div
+                        class="p-3 bg-white rounded-lg border border-gray-200"
+                      >
+                        <label
+                          class="text-xs font-medium text-indigo-600 uppercase tracking-wide"
+                          >Chẩn đoán phân biệt</label
+                        >
+                        <p
+                          class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                          :class="{
+                            'text-gray-400 italic':
+                              !studentNotes?.differential_diagnosis,
+                          }"
+                        >
+                          {{
+                            studentNotes?.differential_diagnosis || "Chưa điền"
+                          }}
+                        </p>
+                      </div>
+                      <div
+                        class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2"
+                      >
+                        <label
+                          class="text-xs font-medium text-indigo-600 uppercase tracking-wide"
+                          >Kế hoạch điều trị</label
+                        >
+                        <p
+                          class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                          :class="{
+                            'text-gray-400 italic':
+                              !studentNotes?.treatment_plan,
+                          }"
+                        >
+                          {{ studentNotes?.treatment_plan || "Chưa điền" }}
+                        </p>
+                      </div>
+                    </div>
+                  </TabPanel>
+                  <TabPanel
+                    value="learning"
+                    :pt="{ root: { class: 'p-0 pt-3' } }"
+                  >
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div
+                        class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2"
+                      >
+                        <label
+                          class="text-xs font-medium text-indigo-600 uppercase tracking-wide"
+                          >Suy ngẫm về học tập</label
+                        >
+                        <p
+                          class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                          :class="{
+                            'text-gray-400 italic':
+                              !studentNotes?.learning_reflections,
+                          }"
+                        >
+                          {{
+                            studentNotes?.learning_reflections || "Chưa điền"
+                          }}
+                        </p>
+                      </div>
+                      <div
+                        class="p-3 bg-white rounded-lg border border-blue-100 bg-blue-50/30"
+                      >
+                        <label
+                          class="text-xs font-medium text-blue-600 uppercase tracking-wide"
+                          >Câu hỏi cho giảng viên</label
+                        >
+                        <p
+                          class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                          :class="{
+                            'text-gray-400 italic':
+                              !studentNotes?.questions_for_instructor,
+                          }"
+                        >
+                          {{
+                            studentNotes?.questions_for_instructor ||
+                            "Không có câu hỏi"
+                          }}
+                        </p>
+                      </div>
+                      <div
+                        class="p-3 bg-white rounded-lg border border-orange-100 bg-orange-50/30"
+                      >
+                        <label
+                          class="text-xs font-medium text-orange-600 uppercase tracking-wide"
+                          >Thách thức gặp phải</label
+                        >
+                        <p
+                          class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                          :class="{
+                            'text-gray-400 italic':
+                              !studentNotes?.challenges_faced,
+                          }"
+                        >
+                          {{
+                            studentNotes?.challenges_faced ||
+                            "Không có thách thức được ghi nhận"
+                          }}
+                        </p>
+                      </div>
+                    </div>
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Learning Outcomes -->
-        <Card class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-          <button @click="toggleSection('learning')"
-            class="w-full p-4 flex items-center justify-between hover:bg-emerald-50/50 transition-colors border-l-4 border-emerald-500">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <button
+            type="button"
+            @click="toggleSection('learning')"
+            class="w-full p-4 flex items-center justify-between hover:bg-emerald-50/50 transition-colors border-l-4 border-emerald-500"
+          >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+              <div
+                class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center"
+              >
+                <i class="pi pi-lightbulb text-green-600" />
               </div>
               <div class="flex items-center gap-2">
-                <CardTitle class="text-base font-semibold text-gray-800">Mục tiêu học tập</CardTitle>
-                <span v-if="!hasLearningOutcomes" class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full">
-                  Chưa có dữ liệu
-                </span>
+                <span class="text-base font-semibold text-gray-800"
+                  >Mục tiêu học tập</span
+                >
+                <span
+                  v-if="!hasLearningOutcomes"
+                  class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full"
+                  >Chưa có dữ liệu</span
+                >
               </div>
             </div>
-            <ChevronDown :class="['h-5 w-5 text-gray-400 transition-transform duration-200', expandedSections.learning && 'rotate-180']" />
+            <i
+              :class="[
+                'pi text-gray-400 transition-transform duration-200',
+                expandedSections.learning ? 'pi-chevron-up' : 'pi-chevron-down',
+              ]"
+            />
           </button>
-          <CardContent v-show="expandedSections.learning" class="pt-0 pb-4 px-4 bg-gray-50/30">
-            <!-- Empty State -->
+          <div v-if="expandedSections.learning" class="pb-4 px-4 bg-gray-50/30">
             <div v-if="!hasLearningOutcomes" class="py-8 text-center">
-              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+              <div
+                class="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <i class="pi pi-lightbulb text-gray-400 text-2xl" />
               </div>
-              <p class="text-gray-500 text-sm">Chưa có thông tin mục tiêu học tập</p>
-              <p class="text-gray-400 text-xs mt-1">Phần này có thể được thêm bởi giảng viên</p>
+              <p class="text-gray-500 text-sm">
+                Chưa có thông tin mục tiêu học tập
+              </p>
+              <p class="text-gray-400 text-xs mt-1">
+                Phần này có thể được thêm bởi giảng viên
+              </p>
             </div>
-            <!-- Data Display -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
-              <div v-if="caseData.learning_outcomes?.learning_objectives" class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-                <label class="text-xs font-medium text-emerald-600 uppercase tracking-wide">🎯 Mục tiêu học tập</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.learning_outcomes?.learning_objectives"
+                class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2"
+              >
+                <label
+                  class="text-xs font-medium text-emerald-600 uppercase tracking-wide flex items-center gap-1"
+                >
+                  <i class="pi pi-bullseye" /> Mục tiêu học tập
+                </label>
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.learning_outcomes?.learning_objectives }}
                 </p>
               </div>
-              <div v-if="caseData.learning_outcomes?.key_concepts" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-emerald-600 uppercase tracking-wide">📚 Khái niệm chính</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.learning_outcomes?.key_concepts"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-emerald-600 uppercase tracking-wide flex items-center gap-1"
+                >
+                  <i class="pi pi-book" /> Khái niệm chính
+                </label>
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.learning_outcomes?.key_concepts }}
                 </p>
               </div>
-              <div v-if="caseData.learning_outcomes?.clinical_pearls" class="p-3 bg-white rounded-lg border border-yellow-100 bg-yellow-50/30">
-                <label class="text-xs font-medium text-yellow-600 uppercase tracking-wide">💡 Kinh nghiệm lâm sàng</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.learning_outcomes?.clinical_pearls"
+                class="p-3 bg-white rounded-lg border border-yellow-100 bg-yellow-50/30"
+              >
+                <label
+                  class="text-xs font-medium text-yellow-600 uppercase tracking-wide flex items-center gap-1"
+                >
+                  <i class="pi pi-lightbulb" /> Kinh nghiệm lâm sàng
+                </label>
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.learning_outcomes?.clinical_pearls }}
                 </p>
               </div>
-              <div v-if="caseData.learning_outcomes?.discussion_points" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-emerald-600 uppercase tracking-wide">💬 Điểm thảo luận</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.learning_outcomes?.discussion_points"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-emerald-600 uppercase tracking-wide flex items-center gap-1"
+                >
+                  <i class="pi pi-comments" /> Điểm thảo luận
+                </label>
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.learning_outcomes?.discussion_points }}
                 </p>
               </div>
-              <div v-if="caseData.learning_outcomes?.assessment_criteria" class="p-3 bg-white rounded-lg border border-gray-200">
-                <label class="text-xs font-medium text-emerald-600 uppercase tracking-wide">✅ Tiêu chí đánh giá</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.learning_outcomes?.assessment_criteria"
+                class="p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <label
+                  class="text-xs font-medium text-emerald-600 uppercase tracking-wide flex items-center gap-1"
+                >
+                  <i class="pi pi-check-circle" /> Tiêu chí đánh giá
+                </label>
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.learning_outcomes?.assessment_criteria }}
                 </p>
               </div>
-              <div v-if="caseData.learning_outcomes?.references" class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2">
-                <label class="text-xs font-medium text-emerald-600 uppercase tracking-wide">📖 Tài liệu tham khảo</label>
-                <p class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed">
+              <div
+                v-if="caseData.learning_outcomes?.references"
+                class="p-3 bg-white rounded-lg border border-gray-200 md:col-span-2"
+              >
+                <label
+                  class="text-xs font-medium text-emerald-600 uppercase tracking-wide flex items-center gap-1"
+                >
+                  <i class="pi pi-book" /> Tài liệu tham khảo
+                </label>
+                <p
+                  class="text-gray-800 mt-2 whitespace-pre-wrap leading-relaxed"
+                >
                   {{ caseData.learning_outcomes?.references }}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <!-- Grading Section -->
+      <!-- ── RIGHT COLUMN: Grading ── -->
       <div class="space-y-6">
-        <Card class="bg-white">
-          <CardHeader>
-            <div class="flex items-center gap-2">
-              <Activity class="text-blue-500 w-5 h-5" stroke="#3b82f6" />
-              <CardTitle>Đánh giá và chấm điểm</CardTitle>
-            </div>
-            <CardDescription class="text-gray-500">
-              Đánh giá bệnh án của {{ caseData.created_by_role === 'instructor' ? 'giảng viên' : 'sinh viên' }} {{
-                caseData.created_by_name }}
-            </CardDescription>
-          </CardHeader>
-          <CardContent class="space-y-6">
-            <!-- Detailed Rubric Criteria -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <label class="text-sm font-medium text-gray-800">
-                  Tiêu chí đánh giá chi tiết <span class="text-red-500">*</span>
-                </label>
-                <p class="text-sm text-gray-600">
-                  Tổng: <span class="text-lg font-bold text-blue-600">{{ totalRubricScore }}/100</span>
-                </p>
+        <Card
+          class="bg-white"
+          :pt="{ body: { class: 'p-0' }, content: { class: 'p-0' } }"
+        >
+          <template #header>
+            <div class="px-6 pt-5 pb-1">
+              <div class="flex items-center gap-2 mb-1">
+                <i class="pi pi-star text-blue-500 text-lg" />
+                <span class="text-lg font-semibold text-gray-900"
+                  >Đánh giá và chấm điểm</span
+                >
               </div>
-
-              <div class="grid gap-3">
-                <!-- History -->
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div class="flex-1">
-                    <label class="text-sm font-medium text-gray-700">Tiền sử & Bệnh sử</label>
-                  </div>
-                  <Input v-model.number="gradingForm.criteria.history" type="number" min="0" max="25" placeholder="0"
-                    class="w-14 text-center font-bold" />
-                  <span class="text-sm text-gray-500">/25</span>
-                </div>
-
-                <!-- Examination -->
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div class="flex-1">
-                    <label class="text-sm font-medium text-gray-700">Khám lâm sàng</label>
-                  </div>
-                  <Input v-model.number="gradingForm.criteria.examination" type="number" min="0" max="25"
-                    placeholder="0" class="w-14 text-center font-bold" />
-                  <span class="text-sm text-gray-500">/25</span>
-                </div>
-
-                <!-- Differential Diagnosis -->
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div class="flex-1">
-                    <label class="text-sm font-medium text-gray-700">Chẩn đoán phân biệt</label>
-                  </div>
-                  <Input v-model.number="gradingForm.criteria.differential" type="number" min="0" max="20"
-                    placeholder="0" class="w-14 text-center font-bold" />
-                  <span class="text-sm text-gray-500">/20</span>
-                </div>
-
-                <!-- Treatment -->
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div class="flex-1">
-                    <label class="text-sm font-medium text-gray-700">Kế hoạch điều trị</label>
-                  </div>
-                  <Input v-model.number="gradingForm.criteria.treatment" type="number" min="0" max="20" placeholder="0"
-                    class="w-14 text-center font-bold" />
-                  <span class="text-sm text-gray-500">/20</span>
-                </div>
-
-                <!-- Presentation -->
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div class="flex-1">
-                    <label class="text-sm font-medium text-gray-700">Trình bày ca bệnh</label>
-                  </div>
-                  <Input v-model.number="gradingForm.criteria.presentation" type="number" min="0" max="10"
-                    placeholder="0" class="w-14 text-center font-bold" />
-                  <span class="text-sm text-gray-500">/10</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Total Score Display -->
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-800">
-                Điểm tổng <span class="text-red-500">*</span>
-              </label>
-              <div :class="[
-                'p-4 border-2 rounded-lg text-center',
-                totalRubricScore > 100 ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'
-              ]">
-                <p :class="[
-                  'text-4xl font-bold',
-                  totalRubricScore > 100 ? 'text-red-600' : 'text-blue-600'
-                ]">{{ totalRubricScore }}/100</p>
-                <p class="text-sm text-gray-600 mt-1">
-                  <span v-if="totalRubricScore <= 100">
-                    Xếp loại: <span class="font-semibold">{{ getLetterGrade(totalRubricScore) }}</span>
-                  </span>
-                  <span v-else class="text-red-600 font-medium">
-                    ⚠ Tổng điểm vượt quá 100
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            <!-- Evaluation Notes -->
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-800">
-                Nhận xét chung <span class="text-red-500">*</span>
-              </label>
               <p class="text-sm text-gray-500">
-                Đưa ra nhận xét tổng quan về bệnh án của sinh viên
+                Đánh giá bệnh án của
+                {{
+                  caseData.created_by_role === "instructor"
+                    ? "giảng viên"
+                    : "sinh viên"
+                }}
+                {{ caseData.created_by_name }}
               </p>
-              <Textarea v-model="gradingForm.evaluation_notes" placeholder="Nhập nhận xét đánh giá tổng quan..."
-                class="" />
             </div>
-
-            <!-- Strengths -->
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-800">
-                Điểm mạnh
-              </label>
-              <p class="text-sm text-gray-500">Những điểm sinh viên làm tốt</p>
-              <Textarea v-model="gradingForm.strengths"
-                placeholder="- Đánh giá lâm sàng chính xác&#10;- Chẩn đoán phân biệt đầy đủ&#10;- Kế hoạch điều trị hợp lý..."
-                class="" />
-            </div>
-
-            <!-- Weaknesses / Areas for Improvement -->
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-800">
-                Cần cải thiện
-              </label>
-              <p class="text-sm text-gray-500">
-                Những điểm sinh viên cần phát triển thêm
-              </p>
-              <Textarea v-model="gradingForm.weaknesses"
-                placeholder="- Chẩn đoán phân biệt chưa đầy đủ&#10;- Kế hoạch theo dõi cần chi tiết hơn..." class="" />
-            </div>
-
-            <!-- Recommendations -->
-            <div class="space-y-1">
-              <label class="text-sm font-medium text-gray-800"> Bổ sung </label>
-              <p class="text-sm text-gray-500">
-                Các điều sinh viên cần bổ sung
-              </p>
-              <Textarea v-model="gradingForm.recommendations" placeholder="Cần bổ sung thêm xét nghiệm" class="" />
-            </div>
-
-            <!-- Grading Criteria (Optional) -->
-            <!-- <div class="space-y-3">
-              <label class="text-sm font-medium text-gray-800">
-                Tiêu chí đánh giá chi tiết (Tùy chọn)
-              </label>
-              <div class="space-y-2">
-                <div
-                  class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <span class="text-sm">Tiền sử bệnh</span>
-                  <Input
-                    v-model.number="gradingForm.criteria.history"
-                    type="number"
-                    min="0"
-                    max="20"
-                    class="w-20"
-                    placeholder="0-20"
-                  />
-                </div>
-                <div
-                  class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <span class="text-sm">Khám lâm sàng</span>
-                  <Input
-                    v-model.number="gradingForm.criteria.examination"
-                    type="number"
-                    min="0"
-                    max="20"
-                    class="w-20"
-                    placeholder="0-20"
-                  />
-                </div>
-                <div
-                  class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <span class="text-sm">Chẩn đoán phân biệt</span>
-                  <Input
-                    v-model.number="gradingForm.criteria.differential"
-                    type="number"
-                    min="0"
-                    max="20"
-                    class="w-20"
-                    placeholder="0-20"
-                  />
-                </div>
-                <div
-                  class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <span class="text-sm">Kế hoạch điều trị</span>
-                  <Input
-                    v-model.number="gradingForm.criteria.treatment"
-                    type="number"
-                    min="0"
-                    max="20"
-                    class="w-20"
-                    placeholder="0-20"
-                  />
-                </div>
-                <div
-                  class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <span class="text-sm">Trình bày và chuyên môn</span>
-                  <Input
-                    v-model.number="gradingForm.criteria.presentation"
-                    type="number"
-                    min="0"
-                    max="20"
-                    class="w-20"
-                    placeholder="0-20"
-                  />
-                </div>
-              </div>
-            </div> -->
-
-            <!-- Action Buttons -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-white">
-              <Button @click="saveGrade" :disabled="!canSaveGrade || saving"
-                class="w-full bg-blue-600 hover:bg-blue-700"
-                :title="rubricValidationMessage || 'Lưu đánh giá dạng nháp'">
-                <Save class="h-4 w-4 mr-2" />
-                {{ saving ? "Đang lưu..." : "Lưu đánh giá" }}
-              </Button>
-              <Button @click="submitGrade" :disabled="!canSaveGrade || submitting"
-                class="w-full bg-green-600 hover:bg-green-700"
-                :title="rubricValidationMessage || 'Nộp điểm chính thức'">
-                <CheckCircle class="h-4 w-4 mr-2" />
-                {{ submitting ? "Đang gửi..." : "Nộp chấm điểm" }}
-              </Button>
-            </div>
-
-            <!-- Publish to Feed (only for approved cases, not for instructor templates) -->
-            <div v-if="caseData.case_status === 'approved' && caseData.created_by_role !== 'instructor'" class="pt-4 border-t">
-              <div class="space-y-3">
+          </template>
+          <template #content>
+            <div class="space-y-6 px-6 pb-6">
+              <!-- Rubric Criteria -->
+              <div class="space-y-4">
                 <div class="flex items-center justify-between">
-                  <div>
-                    <h4 class="text-sm font-medium text-gray-800">Xuất bản lên feed công khai 🌐</h4>
-                    <p class="text-xs text-gray-500 mt-1">Chia sẻ ca bệnh chất lượng cao này với sinh viên khác</p>
+                  <label class="text-sm font-medium text-gray-800">
+                    Tiêu chí đánh giá chi tiết
+                    <span class="text-red-500">*</span>
+                  </label>
+                  <p class="text-sm text-gray-600">
+                    Tổng:
+                    <span class="text-lg font-bold text-blue-600"
+                      >{{ totalRubricScore }}/100</span
+                    >
+                  </p>
+                </div>
+                <div class="grid gap-3">
+                  <div
+                    class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex-1">
+                      <label class="text-sm font-medium text-gray-700"
+                        >Tiền sử & Bệnh sử</label
+                      >
+                    </div>
+                    <InputNumber
+                      v-model="gradingForm.criteria.history"
+                      :min="0"
+                      :max="25"
+                      placeholder="0"
+                      showButtons
+                    />
+                    <span class="text-sm text-gray-500">/25</span>
+                  </div>
+                  <div
+                    class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex-1">
+                      <label class="text-sm font-medium text-gray-700"
+                        >Khám lâm sàng</label
+                      >
+                    </div>
+                    <InputNumber
+                      v-model="gradingForm.criteria.examination"
+                      :min="0"
+                      :max="25"
+                      placeholder="0"
+                      showButtons
+                    />
+                    <span class="text-sm text-gray-500">/25</span>
+                  </div>
+                  <div
+                    class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex-1">
+                      <label class="text-sm font-medium text-gray-700"
+                        >Chẩn đoán phân biệt</label
+                      >
+                    </div>
+                    <InputNumber
+                      v-model="gradingForm.criteria.differential"
+                      :min="0"
+                      :max="20"
+                      placeholder="0"
+                      showButtons
+                    />
+                    <span class="text-sm text-gray-500">/20</span>
+                  </div>
+                  <div
+                    class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex-1">
+                      <label class="text-sm font-medium text-gray-700"
+                        >Kế hoạch điều trị</label
+                      >
+                    </div>
+                    <InputNumber
+                      v-model="gradingForm.criteria.treatment"
+                      :min="0"
+                      :max="20"
+                      placeholder="0"
+                      showButtons
+                    />
+                    <span class="text-sm text-gray-500">/20</span>
+                  </div>
+                  <div
+                    class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div class="flex-1">
+                      <label class="text-sm font-medium text-gray-700"
+                        >Trình bày ca bệnh</label
+                      >
+                    </div>
+                    <InputNumber
+                      v-model="gradingForm.criteria.presentation"
+                      :min="0"
+                      :max="10"
+                      placeholder="0"
+                      showButtons
+                    />
+                    <span class="text-sm text-gray-500">/10</span>
                   </div>
                 </div>
+              </div>
 
-                <div v-if="!isPublishedToFeed" class="space-y-3">
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700">Phạm vi hiển thị:</label>
-                    <select v-model="publishSettings.feedVisibility"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                      <option value="department">🏢 Cùng khoa</option>
-                      <option value="university">🌐 Toàn trường</option>
-                    </select>
-                  </div>
-
-                  <div class="flex items-center gap-2">
-                    <input type="checkbox" id="is-featured" v-model="publishSettings.isFeatured"
-                      class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                    <label for="is-featured" class="text-sm text-gray-700">⭐ Đánh dấu là ca bệnh nổi bật</label>
-                  </div>
-
-                  <Button @click="publishToFeed" :disabled="publishing"
-                    class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white">
-                    {{ publishing ? "Đang xuất bản..." : "📢 Xuất bản lên Feed" }}
-                  </Button>
+              <!-- Total Score Display -->
+              <div class="space-y-1">
+                <label class="text-sm font-medium text-gray-800"
+                  >Điểm tổng <span class="text-red-500">*</span></label
+                >
+                <div
+                  :class="[
+                    'p-4 border-2 rounded-lg text-center',
+                    totalRubricScore > 100
+                      ? 'bg-red-50 border-red-200'
+                      : 'bg-blue-50 border-blue-200',
+                  ]"
+                >
+                  <p
+                    :class="[
+                      'text-4xl font-bold',
+                      totalRubricScore > 100 ? 'text-red-600' : 'text-blue-600',
+                    ]"
+                  >
+                    {{ totalRubricScore }}/100
+                  </p>
+                  <p class="text-sm text-gray-600 mt-1">
+                    <span v-if="totalRubricScore <= 100"
+                      >Xếp loại:
+                      <span class="font-semibold">{{
+                        getLetterGrade(totalRubricScore)
+                      }}</span></span
+                    >
+                    <span v-else class="text-red-600 font-medium"
+                      >Tổng điểm vượt quá 100</span
+                    >
+                  </p>
                 </div>
+              </div>
 
-                <div v-else class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <!-- Evaluation Notes -->
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-800"
+                    >Nhận xét chung <span class="text-red-500">*</span></label
+                  >
+                  <VoiceToText
+                    v-model="gradingForm.evaluation_notes"
+                    size="small"
+                  />
+                </div>
+                <p class="text-sm text-gray-500">
+                  Đưa ra nhận xét tổng quan về bệnh án của sinh viên
+                </p>
+                <Textarea
+                  fluid
+                  v-model="gradingForm.evaluation_notes"
+                  placeholder="Nhập nhận xét đánh giá tổng quan..."
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Strengths -->
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-800"
+                    >Điểm mạnh</label
+                  >
+                  <VoiceToText v-model="gradingForm.strengths" size="small" />
+                </div>
+                <p class="text-sm text-gray-500">
+                  Những điểm sinh viên làm tốt
+                </p>
+                <Textarea
+                  fluid
+                  v-model="gradingForm.strengths"
+                  placeholder="- Đánh giá lâm sàng chính xác&#10;- Chẩn đoán phân biệt đầy đủ..."
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Weaknesses -->
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-800"
+                    >Cần cải thiện</label
+                  >
+                  <VoiceToText v-model="gradingForm.weaknesses" size="small" />
+                </div>
+                <p class="text-sm text-gray-500">
+                  Những điểm sinh viên cần phát triển thêm
+                </p>
+                <Textarea
+                  fluid
+                  v-model="gradingForm.weaknesses"
+                  placeholder="- Chẩn đoán phân biệt chưa đầy đủ..."
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Recommendations -->
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-800"
+                    >Bổ sung</label
+                  >
+                  <VoiceToText
+                    v-model="gradingForm.recommendations"
+                    size="small"
+                  />
+                </div>
+                <p class="text-sm text-gray-500">
+                  Các điều sinh viên cần bổ sung
+                </p>
+                <Textarea
+                  fluid
+                  v-model="gradingForm.recommendations"
+                  placeholder="Cần bổ sung thêm xét nghiệm"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Button
+                  icon="pi pi-save"
+                  :label="saving ? 'Đang lưu...' : 'Lưu đánh giá'"
+                  :disabled="!canSaveGrade || saving"
+                  :loading="saving"
+                  :title="rubricValidationMessage || 'Lưu đánh giá dạng nháp'"
+                  class="w-full bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
+                  @click="saveGrade"
+                />
+                <Button
+                  icon="pi pi-check-circle"
+                  :label="submitting ? 'Đang gửi...' : 'Nộp chấm điểm'"
+                  :disabled="!canSaveGrade || submitting"
+                  :loading="submitting"
+                  :title="rubricValidationMessage || 'Nộp điểm chính thức'"
+                  class="w-full bg-green-600 hover:bg-green-700 border-green-600 text-white"
+                  @click="submitGrade"
+                />
+              </div>
+
+              <!-- Publish to Feed -->
+              <div
+                v-if="
+                  caseData.case_status === 'approved' &&
+                  caseData.created_by_role !== 'instructor'
+                "
+                class="pt-4 border-t"
+              >
+                <div class="space-y-3">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm font-medium text-green-800">✅ Đã xuất bản lên feed công khai</p>
-                      <p class="text-xs text-green-600 mt-1">
-                        Phạm vi: {{ publishedFeedVisibility === 'university' ? '🌐 Toàn trường' : '🏢 Cùng khoa' }}
-                        {{ publishedIsFeatured ? ' • ⭐ Nổi bật' : '' }}
+                      <h4
+                        class="text-sm font-medium text-gray-800 flex items-center gap-2"
+                      >
+                        Xuất bản lên feed công khai
+                        <i class="pi pi-globe text-gray-500" />
+                      </h4>
+                      <p class="text-xs text-gray-500 mt-1">
+                        Chia sẻ ca bệnh chất lượng cao này với sinh viên khác
                       </p>
                     </div>
-                    <Button @click="unpublishFromFeed" :disabled="unpublishing" variant="outline" size="sm"
-                      class="text-red-600 border-red-300 hover:bg-red-50">
-                      {{ unpublishing ? "Đang gỡ..." : "Gỡ xuống" }}
-                    </Button>
+                  </div>
+
+                  <div v-if="!isPublishedToFeed" class="space-y-3">
+                    <div class="space-y-2">
+                      <label class="text-sm font-medium text-gray-700"
+                        >Phạm vi hiển thị:</label
+                      >
+                      <Select
+                        v-model="publishSettings.feedVisibility"
+                        :options="feedVisibilityOptions"
+                        option-label="label"
+                        option-value="value"
+                        class="w-full"
+                      />
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <Checkbox
+                        v-model="publishSettings.isFeatured"
+                        binary
+                        input-id="is-featured"
+                      />
+                      <label
+                        for="is-featured"
+                        class="flex items-center gap-1 text-sm text-gray-700 cursor-pointer"
+                      >
+                        <i class="pi pi-star text-yellow-500" /> Đánh dấu là ca
+                        bệnh nổi bật
+                      </label>
+                    </div>
+                    <Button
+                      icon="pi pi-megaphone"
+                      :label="
+                        publishing ? 'Đang xuất bản...' : 'Xuất bản lên Feed'
+                      "
+                      :disabled="publishing"
+                      :loading="publishing"
+                      class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0"
+                      @click="publishToFeed"
+                    />
+                  </div>
+
+                  <div
+                    v-else
+                    class="bg-green-50 border border-green-200 rounded-lg p-4"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p
+                          class="text-sm font-medium text-green-800 flex items-center gap-1"
+                        >
+                          <i class="pi pi-check-circle text-green-600" /> Đã
+                          xuất bản lên feed công khai
+                        </p>
+                        <p
+                          class="text-xs text-green-600 mt-1 flex items-center gap-1"
+                        >
+                          Phạm vi:
+                          <i
+                            :class="
+                              publishedFeedVisibility === 'university'
+                                ? 'pi pi-globe'
+                                : 'pi pi-building'
+                            "
+                          />
+                          {{
+                            publishedFeedVisibility === "university"
+                              ? "Toàn trường"
+                              : "Cùng khoa"
+                          }}
+                          <span
+                            v-if="publishedIsFeatured"
+                            class="flex items-center gap-1"
+                          >
+                            • <i class="pi pi-star-fill text-yellow-500" /> Nổi
+                            bật
+                          </span>
+                        </p>
+                      </div>
+                      <Button
+                        :label="unpublishing ? 'Đang gỡ...' : 'Gỡ xuống'"
+                        :loading="unpublishing"
+                        outlined
+                        severity="danger"
+                        size="small"
+                        @click="unpublishFromFeed"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </CardContent>
+          </template>
         </Card>
-
-        <!-- Medical Attachments -->
-        <!-- <Card>
-          <CardHeader>
-            <CardTitle>📎 Tệp đính kèm y tế</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MedicalAttachments :case-id="caseId" :can-edit="false" />
-          </CardContent>
-        </Card> -->
       </div>
     </div>
 
     <!-- Share Permission Modal -->
-    <SharePermissionModal v-model:open="showShareModal" :case-id="Number(caseId)"
-      @permission-granted="handlePermissionGranted" />
+    <SharePermissionModal
+      v-model:open="showShareModal"
+      :case-id="Number(caseId)"
+      @permission-granted="handlePermissionGranted"
+    />
   </div>
 </template>
 
@@ -1095,37 +1952,34 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "@/composables/useToast";
-import Button from "@/components/ui/Button.vue";
-import Card from "@/components/ui/Card.vue";
-import CardContent from "@/components/ui/CardContent.vue";
-import CardDescription from "@/components/ui/CardDescription.vue";
-import CardHeader from "@/components/ui/CardHeader.vue";
-import CardTitle from "@/components/ui/CardTitle.vue";
-import Textarea from "@/components/ui/Textarea.vue";
-import Input from "@/components/ui/Input.vue";
-import Badge from "@/components/ui/Badge.vue";
-import User from "@/components/icons/User.vue";
-import FileIcon from "@/components/icons/FileIcon.vue";
-import InfoIcon from "@/components/icons/InfoIcon.vue";
-import Paperclip from "@/components/icons/Paperclip.vue";
-
-import { ArrowLeft, Save, CheckCircle, ChevronDown } from "@/components/icons";
+import Button from "primevue/button";
+import Card from "primevue/card";
+import Tag from "primevue/tag";
+import Textarea from "primevue/textarea";
+import InputNumber from "primevue/inputnumber";
+import Select from "primevue/select";
+import Checkbox from "primevue/checkbox";
+import Tabs from "primevue/tabs";
+import TabList from "primevue/tablist";
+import Tab from "primevue/tab";
+import TabPanels from "primevue/tabpanels";
+import TabPanel from "primevue/tabpanel";
+import VoiceToText from "@/components/VoiceToText.vue";
 import { casesService } from "@/services/cases";
 import { gradesService } from "@/services/grades";
 import feedService from "@/services/feed";
-import DocumentIcon from "./icons/DocumentIcon.vue";
-import FlaskConical from "./icons/FlaskConical.vue";
-import Stethoscope from "./icons/Stethoscope.vue";
-import Activity from "./icons/Activity.vue";
-import FileText from "./icons/FileText.vue";
 import SharePermissionModal from "./SharePermissionModal.vue";
 
 const router = useRouter();
 
-const activeNotesTab = ref<"clinical" | "learning">("clinical");
+const activeNotesTab = ref<string>("clinical");
 const showShareModal = ref(false);
 
-// Collapsible sections state
+const feedVisibilityOptions = [
+  { label: "Cùng khoa", value: "department" },
+  { label: "Toàn trường", value: "university" },
+];
+
 const expandedSections = ref<Record<string, boolean>>({
   basic: true,
   clinical: true,
@@ -1133,20 +1987,15 @@ const expandedSections = ref<Record<string, boolean>>({
   investigations: true,
   diagnosis: true,
   notes: true,
-  learning: true
+  learning: true,
 });
 
 const toggleSection = (section: string) => {
   expandedSections.value[section] = !expandedSections.value[section];
 };
 
-const props = defineProps<{
-  caseId: string;
-}>();
-
-const emit = defineEmits<{
-  (e: "navigate", page: string): void;
-}>();
+const props = defineProps<{ caseId: string }>();
+const emit = defineEmits<{ (e: "navigate", page: string): void }>();
 
 const { toast } = useToast();
 
@@ -1154,34 +2003,28 @@ const { toast } = useToast();
 const publishing = ref(false);
 const unpublishing = ref(false);
 const isPublishedToFeed = ref(false);
-const publishedFeedVisibility = ref<'department' | 'university'>('department');
+const publishedFeedVisibility = ref<"department" | "university">("department");
 const publishedIsFeatured = ref(false);
 const publishSettings = ref({
-  feedVisibility: 'department' as 'department' | 'university',
-  isFeatured: false
+  feedVisibility: "department" as "department" | "university",
+  isFeatured: false,
 });
 
 const publishToFeed = async () => {
   if (publishing.value) return;
-
   try {
     publishing.value = true;
-    await feedService.publishToFeed(
-      parseInt(props.caseId),
-      {
-        feed_visibility: publishSettings.value.feedVisibility,
-        is_featured: publishSettings.value.isFeatured
-      }
-    );
-
+    await feedService.publishToFeed(parseInt(props.caseId), {
+      feed_visibility: publishSettings.value.feedVisibility,
+      is_featured: publishSettings.value.isFeatured,
+    });
     isPublishedToFeed.value = true;
     publishedFeedVisibility.value = publishSettings.value.feedVisibility;
     publishedIsFeatured.value = publishSettings.value.isFeatured;
-
-    toast.success('Đã xuất bản ca bệnh lên feed công khai!');
+    toast.success("Đã xuất bản ca bệnh lên feed công khai!");
   } catch (error) {
-    console.error('Failed to publish:', error);
-    toast.error('Không thể xuất bản ca bệnh. Vui lòng thử lại.');
+    console.error("Failed to publish:", error);
+    toast.error("Không thể xuất bản ca bệnh. Vui lòng thử lại.");
   } finally {
     publishing.value = false;
   }
@@ -1189,22 +2032,20 @@ const publishToFeed = async () => {
 
 const unpublishFromFeed = async () => {
   if (unpublishing.value) return;
-
   try {
     unpublishing.value = true;
     await feedService.unpublishFromFeed(parseInt(props.caseId));
-
     isPublishedToFeed.value = false;
-    toast.success('Đã gỡ ca bệnh khỏi feed công khai');
+    toast.success("Đã gỡ ca bệnh khỏi feed công khai");
   } catch (error) {
-    console.error('Failed to unpublish:', error);
-    toast.error('Không thể gỡ ca bệnh. Vui lòng thử lại.');
+    console.error("Failed to unpublish:", error);
+    toast.error("Không thể gỡ ca bệnh. Vui lòng thử lại.");
   } finally {
     unpublishing.value = false;
   }
 };
 
-// === Unified Reactive Data (used in template) ===
+// === Unified Reactive Data ===
 const caseData = ref<UnifiedCaseData>({
   title: "",
   specialty: "",
@@ -1216,8 +2057,6 @@ const caseData = ref<UnifiedCaseData>({
   patient_age: 0,
   patient_gender: "other",
   medical_record_number: "",
-  
-  // Additional basic fields
   priority_level: "medium",
   complexity_level: "intermediate",
   admission_date: "",
@@ -1231,8 +2070,6 @@ const caseData = ref<UnifiedCaseData>({
   estimated_study_hours: null,
   requires_follow_up: false,
   follow_up_date: "",
-
-  // Nested or flat — normalized here
   clinical_history: {
     chief_complaint: "",
     history_present_illness: "",
@@ -1336,64 +2173,79 @@ const gradingForm = ref<GradingForm>({
 });
 
 const totalRubricScore = computed(() => {
-  const criteria = gradingForm.value.criteria;
+  const c = gradingForm.value.criteria;
   return (
-    Number(criteria.history || 0) +
-    Number(criteria.examination || 0) +
-    Number(criteria.differential || 0) +
-    Number(criteria.treatment || 0) +
-    Number(criteria.presentation || 0)
+    Number(c.history || 0) +
+    Number(c.examination || 0) +
+    Number(c.differential || 0) +
+    Number(c.treatment || 0) +
+    Number(c.presentation || 0)
   );
 });
 
-const canSaveGrade = computed(() => {
-  return (
+const canSaveGrade = computed(
+  () =>
     !isFinalGrade.value &&
     totalRubricScore.value >= 0 &&
     totalRubricScore.value <= 100 &&
-    gradingForm.value.evaluation_notes.trim() !== ""
-  );
-});
+    gradingForm.value.evaluation_notes.trim() !== "",
+);
 
 const rubricValidationMessage = computed(() => {
-  if (totalRubricScore.value > 100) {
+  if (totalRubricScore.value > 100)
     return `Tổng điểm vượt quá 100 (hiện tại: ${totalRubricScore.value}). Vui lòng điều chỉnh.`;
-  }
-  if (totalRubricScore.value < 0) {
-    return "Điểm không thể âm.";
-  }
+  if (totalRubricScore.value < 0) return "Điểm không thể âm.";
   return "";
 });
 
-// Computed properties for checking if sections have data
 const hasVitalSigns = computed(() => {
   const pe = caseData.value.physical_examination;
-  return pe?.vital_signs_temp || pe?.vital_signs_hr || pe?.vital_signs_bp || 
-         pe?.vital_signs_rr || pe?.vital_signs_spo2 || pe?.weight_kg || pe?.height_cm;
+  return (
+    pe?.vital_signs_temp ||
+    pe?.vital_signs_hr ||
+    pe?.vital_signs_bp ||
+    pe?.vital_signs_rr ||
+    pe?.vital_signs_spo2 ||
+    pe?.weight_kg ||
+    pe?.height_cm
+  );
 });
 
 const hasLabValues = computed(() => {
   const inv = caseData.value.investigations;
-  return inv?.hemoglobin_level || inv?.white_cell_count || inv?.platelet_count ||
-         inv?.sodium_level || inv?.potassium_level || inv?.glucose_level || inv?.creatinine_level;
-});
-
-const hasStudentNotes = computed(() => {
-  return studentNotes.value && (
-    studentNotes.value.clinical_assessment ||
-    studentNotes.value.differential_diagnosis ||
-    studentNotes.value.treatment_plan ||
-    studentNotes.value.learning_reflections ||
-    studentNotes.value.questions_for_instructor ||
-    studentNotes.value.challenges_faced
+  return (
+    inv?.hemoglobin_level ||
+    inv?.white_cell_count ||
+    inv?.platelet_count ||
+    inv?.sodium_level ||
+    inv?.potassium_level ||
+    inv?.glucose_level ||
+    inv?.creatinine_level
   );
 });
+
+const hasStudentNotes = computed(
+  () =>
+    studentNotes.value &&
+    (studentNotes.value.clinical_assessment ||
+      studentNotes.value.differential_diagnosis ||
+      studentNotes.value.treatment_plan ||
+      studentNotes.value.learning_reflections ||
+      studentNotes.value.questions_for_instructor ||
+      studentNotes.value.challenges_faced),
+);
 
 const hasLearningOutcomes = computed(() => {
   const lo = caseData.value.learning_outcomes;
   if (!lo) return false;
-  return lo.learning_objectives || lo.key_concepts || lo.clinical_pearls ||
-         lo.references || lo.discussion_points || lo.assessment_criteria;
+  return (
+    lo.learning_objectives ||
+    lo.key_concepts ||
+    lo.clinical_pearls ||
+    lo.references ||
+    lo.discussion_points ||
+    lo.assessment_criteria
+  );
 });
 
 // === Helper Functions ===
@@ -1401,7 +2253,7 @@ function hasData(section: keyof UnifiedCaseData): boolean {
   const data = caseData.value[section];
   if (!data || typeof data !== "object") return false;
   return Object.values(data).some(
-    (v) => v != null && v.toString().trim() !== ""
+    (v) => v != null && v.toString().trim() !== "",
   );
 }
 
@@ -1415,14 +2267,14 @@ function getStatusLabel(status: CaseStatus): string {
   return map[status] || status;
 }
 
-function getStatusBadgeClass(status: CaseStatus): string {
+function getStatusSeverity(status: CaseStatus): string {
   const map: Record<CaseStatus, string> = {
-    draft: "bg-gray-500 text-white",
-    submitted: "bg-yellow-500 text-white",
-    reviewed: "bg-blue-500 text-white",
-    approved: "bg-green-500 text-white",
+    draft: "secondary",
+    submitted: "warn",
+    reviewed: "info",
+    approved: "success",
   };
-  return map[status] || "bg-gray-500 text-white";
+  return map[status] || "secondary";
 }
 
 function getGenderLabel(gender: PatientGender): string {
@@ -1472,7 +2324,7 @@ function getLetterGrade(score: number): string {
   return "F";
 }
 
-// === Normalize API Data to Unified Format ===
+// === Normalize API Data ===
 function normalizeCaseData(apiCase: any): UnifiedCaseData {
   return {
     title: apiCase.title || "",
@@ -1486,8 +2338,6 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
     patient_age: apiCase.patient_age || 0,
     patient_gender: apiCase.patient_gender || "other",
     medical_record_number: apiCase.medical_record_number || "",
-
-    // === Additional Basic Fields ===
     priority_level: apiCase.priority_level || "medium",
     complexity_level: apiCase.complexity_level || "intermediate",
     admission_date: apiCase.admission_date || "",
@@ -1501,8 +2351,6 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
     estimated_study_hours: apiCase.estimated_study_hours || null,
     requires_follow_up: apiCase.requires_follow_up || false,
     follow_up_date: apiCase.follow_up_date || "",
-
-    // === Clinical History ===
     clinical_history: {
       chief_complaint:
         apiCase.clinical_history?.chief_complaint ||
@@ -1522,12 +2370,11 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
       immunizations: apiCase.clinical_history?.immunizations || "",
       surgical_history: apiCase.clinical_history?.surgical_history || "",
       review_of_systems: apiCase.clinical_history?.review_of_systems || "",
-      symptom_duration_days: apiCase.clinical_history?.symptom_duration_days || null,
+      symptom_duration_days:
+        apiCase.clinical_history?.symptom_duration_days || null,
       symptom_onset: apiCase.clinical_history?.symptom_onset || "",
       symptom_progression: apiCase.clinical_history?.symptom_progression || "",
     },
-
-    // === Physical Examination ===
     physical_examination: {
       general_appearance:
         apiCase.physical_examination?.general_appearance || "",
@@ -1540,7 +2387,8 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
       weight_kg: apiCase.physical_examination?.weight_kg || "",
       height_cm: apiCase.physical_examination?.height_cm || "",
       bmi: apiCase.physical_examination?.bmi || null,
-      consciousness_level: apiCase.physical_examination?.consciousness_level || "",
+      consciousness_level:
+        apiCase.physical_examination?.consciousness_level || "",
       cardiovascular: apiCase.physical_examination?.cardiovascular || "",
       respiratory: apiCase.physical_examination?.respiratory || "",
       head_neck: apiCase.physical_examination?.head_neck || "",
@@ -1550,8 +2398,6 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
       skin: apiCase.physical_examination?.skin || "",
       other_systems: apiCase.physical_examination?.other_systems || "",
     },
-
-    // === Investigations ===
     investigations: {
       laboratory_results:
         apiCase.detailed_investigations?.laboratory_results ||
@@ -1570,17 +2416,18 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
       ecg_rate: apiCase.detailed_investigations?.ecg_rate || "",
       pathology_results:
         apiCase.detailed_investigations?.pathology_results || "",
-      microbiology_results: apiCase.detailed_investigations?.microbiology_results || "",
-      other_investigations: apiCase.detailed_investigations?.other_investigations || "",
+      microbiology_results:
+        apiCase.detailed_investigations?.microbiology_results || "",
+      other_investigations:
+        apiCase.detailed_investigations?.other_investigations || "",
       special_tests: apiCase.detailed_investigations?.special_tests || "",
       microbiology: apiCase.detailed_investigations?.microbiology || "",
       biochemistry: apiCase.detailed_investigations?.biochemistry || "",
       hematology: apiCase.detailed_investigations?.hematology || "",
-      arterial_blood_gas: apiCase.detailed_investigations?.arterial_blood_gas || "",
+      arterial_blood_gas:
+        apiCase.detailed_investigations?.arterial_blood_gas || "",
       ph_level: apiCase.detailed_investigations?.ph_level || null,
     },
-
-    // === Diagnosis & Management ===
     diagnosis_management: {
       primary_diagnosis:
         apiCase.diagnosis_management?.primary_diagnosis ||
@@ -1600,8 +2447,6 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
       complications: apiCase.diagnosis_management?.complications || "",
       icd10_codes: apiCase.diagnosis_management?.icd10_codes || "",
     },
-
-    // === Learning Outcomes ===
     learning_outcomes: {
       learning_objectives: apiCase.learning_outcomes?.learning_objectives || "",
       key_concepts: apiCase.learning_outcomes?.key_concepts || "",
@@ -1616,7 +2461,9 @@ function normalizeCaseData(apiCase: any): UnifiedCaseData {
 // === Save / Submit Grade ===
 async function saveGrade() {
   if (totalRubricScore.value > 100) {
-    toast.error(`Tổng điểm vượt quá 100 (hiện tại: ${totalRubricScore.value}). Vui lòng điều chỉnh.`);
+    toast.error(
+      `Tổng điểm vượt quá 100 (hiện tại: ${totalRubricScore.value}). Vui lòng điều chỉnh.`,
+    );
     return;
   }
   if (totalRubricScore.value < 0) {
@@ -1629,7 +2476,6 @@ async function saveGrade() {
   }
   saving.value = true;
   try {
-    // Ensure all criteria values are valid numbers
     const criteria = {
       history: Number(gradingForm.value.criteria.history) || 0,
       examination: Number(gradingForm.value.criteria.examination) || 0,
@@ -1637,7 +2483,6 @@ async function saveGrade() {
       treatment: Number(gradingForm.value.criteria.treatment) || 0,
       presentation: Number(gradingForm.value.criteria.presentation) || 0,
     };
-
     const payload: GradeSubmission = {
       grade_scale: "percentage",
       score: totalRubricScore.value,
@@ -1650,23 +2495,19 @@ async function saveGrade() {
       is_final: false,
       case: Number(props.caseId),
     };
-
-    console.log("SAVE payload →", payload);
-
     if (existingGradeId.value) {
-      // Update existing draft grade
-      await gradesService.updateGrade(existingGradeId.value.toString(), payload);
+      await gradesService.updateGrade(
+        existingGradeId.value.toString(),
+        payload,
+      );
     } else {
-      // Create new draft grade
       const result = await gradesService.saveGrade(payload);
       existingGradeId.value = result.id;
     }
-
     toast.success("Đánh giá đã được lưu thành công!");
   } catch (error: unknown) {
     const err = error as import("axios").AxiosError<{ [k: string]: string[] }>;
     console.error("Save error:", err);
-    if (err.response?.data) console.error("Response data:", err.response.data);
     toast.error("Không thể lưu đánh giá.");
   } finally {
     saving.value = false;
@@ -1679,7 +2520,9 @@ async function submitGrade() {
     return;
   }
   if (totalRubricScore.value > 100) {
-    toast.error(`Tổng điểm vượt quá 100 (hiện tại: ${totalRubricScore.value}). Vui lòng điều chỉnh.`);
+    toast.error(
+      `Tổng điểm vượt quá 100 (hiện tại: ${totalRubricScore.value}). Vui lòng điều chỉnh.`,
+    );
     return;
   }
   if (totalRubricScore.value < 0) {
@@ -1692,7 +2535,6 @@ async function submitGrade() {
   }
   submitting.value = true;
   try {
-    // Ensure all criteria values are valid numbers
     const criteria = {
       history: Number(gradingForm.value.criteria.history) || 0,
       examination: Number(gradingForm.value.criteria.examination) || 0,
@@ -1700,7 +2542,6 @@ async function submitGrade() {
       treatment: Number(gradingForm.value.criteria.treatment) || 0,
       presentation: Number(gradingForm.value.criteria.presentation) || 0,
     };
-
     const payload: GradeSubmission = {
       grade_scale: "percentage",
       score: totalRubricScore.value,
@@ -1713,36 +2554,25 @@ async function submitGrade() {
       is_final: true,
       case: Number(props.caseId),
     };
-
-    console.log("SUBMIT payload →", payload);
-
     if (existingGradeId.value) {
-      // Update existing grade to final
-      await gradesService.updateGrade(existingGradeId.value.toString(), payload);
+      await gradesService.updateGrade(
+        existingGradeId.value.toString(),
+        payload,
+      );
     } else {
-      // Create new final grade
       const result = await gradesService.submitGrade(payload);
       existingGradeId.value = result.id;
     }
-
-    // Update case status to reviewed
-    await casesService.updateCase(props.caseId, { case_status: 'reviewed' });
-
-    // Set flag to disable further edits
+    await casesService.updateCase(props.caseId, { case_status: "reviewed" });
     isFinalGrade.value = true;
-    caseData.value.case_status = 'reviewed';
-
+    caseData.value.case_status = "reviewed";
     toast.success("Chấm điểm hoàn tất!");
-
-    // Refresh cases store before navigating
-    const { useCasesStore } = await import('@/stores/cases');
+    const { useCasesStore } = await import("@/stores/cases");
     await useCasesStore().fetchCases();
-
     setTimeout(() => emit("navigate", "dashboard"), 1500);
   } catch (error: unknown) {
     const err = error as import("axios").AxiosError<{ [k: string]: string[] }>;
     console.error("Submit error:", err);
-    if (err.response?.data) console.error("Response data:", err.response.data);
     toast.error("Không thể hoàn thành chấm điểm.");
   } finally {
     submitting.value = false;
@@ -1758,26 +2588,17 @@ function handlePermissionGranted() {
 onMounted(async () => {
   try {
     const apiCase = await casesService.getCase(props.caseId);
-
-    // Normalize to unified structure
     caseData.value = normalizeCaseData(apiCase);
-
-    // Load student notes
     try {
       studentNotes.value = await casesService.getStudentNotes(props.caseId);
-    } catch (err) {
+    } catch {
       console.log("No student notes");
     }
-
-    // Always try to load existing grade (don't rely on has_grade flag)
     try {
-      console.log("Fetching grade for case:", props.caseId);
       const grade = await gradesService.getGrade(props.caseId);
-      console.log("Grade API response:", grade);
       if (grade) {
         existingGradeId.value = grade.id;
         isFinalGrade.value = grade.is_final || false;
-
         gradingForm.value = {
           score: grade.score ?? 0,
           evaluation_notes: grade.evaluation_notes || "",
@@ -1792,12 +2613,9 @@ onMounted(async () => {
             presentation: grade.grading_criteria?.presentation ?? 0,
           },
         };
-        console.log("Loaded existing grade with criteria:", gradingForm.value.criteria);
-      } else {
-        console.log("No grade found in API response");
       }
-    } catch (err) {
-      console.log("Error fetching grade:", err);
+    } catch {
+      console.log("No grade found");
     }
   } catch (error) {
     console.error("Load failed:", error);
@@ -1875,13 +2693,13 @@ interface Investigations {
 interface DiagnosisManagement {
   primary_diagnosis?: string;
   differential_diagnosis?: string;
+  icd10_codes?: string;
   treatment_plan?: string;
   medications_prescribed?: string;
   procedures_performed?: string;
   follow_up_plan?: string;
   prognosis?: string;
   complications?: string;
-  icd10_codes?: string;
 }
 
 interface LearningOutcomes {
@@ -1904,7 +2722,6 @@ interface UnifiedCaseData {
   patient_age: number;
   patient_gender: PatientGender;
   medical_record_number: string;
-  // Additional basic fields
   priority_level?: string;
   complexity_level?: string;
   admission_date?: string;
@@ -1918,7 +2735,6 @@ interface UnifiedCaseData {
   estimated_study_hours?: number | null;
   requires_follow_up?: boolean;
   follow_up_date?: string;
-  // Nested sections
   clinical_history: ClinicalHistory;
   physical_examination: PhysicalExamination;
   investigations: Investigations;

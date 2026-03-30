@@ -7,16 +7,16 @@
     <section class="demo-section">
       <h2>1. Basic Usage</h2>
       <p>Simple voice-to-text with default settings</p>
-      
+
       <div class="demo-box">
         <VoiceToText v-model="basicText" />
-        
+
         <div v-if="basicText" class="output">
           <strong>Output:</strong>
           <pre>{{ basicText }}</pre>
         </div>
       </div>
-      
+
       <details class="code-snippet">
         <summary>View Code</summary>
         <pre><code>&lt;VoiceToText v-model="basicText" /&gt;</code></pre>
@@ -27,7 +27,7 @@
     <section class="demo-section">
       <h2>2. Vietnamese Language (Optimized)</h2>
       <p>Optimized for Vietnamese with custom text</p>
-      
+
       <div class="demo-box">
         <VoiceToText
           v-model="vietnameseText"
@@ -36,13 +36,13 @@
           recording-text="Đang ghi âm..."
           processing-text="Đang xử lý âm thanh..."
         />
-        
+
         <div v-if="vietnameseText" class="output">
           <strong>Văn bản:</strong>
           <pre>{{ vietnameseText }}</pre>
         </div>
       </div>
-      
+
       <details class="code-snippet">
         <summary>View Code</summary>
         <pre><code>&lt;VoiceToText
@@ -59,7 +59,7 @@
     <section class="demo-section">
       <h2>3. Form Integration</h2>
       <p>Integrate voice input into a medical case form</p>
-      
+
       <div class="demo-box">
         <form @submit.prevent="submitForm" class="case-form">
           <div class="form-group">
@@ -112,7 +112,7 @@
           <pre>{{ JSON.stringify(formData, null, 2) }}</pre>
         </div>
       </div>
-      
+
       <details class="code-snippet">
         <summary>View Code</summary>
         <pre><code>&lt;form @submit.prevent="submitForm"&gt;
@@ -135,7 +135,7 @@
     <section class="demo-section">
       <h2>4. Advanced Features</h2>
       <p>Longer recordings with event handlers and method info</p>
-      
+
       <div class="demo-box">
         <VoiceToText
           v-model="advancedText"
@@ -147,7 +147,7 @@
           @recording-start="onRecordingStart"
           @recording-stop="onRecordingStop"
         />
-        
+
         <div class="event-log">
           <strong>Event Log:</strong>
           <div
@@ -161,7 +161,7 @@
           </div>
         </div>
       </div>
-      
+
       <details class="code-snippet">
         <summary>View Code</summary>
         <pre><code>&lt;VoiceToText
@@ -181,7 +181,7 @@
     <section class="demo-section">
       <h2>5. Programmatic Control</h2>
       <p>Control recording with external buttons</p>
-      
+
       <div class="demo-box">
         <div class="control-buttons">
           <button @click="startRecording" class="control-btn start">
@@ -195,18 +195,14 @@
           </button>
         </div>
 
-        <VoiceToText
-          ref="voiceRef"
-          v-model="controlledText"
-          language="vi-VN"
-        />
+        <VoiceToText ref="voiceRef" v-model="controlledText" language="vi-VN" />
 
         <div v-if="controlledText" class="output">
           <strong>Transcription:</strong>
           <pre>{{ controlledText }}</pre>
         </div>
       </div>
-      
+
       <details class="code-snippet">
         <summary>View Code</summary>
         <pre><code>&lt;template&gt;
@@ -240,7 +236,7 @@ function clearTranscription() {
     <!-- ASR Status -->
     <section class="demo-section">
       <h2>📊 ASR Service Status</h2>
-      
+
       <div class="demo-box">
         <button @click="checkStatus" class="control-btn">
           Check Backend Status
@@ -250,7 +246,7 @@ function clearTranscription() {
           <div class="status-row">
             <span class="label">Available:</span>
             <span :class="['value', asrStatus.available ? 'success' : 'error']">
-              {{ asrStatus.available ? '✅ Yes' : '❌ No' }}
+              {{ asrStatus.available ? "✅ Yes" : "❌ No" }}
             </span>
           </div>
           <div v-if="asrStatus.model_name" class="status-row">
@@ -263,7 +259,9 @@ function clearTranscription() {
           </div>
           <div v-if="asrStatus.language_support" class="status-row">
             <span class="label">Languages:</span>
-            <span class="value">{{ asrStatus.language_support.join(', ') }}</span>
+            <span class="value">{{
+              asrStatus.language_support.join(", ")
+            }}</span>
           </div>
           <div v-if="asrStatus.description" class="status-row">
             <span class="label">Description:</span>
@@ -276,95 +274,95 @@ function clearTranscription() {
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import VoiceToText from '@/components/VoiceToText.vue'
-import axios from 'axios'
+import { ref } from "vue";
+import VoiceToText from "@/components/VoiceToText.vue";
+import axios from "axios";
 
 // Example 1: Basic
-const basicText = ref('')
+const basicText = ref("");
 
 // Example 2: Vietnamese
-const vietnameseText = ref('')
+const vietnameseText = ref("");
 
 // Example 3: Form
 const formData = ref({
-  symptoms: '',
-  history: '',
-  examination: ''
-})
-const formSubmitted = ref(false)
+  symptoms: "",
+  history: "",
+  examination: "",
+});
+const formSubmitted = ref(false);
 
 function submitForm() {
-  console.log('Form submitted:', formData.value)
-  formSubmitted.value = true
-  
+  console.log("Form submitted:", formData.value);
+  formSubmitted.value = true;
+
   setTimeout(() => {
-    formSubmitted.value = false
-  }, 5000)
+    formSubmitted.value = false;
+  }, 5000);
 }
 
 // Example 4: Advanced
-const advancedText = ref('')
-const eventLog = ref([])
+const advancedText = ref("");
+const eventLog = ref([]);
 
 function addEvent(type, message) {
-  const now = new Date()
-  const time = now.toLocaleTimeString()
-  
+  const now = new Date();
+  const time = now.toLocaleTimeString();
+
   eventLog.value.unshift({
     time,
     type,
-    message
-  })
-  
+    message,
+  });
+
   // Keep only last 10 events
   if (eventLog.value.length > 10) {
-    eventLog.value.pop()
+    eventLog.value.pop();
   }
 }
 
 function onTranscription(text) {
-  addEvent('transcription', `Transcribed: ${text.substring(0, 50)}...`)
+  addEvent("transcription", `Transcribed: ${text.substring(0, 50)}...`);
 }
 
 function onError(error) {
-  addEvent('error', error)
+  addEvent("error", error);
 }
 
 function onRecordingStart() {
-  addEvent('info', 'Recording started')
+  addEvent("info", "Recording started");
 }
 
 function onRecordingStop() {
-  addEvent('info', 'Recording stopped')
+  addEvent("info", "Recording stopped");
 }
 
 // Example 5: Programmatic Control
-const voiceRef = ref(null)
-const controlledText = ref('')
+const voiceRef = ref(null);
+const controlledText = ref("");
 
 function startRecording() {
-  voiceRef.value?.startRecording()
+  voiceRef.value?.startRecording();
 }
 
 function stopRecording() {
-  voiceRef.value?.stopRecording()
+  voiceRef.value?.stopRecording();
 }
 
 function clearTranscription() {
-  voiceRef.value?.clearTranscription()
+  voiceRef.value?.clearTranscription();
 }
 
 // ASR Status
-const asrStatus = ref(null)
+const asrStatus = ref(null);
 
 async function checkStatus() {
   try {
-    const response = await axios.get('/api/asr/status/')
-    asrStatus.value = response.data
-    addEvent('info', 'ASR status checked successfully')
+    const response = await axios.get("/api/asr/status/");
+    asrStatus.value = response.data;
+    addEvent("info", "ASR status checked successfully");
   } catch (error) {
-    addEvent('error', 'Failed to check ASR status: ' + error.message)
+    addEvent("error", "Failed to check ASR status: " + error.message);
   }
 }
 </script>
@@ -459,7 +457,7 @@ h1 {
 }
 
 .code-snippet code {
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 0.9rem;
 }
 
@@ -546,7 +544,7 @@ h1 {
 
 .event-time {
   color: #999;
-  font-family: 'Monaco', monospace;
+  font-family: "Monaco", monospace;
   font-size: 0.85rem;
 }
 

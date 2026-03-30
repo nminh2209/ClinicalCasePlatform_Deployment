@@ -1,789 +1,615 @@
 <template>
-  <div class="case-sharing-panel p-6 bg-white rounded-lg shadow-lg">
-    <!-- Header -->
+  <div class="case-sharing-panel bg-white rounded-lg">
+    <!-- Action Buttons -->
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">
-        {{ currentLang === 'vi' ? 'Quản lý chia sẻ ca bệnh' : 'Case Sharing Management' }}
-      </h2>
-      <div class="flex space-x-2">
-        <Button @click="refreshData" variant="outline" size="sm">
-          🔄
-          {{ currentLang === 'vi' ? 'Làm mới' : 'Refresh' }}
-        </Button>
-        <Button @click="showAuditLog = !showAuditLog" variant="outline" size="sm">
-          📋
-          {{ currentLang === 'vi' ? 'Nhật ký' : 'Audit Log' }}
-        </Button>
+      <div class="flex gap-2 flex-wrap">
+        <Button
+          icon="pi pi-user"
+          label="Chia sẻ cá nhân"
+          @click="openShareModal('individual')"
+        />
+        <Button
+          icon="pi pi-building"
+          label="Chia sẻ khoa"
+          outlined
+          @click="openShareModal('department')"
+        />
+        <Button
+          icon="pi pi-share-alt"
+          label="Chia sẻ khách"
+          outlined
+          @click="openGuestModal"
+        />
+        <Button
+          icon="pi pi-globe"
+          label="Công khai"
+          outlined
+          @click="openShareModal('public')"
+        />
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="flex justify-between items-center mb-6">
-      <div class="flex space-x-2">
-        <Button @click="openShareModal('individual')" class="flex items-center space-x-2">
-          <UserIcon class="w-4 h-4" />
-          <span>{{ currentLang === 'vi' ? 'Chia sẻ ca bệnh' : 'Share Case' }}</span>
-        </Button>
+    <!-- Stats -->
+    <div class="flex items-center gap-4 mb-6">
+      <Tag severity="info">
+        <i class="pi pi-chart-bar me-1" />
+        {{ permissions.length }} quyền chia sẻ
+      </Tag>
+      <Tag severity="info">
+        <i class="pi pi-link me-1" />
+        {{ guestAccesses.length }} liên kết khách
+      </Tag>
+    </div>
 
-        <Button @click="openGuestModal" variant="outline" class="flex items-center space-x-2">
-          <MailIcon class="w-4 h-4" />
-          <span>{{ currentLang === 'vi' ? 'Truy cập khách' : 'Guest Access' }}</span>
-        </Button>
+    <!-- Permissions Table -->
+    <div class="space-y-4">
+      <!-- Bulk Actions Bar -->
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="selectAll" @change="toggleSelectAll" binary />
+          <span class="text-sm text-gray-600">Chọn tất cả</span>
+        </div>
+        <div class="flex gap-2">
+          <Button
+            icon="pi pi-trash"
+            label="Xóa các mục đã chọn"
+            severity="danger"
+            :disabled="selectedPermissions.length === 0"
+            @click="bulkRevoke"
+          />
+          <Button
+            icon="pi pi-refresh"
+            label="Làm mới"
+            outlined
+            size="small"
+            @click="() => refreshData(true)"
+          />
+        </div>
       </div>
 
-      <div class="text-sm text-gray-500">
-        {{ permissions.length }} {{ currentLang === 'vi' ? 'quyền chia sẻ' : 'sharing permissions' }}
+      <!-- DataTable -->
+      <DataTable
+        :value="permissions"
+        :empty-message="''"
+        table-style="table-layout: fixed;"
+      >
+        <!-- Checkbox column -->
+        <Column style="width: 50px">
+          <template #header>
+            <Checkbox v-model="selectAll" @change="toggleSelectAll" binary />
+          </template>
+          <template #body="{ data }">
+            <Checkbox :value="data.id" v-model="selectedPermissions" />
+          </template>
+        </Column>
+
+        <!-- Shared With -->
+        <Column header="Được chia sẻ với">
+          <template #body="{ data }">
+            <div class="flex items-center gap-2">
+              <i
+                :class="[
+                  'pi',
+                  data.share_type === 'individual' && 'pi-user text-blue-500',
+                  data.share_type === 'department' &&
+                    'pi-building text-green-500',
+                  data.share_type === 'public' && 'pi-globe text-purple-500',
+                ]"
+              />
+              <div>
+                <div class="font-medium">
+                  {{ getPermissionDisplayName(data) }}
+                </div>
+                <div class="text-xs text-gray-500">
+                  {{ data.share_description }}
+                </div>
+              </div>
+            </div>
+          </template>
+        </Column>
+
+        <!-- Permission Type -->
+        <Column header="Loại quyền">
+          <template #body="{ data }">
+            <Badge
+              :severity="getPermissionSeverity(data.permission_type)"
+              :value="getPermissionTypeText(data.permission_type)"
+            />
+          </template>
+        </Column>
+
+        <!-- Expiry -->
+        <Column header="Hết hạn">
+          <template #body="{ data }">
+            <span
+              class="text-sm"
+              :class="data.is_expired ? 'text-red-600' : 'text-gray-600'"
+            >
+              {{ data.expires_at_display || "Không giới hạn" }}
+            </span>
+          </template>
+        </Column>
+
+        <!-- Status -->
+        <Column header="Trạng thái">
+          <template #body="{ data }">
+            <Badge
+              :severity="data.is_expired ? 'secondary' : 'success'"
+              :value="data.is_expired ? 'Hết hạn' : 'Hoạt động'"
+            />
+          </template>
+        </Column>
+
+        <!-- Actions -->
+        <Column header="Thao tác" style="width: 120px" body-class="text-center">
+          <template #body="{ data }">
+            <Button
+              icon="pi pi-trash"
+              severity="danger"
+              size="small"
+              text
+              @click="revokePermission(data.id)"
+            />
+          </template>
+        </Column>
+      </DataTable>
+
+      <!-- Empty State -->
+      <div
+        v-if="permissions.length === 0"
+        class="text-center py-12 text-gray-500"
+      >
+        <i class="pi pi-lock text-4xl mb-3 block" />
+        <h3 class="text-lg font-medium mb-2">Chưa có quyền chia sẻ nào</h3>
+        <p class="mb-4">Bắt đầu chia sẻ ca bệnh này với đồng nghiệp của bạn</p>
+        <Button
+          label="Chia sẻ ngay"
+          icon="pi pi-user"
+          @click="openShareModal('individual')"
+        />
       </div>
     </div>
 
-    <!-- Tabs for different views -->
-    <Tabs v-model="activeTab" class="w-full">
-      <TabsList class="grid w-full grid-cols-1">
-        <TabsTrigger value="permissions">{{ currentLang === 'vi' ? 'Quyền chia sẻ' : 'Sharing Permissions' }}
-        </TabsTrigger>
-      </TabsList>
-
-      <!-- Current Permissions Tab -->
-      <TabsContent value="permissions" class="mt-6">
-        <div class="space-y-4">
-          <!-- Bulk Actions -->
-          <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-              <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded">
-              <span class="text-sm text-gray-600">
-                {{ currentLang === 'vi' ? 'Chọn tất cả' : 'Select All' }}
-                ({{ selectedPermissions.length }}/{{ permissions.length }})
-              </span>
-            </div>
-            <div class="space-x-2">
-              <Button @click="bulkRevokePermissions" :disabled="selectedPermissions.length === 0" variant="destructive"
-                size="sm">
-                {{ currentLang === 'vi' ? 'Thu hồi đã chọn' : 'Revoke Selected' }}
-              </Button>
-            </div>
-          </div>
-
-          <!-- Permissions List -->
-          <div class="border rounded-lg overflow-hidden">
-            <table class="w-full">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="w-12 p-3"></th>
-                  <th class="text-left p-3">{{ currentLang === 'vi' ? 'Người dùng/Nhóm' : 'User/Group' }}</th>
-                  <th class="text-left p-3">{{ currentLang === 'vi' ? 'Loại quyền' : 'Permission Type' }}</th>
-                  <th class="text-left p-3">{{ currentLang === 'vi' ? 'Hết hạn' : 'Expires' }}</th>
-                  <th class="text-left p-3">{{ currentLang === 'vi' ? 'Trạng thái' : 'Status' }}</th>
-                  <th class="text-right p-3">{{ currentLang === 'vi' ? 'Hành động' : 'Actions' }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="permission in permissions" :key="permission?.id || `perm-${Math.random()}`"
-                  class="border-t hover:bg-gray-50">
-                  <td class="p-3">
-                    <input type="checkbox" :value="permission?.id" v-model="selectedPermissions" class="rounded"
-                      :disabled="!permission?.id">
-                  </td>
-                  <td class="p-3">
-                    <div class="flex items-center space-x-2">
-                      <UserIcon v-if="permission?.share_type === 'individual'" class="w-4 h-4 text-blue-500" />
-                      <BuildingIcon v-else-if="permission?.share_type === 'department'"
-                        class="w-4 h-4 text-green-500" />
-                      <GlobeIcon v-else-if="permission?.share_type === 'public'" class="w-4 h-4 text-purple-500" />
-                      <UsersIcon v-else-if="permission?.share_type === 'class_group'" class="w-4 h-4 text-orange-500" />
-
-                      <div>
-                        <div class="font-medium">
-                          {{ getPermissionDisplayName(permission) }}
-                        </div>
-                        <div class="text-sm text-gray-500">
-                          {{ permission?.share_description || '' }}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="p-3">
-                    <Badge :variant="getPermissionVariant(permission?.permission_type || 'view')">
-                      {{ getPermissionTypeText(permission?.permission_type || 'view') }}
-                    </Badge>
-                  </td>
-                  <td class="p-3">
-                    <div class="text-sm">
-                      {{ permission?.expires_at_display || (currentLang === 'vi' ? 'Không giới hạn' : 'No limit') }}
-                    </div>
-                    <div v-if="permission?.is_expired" class="text-xs text-red-500">
-                      {{ currentLang === 'vi' ? 'Đã hết hạn' : 'Expired' }}
-                    </div>
-                  </td>
-                  <td class="p-3">
-                    <Badge :variant="(permission?.is_active && !permission?.is_expired) ? 'success' : 'secondary'">
-                      {{ getStatusText(permission) }}
-                    </Badge>
-                  </td>
-                  <td class="p-3 text-right">
-                    <div class="flex justify-end space-x-2">
-                      <Button @click="editPermission(permission)" size="sm" variant="outline"
-                        :disabled="!permission?.id">
-                        ✏️
-                      </Button>
-                      <Button @click="deletePermission(permission?.id)" size="sm" variant="destructive"
-                        :disabled="!permission?.id">
-                        🗑️
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Empty state -->
-          <div v-if="permissions.length === 0" class="text-center py-12 text-gray-500">
-            🔒
-            <h3 class="text-lg font-medium mb-2">
-              {{ currentLang === 'vi' ? 'Chưa có quyền chia sẻ nào' : 'No sharing permissions yet' }}
-            </h3>
-            <p class="mb-4">
-              {{ currentLang === 'vi' ?
-                'Bắt đầu chia sẻ ca bệnh này với đồng nghiệp của bạn'
-                : 'Start sharing this case with your colleagues' }}
-            </p>
-            <Button @click="openShareModal('individual')">
-              {{ currentLang === 'vi' ? 'Chia sẻ ngay' : 'Share Now' }}
-            </Button>
-          </div>
-        </div>
-      </TabsContent>
-
-      <!-- Guest Access Tab -->
-      <TabsContent value="guests" class="mt-6">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold">
-              {{ currentLang === 'vi' ? 'Truy cập khách mời' : 'Guest Access Links' }}
-            </h3>
-            <Button @click="openGuestModal">
-              ➕
-              {{ currentLang === 'vi' ? 'Tạo liên kết mới' : 'Create New Link' }}
-            </Button>
-          </div>
-
-          <div class="grid gap-4">
-            <div v-for="(guest, idx) in guestAccesses" :key="safeGuestKey(guest, idx)" class="border rounded-lg p-4">
-              <div class="flex justify-between items-start">
-                <div>
-                  <h4 class="font-medium">{{ guest.guest_name || guest.guest_email }}</h4>
-                  <p class="text-sm text-gray-600">{{ guest.guest_email }}</p>
-                  <div class="flex items-center space-x-4 mt-2 text-sm">
-                    <span class="flex items-center">
-                      🕒
-                      {{ guest.expires_at_display }}
-                    </span>
-                    <span class="flex items-center">
-                      👁️
-                      {{ guest.access_count || 0 }} {{ currentLang === 'vi' ? 'lần truy cập' : 'accesses' }}
-                    </span>
-                    <Badge :variant="guest.is_expired ? 'secondary' : 'success'">
-                      {{ guest.is_expired ? (currentLang === 'vi' ? 'Hết hạn' : 'Expired') : (currentLang === 'vi' ?
-                        'Hoạt động' : 'Active') }}
-                    </Badge>
-                  </div>
-                </div>
-                <div class="flex space-x-2">
-                  <Button @click="copyGuestLink(guest)" size="sm" variant="outline">
-                    📋
-                    {{ currentLang === 'vi' ? 'Sao chép' : 'Copy' }}
-                  </Button>
-                  <Button @click="extendGuestAccess(guest)" size="sm" variant="outline" v-if="!guest.is_expired">
-                    🕒
-                    {{ currentLang === 'vi' ? 'Gia hạn' : 'Extend' }}
-                  </Button>
-                  <Button @click="deleteGuestAccess(guest.id)" size="sm" variant="destructive">
-                    🗑️
-                  </Button>
-                </div>
+    <!-- Guest Links -->
+    <div v-if="guestAccesses.length > 0" class="mt-8">
+      <h3 class="text-lg font-semibold mb-4">Liên kết khách mời</h3>
+      <div class="space-y-3">
+        <div
+          v-for="guest in guestAccesses"
+          :key="guest.id"
+          class="border rounded-lg p-4"
+        >
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="font-medium">
+                {{ guest.guest_name || guest.guest_email }}
+              </h4>
+              <p class="text-sm text-gray-600">{{ guest.guest_email }}</p>
+              <div class="flex items-center gap-4 mt-2 text-sm">
+                <span class="flex items-center gap-1">
+                  <i class="pi pi-clock text-gray-500" />
+                  {{ guest.expires_at_display }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <i class="pi pi-eye text-gray-500" />
+                  {{ guest.access_count || 0 }} lần truy cập
+                </span>
+                <Badge
+                  :severity="guest.is_expired ? 'secondary' : 'success'"
+                  :value="guest.is_expired ? 'Hết hạn' : 'Hoạt động'"
+                />
               </div>
             </div>
-          </div>
-        </div>
-      </TabsContent>
-
-      <!-- My Shared Cases Tab -->
-      <TabsContent value="my-shares" class="mt-6">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold">
-              {{ currentLang === 'vi' ? 'Các ca bệnh tôi đã chia sẻ' : 'Cases I Have Shared' }}
-            </h3>
-            <div class="text-sm text-gray-500">
-              {{ mySharedCases.length }} {{ currentLang === 'vi' ? 'ca bệnh' : 'cases' }}
-            </div>
-          </div>
-
-          <div v-if="loadingSharedCases" class="text-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p class="mt-2 text-gray-500">{{ currentLang === 'vi' ? 'Đang tải...' : 'Loading...' }}</p>
-          </div>
-
-          <div v-else-if="mySharedCases.length === 0" class="text-center py-12 text-gray-500">
-            📤
-            <h3 class="text-lg font-medium mb-2">
-              {{ currentLang === 'vi' ? 'Chưa chia sẻ ca bệnh nào' : 'No shared cases yet' }}
-            </h3>
-            <p class="mb-4">
-              {{ currentLang === 'vi' ?
-                'Bắt đầu chia sẻ ca bệnh của bạn với đồng nghiệp'
-                : 'Start sharing your cases with colleagues' }}
-            </p>
-          </div>
-
-          <div v-else class="grid gap-4">
-            <div v-for="sharedCase in mySharedCases" :key="sharedCase.case_id" class="border rounded-lg p-4">
-              <div class="flex justify-between items-start">
-                <div class="flex-1">
-                  <h4 class="font-medium">{{ sharedCase.case_title }}</h4>
-                  <p class="text-sm text-gray-600 mt-1">{{ sharedCase.case_description || 'No description' }}</p>
-
-                  <!-- Permission Summary -->
-                  <div class="flex items-center space-x-4 mt-3 text-sm">
-                    <span class="flex items-center">
-                      👥
-                      {{ sharedCase.permission_count }} {{ currentLang === 'vi' ? 'quyền truy cập' : 'permissions' }}
-                    </span>
-                    <span class="flex items-center">
-                      🕒
-                      {{ formatDate(sharedCase.last_shared) }}
-                    </span>
-                  </div>
-
-                  <!-- Permission Details -->
-                  <div class="mt-3 space-y-2">
-                    <div v-for="perm in sharedCase.recent_permissions" :key="perm.id"
-                      class="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
-                      <div class="flex items-center space-x-2">
-                        <UserIcon v-if="perm.share_type === 'individual'" class="w-4 h-4 text-blue-500" />
-                        <BuildingIcon v-else-if="perm.share_type === 'department'" class="w-4 h-4 text-green-500" />
-                        <GlobeIcon v-else-if="perm.share_type === 'public'" class="w-4 h-4 text-purple-500" />
-
-                        <span class="font-medium">{{ getPermissionDisplayName(perm) }}</span>
-                        <Badge size="sm" :variant="getPermissionVariant(perm.permission_type)">
-                          {{ getPermissionTypeText(perm.permission_type) }}
-                        </Badge>
-                      </div>
-
-                      <Button @click="revokeSharedPermission(sharedCase.case_id, perm.id)" size="sm"
-                        variant="destructive" :disabled="perm.revoking">
-                        {{ perm.revoking ? '⏳' : '🗑️' }}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="ml-4">
-                  <Button @click="viewCaseDetails(sharedCase.case_id)" size="sm" variant="outline">
-                    {{ currentLang === 'vi' ? 'Xem chi tiết' : 'View Details' }}
-                  </Button>
-                </div>
-              </div>
+            <div class="flex gap-2">
+              <Button
+                icon="pi pi-copy"
+                label="Sao chép"
+                size="small"
+                outlined
+                @click="copyGuestLink(guest)"
+              />
+              <Button
+                v-if="!guest.is_expired"
+                icon="pi pi-clock"
+                label="Gia hạn"
+                size="small"
+                outlined
+                @click="extendGuestAccess(guest)"
+              />
+              <Button
+                icon="pi pi-trash"
+                size="small"
+                severity="danger"
+                @click="deleteGuestAccess(guest.id)"
+              />
             </div>
           </div>
         </div>
-      </TabsContent>
+      </div>
+    </div>
 
-      <!-- Analytics Tab -->
-      <TabsContent value="analytics" class="mt-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-blue-50 p-4 rounded-lg">
-            <h4 class="font-medium text-blue-800 mb-2">
-              {{ currentLang === 'vi' ? 'Tổng quyền truy cập' : 'Total Permissions' }}
-            </h4>
-            <p class="text-2xl font-bold text-blue-600">{{ analytics.total_permissions || 0 }}</p>
-          </div>
+    <!-- Modals -->
+    <SharePermissionModal
+      :open="showShareModal"
+      @update:open="(value: boolean) => (showShareModal = value)"
+      :case-id="caseId"
+      :share-type="shareType"
+      @permission-created="onPermissionCreated"
+    />
 
-          <div class="bg-green-50 p-4 rounded-lg">
-            <h4 class="font-medium text-green-800 mb-2">
-              {{ currentLang === 'vi' ? 'Khách mời hoạt động' : 'Active Guests' }}
-            </h4>
-            <p class="text-2xl font-bold text-green-600">{{ analytics.active_guests || 0 }}</p>
-          </div>
-
-          <div class="bg-purple-50 p-4 rounded-lg">
-            <h4 class="font-medium text-purple-800 mb-2">
-              {{ currentLang === 'vi' ? 'Lượt truy cập trong tuần' : 'Weekly Access Count' }}
-            </h4>
-            <p class="text-2xl font-bold text-purple-600">{{ analytics.weekly_access || 0 }}</p>
-          </div>
-        </div>
-
-        <!-- Audit Log -->
-        <div v-if="showAuditLog" class="mt-6">
-          <h4 class="font-medium mb-4">
-            {{ currentLang === 'vi' ? 'Nhật ký hoạt động' : 'Activity Log' }}
-          </h4>
-          <div class="border rounded-lg max-h-64 overflow-y-auto">
-            <div v-for="log in auditLogs" :key="log.id" class="border-b last:border-b-0 p-3">
-              <div class="flex justify-between items-start">
-                <div>
-                  <p class="text-sm font-medium">{{ log.description }}</p>
-                  <p class="text-xs text-gray-500">
-                    {{ log.actor_user }} - {{ formatDate(log.created_at) }}
-                  </p>
-                </div>
-                <Badge :variant="getActionVariant(log.action)">
-                  {{ log.action }}
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </div>
-      </TabsContent>
-    </Tabs>
-
-    <!-- Share Permission Modal -->
-    <SharePermissionModal :open="showShareModal" @update:open="(value: boolean) => showShareModal = value"
-      :case-id="caseId" :share-type="shareType" @permission-created="onPermissionCreated" />
+    <GuestAccessModal
+      :open="showGuestModal"
+      @update:open="(value: boolean) => (showGuestModal = value)"
+      :case-id="caseId"
+      @guest-created="onGuestCreated"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useLanguage } from '@/composables/useLanguage'
-import { useToast } from '@/composables/useToast'
-import sharingService from '@/services/sharing'
-import Button from '@/components/ui/Button.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Tabs from '@/components/ui/Tabs.vue'
-import TabsList from '@/components/ui/TabsList.vue'
-import TabsTrigger from '@/components/ui/TabsTrigger.vue'
-import TabsContent from '@/components/ui/TabsContent.vue'
-import SharePermissionModal from './SharePermissionModal.vue'
-
-// Icons
-import UserIcon from '@/components/icons/User.vue'
-import BuildingIcon from '@/components/icons/BuildingIcon.vue'
-import GlobeIcon from '@/components/icons/GlobeIcon.vue'
+import { ref, onMounted, watch, onUnmounted } from "vue";
+import { useToast } from "@/composables/useToast";
+import sharingService from "@/services/sharing";
+import Button from "primevue/button";
+import Tag from "primevue/tag";
+import Badge from "primevue/badge";
+import Checkbox from "primevue/checkbox";
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import SharePermissionModal from "./SharePermissionModal.vue";
+import GuestAccessModal from "./GuestAccessModal.vue";
 
 interface Permission {
-  id: number
-  case: number
-  user?: number
-  user_name?: string
-  user_email?: string
-  share_type: 'individual' | 'department' | 'class_group' | 'public'
-  target_department?: number
-  department_name?: string
-  class_group?: string
-  permission_type: 'view' | 'comment' | 'analyze' | 'edit'
-  expires_at_display?: string
-  is_active: boolean
-  is_expired: boolean
-  access_count?: number
-  share_description?: string
+  id: number;
+  case: number;
+  user?: number;
+  user_name?: string;
+  user_email?: string;
+  share_type: "individual" | "department" | "class_group" | "public";
+  target_department?: number;
+  department_name?: string;
+  class_group?: string;
+  permission_type: "view" | "comment" | "analyze" | "edit";
+  expires_at_display?: string;
+  is_active: boolean;
+  is_expired: boolean;
+  access_count?: number;
+  share_description?: string;
 }
 
 interface GuestAccess {
-  id: number
-  guest_email: string
-  guest_name?: string
-  permission_type: 'view' | 'comment'
-  expires_at_display?: string
-  is_expired: boolean
-  access_count: number
-  access_token: string
+  id: number;
+  case: number;
+  guest_email: string;
+  guest_name?: string;
+  permission_type: "view" | "comment";
+  expires_at_display: string;
+  is_expired: boolean;
+  access_count: number;
+  access_token: string;
 }
 
-const props = defineProps<{
-  caseId: number
-}>()
+const props = defineProps<{ caseId: number }>();
 
-const { currentLang } = useLanguage()
-const { toast } = useToast()
+const { toast } = useToast();
 
-// State
-const activeTab = ref('permissions')
-const permissions = ref<Permission[]>([])
-const selectedPermissions = ref<number[]>([])
-const selectAll = ref(false)
-const showAuditLog = ref(false)
-const guestAccesses = ref<GuestAccess[]>([])
-const mySharedCases = ref<any[]>([])
-const loadingSharedCases = ref(false)
-const analytics = ref({
-  total_permissions: 0,
-  active_guests: 0,
-  weekly_access: 0
-})
-const auditLogs = ref<any[]>([])
+const permissions = ref<Permission[]>([]);
+const guestAccesses = ref<GuestAccess[]>([]);
+const selectedPermissions = ref<number[]>([]);
+const selectAll = ref(false);
 
-// Modal states
-const showShareModal = ref(false)
-const showGuestModal = ref(false)
-const editingPermission = ref<Permission | null>(null)
-const editingGuest = ref<GuestAccess | null>(null)
-type PanelShareType = 'individual' | 'department' | 'public'
-const shareType = ref<PanelShareType>('individual')
+const showShareModal = ref(false);
+const showGuestModal = ref(false);
+type PanelShareType = "individual" | "department" | "public";
+const shareType = ref<PanelShareType>("individual");
 
-// Methods
-const refreshData = async () => {
+const dataCache = ref<
+  Map<
+    number,
+    { permissions: Permission[]; guests: GuestAccess[]; timestamp: number }
+  >
+>(new Map());
+const CACHE_DURATION = 10 * 60 * 1000;
+
+const refreshData = async (forceRefresh = false) => {
   try {
-    await loadPermissions()
-    toast.success(currentLang.value === 'vi' ? 'Đã làm mới dữ liệu' : 'Data refreshed')
+    const cacheKey = props.caseId;
+    const cachedData = dataCache.value.get(cacheKey);
+
+    if (
+      !forceRefresh &&
+      cachedData &&
+      Date.now() - cachedData.timestamp < CACHE_DURATION
+    ) {
+      permissions.value = [...cachedData.permissions];
+      guestAccesses.value = [...cachedData.guests];
+      console.log("Using cached data for case", cacheKey);
+      return;
+    }
+
+    console.log("Loading fresh data for case", cacheKey);
+    await Promise.all([loadPermissions(), loadGuestAccesses()]);
+
+    dataCache.value.set(cacheKey, {
+      permissions: [...permissions.value],
+      guests: [...guestAccesses.value],
+      timestamp: Date.now(),
+    });
+
+    if (forceRefresh) toast.success("Đã làm mới dữ liệu");
   } catch (error) {
-    toast.error(currentLang.value === 'vi' ? 'Lỗi khi tải dữ liệu' : 'Error loading data')
+    console.error("Error in refreshData:", error);
+    toast.error("Lỗi khi tải dữ liệu");
   }
-}
+};
 
 const loadPermissions = async () => {
   try {
-    const data = await sharingService.getCasePermissions(props.caseId)
-    // Ensure we have valid permission objects with required properties
-    permissions.value = (Array.isArray(data) ? data : []).filter(p =>
-      p && typeof p === 'object' && typeof p.id === 'number'
-    ).map(p => ({
-      ...p,
-      // Ensure all required properties exist with fallbacks
-      share_type: p.share_type || 'individual',
-      permission_type: p.permission_type || 'view',
-      is_active: p.is_active !== undefined ? p.is_active : true,
-      is_expired: p.is_expired !== undefined ? p.is_expired : false,
-      user_name: p.user_name || '',
-      user_email: p.user_email || '',
-      department_name: p.department_name || '',
-      class_group: p.class_group || '',
-      share_description: p.share_description || ''
-    }))
+    const data = await sharingService.getCasePermissions(props.caseId);
+    permissions.value = (Array.isArray(data) ? data : [])
+      .filter((p) => p && typeof p === "object" && typeof p.id === "number")
+      .map((p) => ({
+        ...p,
+        share_type: p.share_type || "individual",
+        permission_type: p.permission_type || "view",
+        is_active: p.is_active !== undefined ? p.is_active : true,
+        is_expired: p.is_expired !== undefined ? p.is_expired : false,
+        user_name: p.user_name || "",
+        user_email: p.user_email || "",
+        department_name: p.department_name || "",
+        class_group: p.class_group || "",
+        share_description: p.share_description || "",
+      }));
   } catch (error) {
-    console.error('Error loading permissions:', error)
-    permissions.value = []
-    toast.error(currentLang.value === 'vi' ? 'Lỗi khi tải quyền truy cập' : 'Error loading permissions')
+    console.error("Error loading permissions:", error);
+    permissions.value = [];
+    toast.error("Lỗi khi tải quyền truy cập");
   }
-}
+};
 
 const loadGuestAccesses = async () => {
   try {
-    const data = await sharingService.getGuestAccesses(props.caseId)
-    // Defensive: ensure array elements are non-null objects with id
-    guestAccesses.value = (Array.isArray(data) ? data : []).filter(g => !!g)
+    const data = await sharingService.getGuestAccesses(props.caseId);
+    guestAccesses.value = Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Error loading guest accesses:', error)
+    console.error("Error loading guest accesses:", error);
+    guestAccesses.value = [];
   }
-}
+};
 
-// Key helper to avoid runtime error if backend returns null elements
-const safeGuestKey = (guest: GuestAccess | null | undefined, idx: number) => {
-  if (guest && typeof guest.id === 'number') return guest.id
-  return `guest-${idx}`
-}
-
-const loadMySharedCases = async () => {
-  loadingSharedCases.value = true
-  try {
-    const data = await sharingService.getMySharedCases()
-    mySharedCases.value = (Array.isArray(data) ? data : []).map(item => ({
-      case_id: item.case_id || item.id,
-      case_title: item.case_title || item.title || 'Untitled Case',
-      case_description: item.case_description || item.description,
-      permission_count: item.permission_count || 0,
-      last_shared: item.last_shared || item.created_at,
-      recent_permissions: (item.recent_permissions || []).map((p: any) => ({
-        ...p,
-        revoking: false
-      }))
-    }))
-  } catch (error) {
-    console.error('Error loading shared cases:', error)
-    mySharedCases.value = []
-    toast.error(currentLang.value === 'vi' ? 'Lỗi khi tải ca bệnh đã chia sẻ' : 'Error loading shared cases')
-  } finally {
-    loadingSharedCases.value = false
-  }
-}
-
-const loadAnalytics = async () => {
-  analytics.value = {
-    total_permissions: permissions.value.length,
-    active_guests: guestAccesses.value.filter((g: any) => !g.is_expired).length,
-    weekly_access: permissions.value.reduce((sum, p) => sum + (p.access_count || 0), 0)
-  }
-}
-
-const loadAuditLog = async () => {
-  try {
-    const data = await sharingService.getPermissionAuditLog(props.caseId)
-    auditLogs.value = data
-  } catch (error) {
-    console.error('Error loading audit log:', error)
-  }
-}
-
-// UI Helper methods
-const getPermissionDisplayName = (permission: Permission | null | undefined) => {
-  if (!permission) return 'Unknown'
-
-  switch (permission.share_type) {
-    case 'individual':
-      return permission.user_name || permission.user_email || 'Unknown User'
-    case 'department':
-      return permission.department_name || 'Unknown Department'
-    case 'class_group':
-      return permission.class_group || 'Unknown Group'
-    case 'public':
-      return currentLang.value === 'vi' ? 'Công khai' : 'Public'
-    default:
-      return 'Unknown'
-  }
-}
-
-const getPermissionVariant = (type: string) => {
-  switch (type) {
-    case 'view': return 'secondary'
-    case 'comment': return 'default'
-    case 'analyze': return 'outline'
-    case 'edit': return 'destructive'
-    default: return 'secondary'
-  }
-}
-
-const getPermissionTypeText = (type: string) => {
-  const texts: Record<string, string> = {
-    view: currentLang.value === 'vi' ? 'Xem' : 'View',
-    comment: currentLang.value === 'vi' ? 'Bình luận' : 'Comment',
-    analyze: currentLang.value === 'vi' ? 'Phân tích' : 'Analyze',
-    edit: currentLang.value === 'vi' ? 'Chỉnh sửa' : 'Edit'
-  }
-  return texts[type] || type
-}
-
-const getStatusText = (permission: Permission | null | undefined) => {
-  if (!permission) return 'Unknown'
-
-  if (permission.is_expired) {
-    return currentLang.value === 'vi' ? 'Hết hạn' : 'Expired'
-  }
-  if (permission.is_active) {
-    return currentLang.value === 'vi' ? 'Hoạt động' : 'Active'
-  }
-  return currentLang.value === 'vi' ? 'Không hoạt động' : 'Inactive'
-}
-
-const getActionVariant = (action: string) => {
-  switch (action.toLowerCase()) {
-    case 'granted': return 'success'
-    case 'revoked': return 'destructive'
-    case 'modified': return 'default'
-    default: return 'secondary'
-  }
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString()
-}
-
-// Modal management
-const openShareModal = (type: string) => {
-  if (['individual', 'department', 'public'].includes(type)) {
-    shareType.value = type as PanelShareType
-  } else {
-    console.warn('Invalid share type:', type)
-    shareType.value = 'individual'
-  }
-  editingPermission.value = null
-  showShareModal.value = true
-}
-
-const closeShareModal = () => {
-  showShareModal.value = false
-  editingPermission.value = null
-}
+const openShareModal = (type: PanelShareType) => {
+  shareType.value = type;
+  showShareModal.value = true;
+};
 
 const openGuestModal = () => {
-  editingGuest.value = null
-  showGuestModal.value = true
-}
+  showGuestModal.value = true;
+};
 
-const closeGuestModal = () => {
-  showGuestModal.value = false
-  editingGuest.value = null
-}
-
-// Success handlers
-const onPermissionCreated = () => {
-  loadPermissions()
-  toast.success(currentLang.value === 'vi' ? 'Quyền đã được tạo' : 'Permission created successfully')
-}
-
-const onGuestCreated = () => {
-  loadGuestAccesses()
-  toast.success(currentLang.value === 'vi' ? 'Truy cập khách đã được tạo' : 'Guest access created successfully')
-}
-
-// Selection management
-const toggleSelectAll = () => {
-  if (selectAll.value) {
-    selectedPermissions.value = permissions.value.map(p => p.id)
+const onGuestCreated = (guest: any) => {
+  const fullGuest: GuestAccess = {
+    ...guest,
+    expires_at_display: guest.expires_at_display || "",
+    is_expired: false,
+    access_count: 0,
+    access_token: guest.access_token || "",
+  };
+  guestAccesses.value.unshift(fullGuest);
+  const cacheKey = props.caseId;
+  const cachedData = dataCache.value.get(cacheKey);
+  if (cachedData) {
+    cachedData.guests = [...guestAccesses.value];
+    cachedData.timestamp = Date.now();
   } else {
-    selectedPermissions.value = []
+    dataCache.value.set(cacheKey, {
+      permissions: [...permissions.value],
+      guests: [...guestAccesses.value],
+      timestamp: Date.now(),
+    });
   }
-}
-
-// Bulk operations
-const bulkRevokePermissions = async () => {
-  if (selectedPermissions.value.length === 0) return
-
-  try {
-    await sharingService.bulkRevokePermissions(props.caseId, selectedPermissions.value)
-    selectedPermissions.value = []
-    selectAll.value = false
-    loadPermissions()
-    toast.success(currentLang.value === 'vi' ? 'Đã thu hồi quyền đã chọn' : 'Selected permissions revoked')
-  } catch (error) {
-    toast.error(currentLang.value === 'vi' ? 'Lỗi khi thu hồi quyền' : 'Error revoking permissions')
-  }
-}
-
-// Individual operations
-const editPermission = (permission: Permission) => {
-  editingPermission.value = permission
-  // Map any unsupported types (e.g., class_group) to a safe fallback for modal
-  shareType.value = (['individual', 'department', 'public'].includes(permission.share_type)
-    ? permission.share_type
-    : 'individual') as PanelShareType
-  showShareModal.value = true
-}
-
-const deletePermission = async (permissionId: number) => {
-  if (!confirm(currentLang.value === 'vi' ? 'Bạn có chắc muốn xóa quyền này?' : 'Are you sure you want to delete this permission?')) {
-    return
-  }
-
-  try {
-    await sharingService.deletePermission(props.caseId, permissionId)
-    loadPermissions()
-    toast.success(currentLang.value === 'vi' ? 'Quyền đã được xóa' : 'Permission deleted')
-  } catch (error) {
-    toast.error(currentLang.value === 'vi' ? 'Lỗi khi xóa quyền' : 'Error deleting permission')
-  }
-}
+  console.log("Guest created and cache updated", {
+    guestId: guest.id,
+    cacheKey,
+  });
+};
 
 const copyGuestLink = (guest: GuestAccess) => {
-  const url = `${window.location.origin}/guest-access/${guest.access_token}`
-  navigator.clipboard.writeText(url)
-  toast.success(currentLang.value === 'vi' ? 'Liên kết đã được sao chép' : 'Link copied to clipboard')
-}
+  const link = `${window.location.origin}/guest-access/${guest.access_token}`;
+  navigator.clipboard.writeText(link);
+  toast.success("Đã sao chép liên kết");
+};
 
 const extendGuestAccess = async (guest: GuestAccess) => {
   try {
-    await sharingService.extendGuestAccess(props.caseId, guest.id, 72) // Extend by 72 hours
-    loadGuestAccesses()
-    toast.success(currentLang.value === 'vi' ? 'Đã gia hạn truy cập' : 'Guest access extended')
+    await sharingService.extendGuestAccess(props.caseId, guest.id, 24);
+    await loadGuestAccesses();
+    const cacheKey = props.caseId;
+    const cachedData = dataCache.value.get(cacheKey);
+    if (cachedData) {
+      cachedData.guests = [...guestAccesses.value];
+      cachedData.timestamp = Date.now();
+    }
+    console.log("Guest access extended and cache updated", {
+      guestId: guest.id,
+      cacheKey,
+    });
+    toast.success("Đã gia hạn 24 giờ");
   } catch (error) {
-    toast.error(currentLang.value === 'vi' ? 'Lỗi khi gia hạn' : 'Error extending access')
+    console.error("Error extending guest access:", error);
+    toast.error("Lỗi khi gia hạn");
   }
-}
+};
 
 const deleteGuestAccess = async (guestId: number) => {
-  if (!confirm(currentLang.value === 'vi' ? 'Bạn có chắc muốn xóa truy cập khách này?' : 'Are you sure you want to delete this guest access?')) {
-    return
-  }
-
+  if (!confirm("Bạn có chắc muốn xóa truy cập khách này?")) return;
   try {
-    await sharingService.deleteGuestAccess(props.caseId, guestId)
-    loadGuestAccesses()
-    toast.success(currentLang.value === 'vi' ? 'Truy cập khách đã được xóa' : 'Guest access deleted')
-  } catch (error) {
-    toast.error(currentLang.value === 'vi' ? 'Lỗi khi xóa truy cập khách' : 'Error deleting guest access')
-  }
-}
-
-const revokeSharedPermission = async (caseId: number, permissionId: number) => {
-  if (!confirm(currentLang.value === 'vi' ? 'Bạn có chắc muốn thu hồi quyền này?' : 'Are you sure you want to revoke this permission?')) {
-    return
-  }
-
-  // Find and mark permission as revoking
-  const sharedCase = mySharedCases.value.find(c => c.case_id === caseId)
-  if (sharedCase) {
-    const permission = sharedCase.recent_permissions.find((p: any) => p.id === permissionId)
-    if (permission) {
-      permission.revoking = true
+    await sharingService.deleteGuestAccess(props.caseId, guestId);
+    guestAccesses.value = guestAccesses.value.filter((g) => g.id !== guestId);
+    const cacheKey = props.caseId;
+    const cachedData = dataCache.value.get(cacheKey);
+    if (cachedData) {
+      cachedData.guests = [...guestAccesses.value];
+      cachedData.timestamp = Date.now();
     }
+    console.log("Guest access deleted and cache updated", {
+      guestId,
+      cacheKey,
+    });
+    toast.success("Đã xóa liên kết khách mời");
+  } catch (error) {
+    console.error("Error deleting guest access:", error);
+    toast.error("Lỗi khi xóa liên kết khách mời");
   }
+};
 
+const onPermissionCreated = (permission: any) => {
+  const fullPermission: Permission = {
+    ...permission,
+    is_active: true,
+    is_expired: false,
+  };
+  permissions.value.unshift(fullPermission);
+  const cacheKey = props.caseId;
+  const cachedData = dataCache.value.get(cacheKey);
+  if (cachedData) {
+    cachedData.permissions = [...permissions.value];
+    cachedData.timestamp = Date.now();
+  } else {
+    dataCache.value.set(cacheKey, {
+      permissions: [...permissions.value],
+      guests: [...guestAccesses.value],
+      timestamp: Date.now(),
+    });
+  }
+  console.log("Permission created and cache updated", {
+    permissionId: permission.id,
+    cacheKey,
+  });
+};
+
+const revokePermission = async (permissionId: number) => {
+  if (!confirm("Bạn có chắc muốn xóa quyền này?")) return;
   try {
-    await sharingService.deletePermission(caseId, permissionId)
-
-    // Remove the permission from the list
-    if (sharedCase) {
-      sharedCase.recent_permissions = sharedCase.recent_permissions.filter((p: any) => p.id !== permissionId)
-      sharedCase.permission_count = Math.max(0, sharedCase.permission_count - 1)
-
-      // Remove case if no permissions left
-      if (sharedCase.permission_count === 0) {
-        mySharedCases.value = mySharedCases.value.filter(c => c.case_id !== caseId)
-      }
+    await sharingService.deletePermission(props.caseId, permissionId);
+    permissions.value = permissions.value.filter((p) => p.id !== permissionId);
+    const cacheKey = props.caseId;
+    const cachedData = dataCache.value.get(cacheKey);
+    if (cachedData) {
+      cachedData.permissions = [...permissions.value];
+      cachedData.timestamp = Date.now();
     }
-
-    toast.success(currentLang.value === 'vi' ? 'Đã thu hồi quyền' : 'Permission revoked')
+    console.log("Permission deleted and cache updated", {
+      permissionId,
+      cacheKey,
+    });
+    toast.success("Quyền đã được xóa");
   } catch (error) {
-    // Revert revoking state on error
-    if (sharedCase) {
-      const permission = sharedCase.recent_permissions.find((p: any) => p.id === permissionId)
-      if (permission) {
-        permission.revoking = false
-      }
-    }
-    toast.error(currentLang.value === 'vi' ? 'Lỗi khi thu hồi quyền' : 'Error revoking permission')
+    toast.error("Lỗi khi xóa quyền");
   }
-}
+};
 
-const viewCaseDetails = (caseId: number) => {
-  // Navigate to case details - implement based on your routing
-  window.open(`/cases/${caseId}`, '_blank')
-}
+const bulkRevoke = async () => {
+  if (selectedPermissions.value.length === 0) return;
+  if (
+    !confirm(
+      `Bạn có chắc muốn xóa ${selectedPermissions.value.length} quyền đã chọn?`,
+    )
+  )
+    return;
+  try {
+    for (const permissionId of selectedPermissions.value) {
+      await sharingService.deletePermission(props.caseId, permissionId);
+    }
+    permissions.value = permissions.value.filter(
+      (p) => !selectedPermissions.value.includes(p.id),
+    );
+    selectedPermissions.value = [];
+    selectAll.value = false;
+    const cacheKey = props.caseId;
+    const cachedData = dataCache.value.get(cacheKey);
+    if (cachedData) {
+      cachedData.permissions = [...permissions.value];
+      cachedData.timestamp = Date.now();
+    }
+    console.log("Bulk permissions deleted and cache updated", { cacheKey });
+    toast.success("Đã xóa các quyền đã chọn");
+  } catch (error) {
+    toast.error("Lỗi khi xóa quyền");
+    loadPermissions();
+  }
+};
 
-// Lifecycle
+const toggleSelectAll = () => {
+  if (selectAll.value) {
+    selectedPermissions.value = permissions.value.map((p) => p.id);
+  } else {
+    selectedPermissions.value = [];
+  }
+};
+
+const getPermissionDisplayName = (permission: Permission): string => {
+  if (permission.share_type === "individual")
+    return permission.user_name || permission.user_email || "Unknown User";
+  if (permission.share_type === "department")
+    return permission.department_name || "Unknown Department";
+  if (permission.share_type === "class_group")
+    return permission.class_group || "Unknown Group";
+  if (permission.share_type === "public") return "Công khai";
+  return "Unknown";
+};
+
+const getPermissionTypeText = (type: string): string => {
+  const types: Record<string, string> = {
+    view: "Xem",
+    comment: "Bình luận",
+    analyze: "Phân tích",
+    edit: "Chỉnh sửa",
+  };
+  return types[type] || type;
+};
+
+// Maps old shadcn variant names → PrimeVue severity strings
+const getPermissionSeverity = (type: string): string => {
+  const map: Record<string, string> = {
+    view: "info",
+    comment: "secondary",
+    analyze: "warn",
+    edit: "danger",
+  };
+  return map[type] || "info";
+};
+
+watch(
+  () => selectedPermissions.value,
+  (selected) => {
+    selectAll.value =
+      selected.length === permissions.value.length &&
+      permissions.value.length > 0;
+  },
+  { deep: true },
+);
+
 onMounted(() => {
-  refreshData()
-})
+  console.log("Component mounted for case", props.caseId);
+  refreshData(false);
+});
 
-// Watch for tab changes to load appropriate data
-watch(() => activeTab.value, (newTab) => {
-  if (newTab === 'my-shares' && mySharedCases.value.length === 0) {
-    loadMySharedCases()
-  }
-  if (newTab === 'analytics' && showAuditLog.value) {
-    loadAuditLog()
-  }
-})
+watch(
+  () => props.caseId,
+  (newCaseId) => {
+    console.log("Case changed to", newCaseId);
+    refreshData(false);
+  },
+);
 
-watch(() => showAuditLog.value, (show) => {
-  if (show) {
-    loadAuditLog()
-  }
-})
-
-// Watch selected permissions for select all state
-watch(() => selectedPermissions.value, (selected) => {
-  selectAll.value = selected.length === permissions.value.length && permissions.value.length > 0
-}, { deep: true })
+onUnmounted(() => {
+  console.log("Component unmounted, keeping cache for case", props.caseId);
+});
 </script>
 
 <style scoped>
 .case-sharing-panel {
   max-width: 1200px;
   margin: 0 auto;
-}
-
-table {
-  table-layout: fixed;
-}
-
-table th:first-child,
-table td:first-child {
-  width: 50px;
-}
-
-table th:last-child,
-table td:last-child {
-  width: 120px;
 }
 </style>

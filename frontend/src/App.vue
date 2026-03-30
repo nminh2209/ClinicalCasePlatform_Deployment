@@ -2,6 +2,7 @@
   <div id="app">
     <!-- Show layout with sidebar/topbar only for authenticated routes -->
     <Layout v-if="showLayout">
+      <Toast />
       <router-view />
     </Layout>
 
@@ -15,17 +16,14 @@ import { onMounted, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute } from "vue-router";
 import Layout from "@/components/Layout.vue";
+import Toast from 'primevue/toast';
+
 
 const authStore = useAuthStore();
 const route = useRoute();
 
 // Pages that should NOT show the layout (sidebar/topbar)
-const noLayoutPages = [
-  "/",
-  "/login",
-  "/register",
-  "/forgot-password",
-];
+const noLayoutPages = ["/", "/login", "/register", "/forgot-password"];
 
 // Show layout for all authenticated pages, hide for login/landing/auth pages
 const showLayout = computed(() => {
@@ -35,7 +33,10 @@ const showLayout = computed(() => {
   }
 
   // Check path prefix for dynamic routes (password reset, OAuth callbacks)
-  if (route.path.startsWith("/reset-password/") || route.path.startsWith("/auth/")) {
+  if (
+    route.path.startsWith("/reset-password/") ||
+    route.path.startsWith("/auth/")
+  ) {
     return false;
   }
 
@@ -58,8 +59,18 @@ onMounted(() => {
 
 body {
   font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    "Archivo",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
@@ -247,9 +258,11 @@ body {
 }
 
 .medical-header {
-  background: linear-gradient(135deg,
-      var(--primary-blue) 0%,
-      var(--primary-blue-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue) 0%,
+    var(--primary-blue-dark) 100%
+  );
 }
 
 /* Responsive Typography */

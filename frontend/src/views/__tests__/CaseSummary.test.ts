@@ -1,18 +1,18 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createPinia, setActivePinia } from 'pinia'
-import CaseSummary from '@/views/CaseSummary.vue'
-import axios from 'axios'
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
+import CaseSummary from "@/views/CaseSummary.vue";
+import axios from "axios";
 
-vi.mock('axios')
+vi.mock("axios");
 
-describe('CaseSummary.vue', () => {
+describe("CaseSummary.vue", () => {
   beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.clearAllMocks()
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
 
     // Mock localStorage
-    vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('mock-token')
+    vi.spyOn(Storage.prototype, "getItem").mockReturnValue("mock-token");
 
     // Mock axios responses
     vi.mocked(axios.get).mockResolvedValue({
@@ -22,73 +22,73 @@ describe('CaseSummary.vue', () => {
           draft: 3,
           submitted: 4,
           reviewed: 2,
-          approved: 1
+          approved: 1,
         },
         by_specialty: [],
         by_priority: {},
         by_complexity: {},
-        recent_cases: []
-      }
-    })
-  })
+        recent_cases: [],
+      },
+    });
+  });
 
-  it('renders case summary dashboard', () => {
+  it("renders case summary dashboard", () => {
     const wrapper = mount(CaseSummary, {
       global: {
         stubs: {
           Card: true,
           CardHeader: true,
           CardTitle: true,
-          CardContent: true
-        }
-      }
-    })
-    expect(wrapper.exists()).toBe(true)
-  })
+          CardContent: true,
+        },
+      },
+    });
+    expect(wrapper.exists()).toBe(true);
+  });
 
-  it('fetches statistics on mount', () => {
+  it("fetches statistics on mount", () => {
     mount(CaseSummary, {
       global: {
         stubs: {
-          Card: true
-        }
-      }
-    })
+          Card: true,
+        },
+      },
+    });
 
     expect(axios.get).toHaveBeenCalledWith(
-      expect.stringContaining('/api/cases/statistics'),
-      expect.any(Object)
-    )
-  })
+      expect.stringContaining("/api/cases/statistics"),
+      expect.any(Object),
+    );
+  });
 
-  it('displays total case count', async () => {
+  it("displays total case count", async () => {
     const wrapper = mount(CaseSummary, {
       global: {
         stubs: {
           Card: true,
           CardHeader: true,
           CardTitle: true,
-          CardContent: true
-        }
-      }
-    })
+          CardContent: true,
+        },
+      },
+    });
 
-    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick();
 
     // Should have statistics data
-    expect(wrapper.vm.statistics).toBeDefined()
-  })
+    expect(wrapper.vm.statistics).toBeDefined();
+  });
 
-  it('handles loading state', () => {
+  it("handles loading state", () => {
     const wrapper = mount(CaseSummary, {
       global: {
         stubs: {
-          Card: true
-        }
-      }
-    })
+          Card: true,
+        },
+      },
+    });
 
     // Initially loading should be true or false
-    expect(typeof wrapper.vm.loading).toBe('boolean')
-  })
-})
+    expect(typeof wrapper.vm.loading).toBe("boolean");
+  });
+});

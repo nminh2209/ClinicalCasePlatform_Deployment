@@ -1,6 +1,7 @@
 """
 Advanced tests for Exports views
 """
+
 import pytest
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -24,13 +25,14 @@ class TestExportFormats:
             case_summary="Ca bệnh để xuất PDF",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.post(f'/api/exports/create/', {
-            'case_id': case.id,
-            'format': 'pdf'
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/exports/create/",
+            {"case_id": case.id, "format": "pdf"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -39,7 +41,9 @@ class TestExportFormats:
             status.HTTP_404_NOT_FOUND,
         ]
 
-    def test_export_case_json_format(self, api_client, instructor_user, student_user, test_repository):
+    def test_export_case_json_format(
+        self, api_client, instructor_user, student_user, test_repository
+    ):
         """Export case in JSON format"""
         case = Case.objects.create(
             title="JSON Export",
@@ -49,13 +53,14 @@ class TestExportFormats:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.post(f'/api/exports/create/', {
-            'case_id': case.id,
-            'format': 'json'
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/exports/create/",
+            {"case_id": case.id, "format": "json"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -64,7 +69,9 @@ class TestExportFormats:
             status.HTTP_404_NOT_FOUND,
         ]
 
-    def test_export_case_csv_format(self, api_client, instructor_user, student_user, test_repository):
+    def test_export_case_csv_format(
+        self, api_client, instructor_user, student_user, test_repository
+    ):
         """Export case in CSV format"""
         case = Case.objects.create(
             title="CSV Export",
@@ -74,13 +81,14 @@ class TestExportFormats:
             patient_gender="M",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.post(f'/api/exports/create/', {
-            'case_id': case.id,
-            'format': 'csv'
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/exports/create/",
+            {"case_id": case.id, "format": "csv"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -99,13 +107,14 @@ class TestExportFormats:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.post(f'/api/exports/create/', {
-            'case_id': case.id,
-            'format': 'docx'
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/exports/create/",
+            {"case_id": case.id, "format": "docx"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -119,7 +128,9 @@ class TestExportFormats:
 class TestExportOptions:
     """Test export with various options"""
 
-    def test_export_with_anonymization(self, api_client, instructor_user, student_user, test_repository):
+    def test_export_with_anonymization(
+        self, api_client, instructor_user, student_user, test_repository
+    ):
         """Export case with patient data anonymized"""
         case = Case.objects.create(
             title="Anonymized Export",
@@ -130,14 +141,14 @@ class TestExportOptions:
             case_summary="Ca bệnh cần ẩn danh",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.post(f'/api/exports/create/', {
-            'case_id': case.id,
-            'format': 'pdf',
-            'anonymize': True
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/exports/create/",
+            {"case_id": case.id, "format": "pdf", "anonymize": True},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -156,14 +167,14 @@ class TestExportOptions:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.post(f'/api/exports/create/', {
-            'case_id': case.id,
-            'format': 'pdf',
-            'watermark': 'CONFIDENTIAL'
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/exports/create/",
+            {"case_id": case.id, "format": "pdf", "watermark": "CONFIDENTIAL"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -172,7 +183,9 @@ class TestExportOptions:
             status.HTTP_404_NOT_FOUND,
         ]
 
-    def test_export_with_comments(self, api_client, instructor_user, student_user, test_repository):
+    def test_export_with_comments(
+        self, api_client, instructor_user, student_user, test_repository
+    ):
         """Export case including comments"""
         case = Case.objects.create(
             title="Export with Comments",
@@ -182,14 +195,14 @@ class TestExportOptions:
             patient_gender="M",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.post(f'/api/exports/create/', {
-            'case_id': case.id,
-            'format': 'pdf',
-            'include_comments': True
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/exports/create/",
+            {"case_id": case.id, "format": "pdf", "include_comments": True},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -208,14 +221,14 @@ class TestExportOptions:
             patient_gender="F",
             case_status="approved",
         )
-        
+
         api_client.force_authenticate(user=student_user)
-        response = api_client.post(f'/api/exports/create/', {
-            'case_id': case.id,
-            'format': 'pdf',
-            'include_grades': True
-        }, format='json')
-        
+        response = api_client.post(
+            f"/api/exports/create/",
+            {"case_id": case.id, "format": "pdf", "include_grades": True},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_200_OK,
@@ -232,8 +245,8 @@ class TestExportManagement:
     def test_list_user_exports(self, api_client, student_user):
         """List all exports for current user"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/exports/')
-        
+        response = api_client.get("/api/exports/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -243,8 +256,8 @@ class TestExportManagement:
     def test_view_export_details(self, api_client, student_user):
         """View details of specific export"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/exports/1/')
-        
+        response = api_client.get("/api/exports/1/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -254,8 +267,8 @@ class TestExportManagement:
     def test_delete_export(self, api_client, student_user):
         """Delete an export"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.delete('/api/exports/1/')
-        
+        response = api_client.delete("/api/exports/1/")
+
         assert response.status_code in [
             status.HTTP_204_NO_CONTENT,
             status.HTTP_403_FORBIDDEN,
@@ -265,8 +278,8 @@ class TestExportManagement:
     def test_download_export_file(self, api_client, student_user):
         """Download export file"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/exports/1/download/')
-        
+        response = api_client.get("/api/exports/1/download/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -276,8 +289,8 @@ class TestExportManagement:
     def test_regenerate_export(self, api_client, student_user):
         """Regenerate a previous export"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.post('/api/exports/1/regenerate/', format='json')
-        
+        response = api_client.post("/api/exports/1/regenerate/", format="json")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_201_CREATED,
@@ -289,8 +302,8 @@ class TestExportManagement:
     def test_export_status_check(self, api_client, student_user):
         """Check export processing status"""
         api_client.force_authenticate(user=student_user)
-        response = api_client.get('/api/exports/1/status/')
-        
+        response = api_client.get("/api/exports/1/status/")
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_403_FORBIDDEN,
@@ -302,7 +315,9 @@ class TestExportManagement:
 class TestBulkExports:
     """Test bulk export operations"""
 
-    def test_bulk_export_multiple_cases(self, api_client, instructor_user, student_user, test_repository):
+    def test_bulk_export_multiple_cases(
+        self, api_client, instructor_user, student_user, test_repository
+    ):
         """Bulk export multiple cases"""
         cases = [
             Case.objects.create(
@@ -315,13 +330,14 @@ class TestBulkExports:
             )
             for i in range(5)
         ]
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.post('/api/exports/bulk/', {
-            'case_ids': [c.id for c in cases],
-            'format': 'pdf'
-        }, format='json')
-        
+        response = api_client.post(
+            "/api/exports/bulk/",
+            {"case_ids": [c.id for c in cases], "format": "pdf"},
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_201_CREATED,
@@ -330,7 +346,9 @@ class TestBulkExports:
             status.HTTP_404_NOT_FOUND,
         ]
 
-    def test_bulk_export_with_zip(self, api_client, instructor_user, student_user, test_repository):
+    def test_bulk_export_with_zip(
+        self, api_client, instructor_user, student_user, test_repository
+    ):
         """Bulk export cases as ZIP archive"""
         cases = [
             Case.objects.create(
@@ -343,14 +361,18 @@ class TestBulkExports:
             )
             for i in range(3)
         ]
-        
+
         api_client.force_authenticate(user=instructor_user)
-        response = api_client.post('/api/exports/bulk/', {
-            'case_ids': [c.id for c in cases],
-            'format': 'pdf',
-            'create_archive': True
-        }, format='json')
-        
+        response = api_client.post(
+            "/api/exports/bulk/",
+            {
+                "case_ids": [c.id for c in cases],
+                "format": "pdf",
+                "create_archive": True,
+            },
+            format="json",
+        )
+
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_201_CREATED,

@@ -49,8 +49,10 @@ All instructors and students use password: testpass123
 NOTE: This script is idempotent - safe to run multiple times.
 It will skip existing records and only create missing ones.
 """
+
 import os
 import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 import django
 

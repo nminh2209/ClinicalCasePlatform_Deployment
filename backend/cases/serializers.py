@@ -30,6 +30,7 @@ from .models import (
     GuestAccess,
     InstructorCaseAuditLog,
     PermissionAuditLog,
+    CaseSearchToken
 )
 
 
@@ -259,6 +260,10 @@ class CaseListSerializer(serializers.ModelSerializer):
         source="cloned_from.student.get_full_name", read_only=True, allow_null=True
     )
 
+    fts_rank = serializers.FloatField(read_only=True)
+    trigram_score = serializers.FloatField(read_only=True)
+    score = serializers.FloatField(read_only=True)
+
     class Meta:  # type: ignore[misc, assignment]
         model = Case
         fields = [
@@ -288,6 +293,9 @@ class CaseListSerializer(serializers.ModelSerializer):
             "cloned_from",
             "cloned_from_title",
             "cloned_from_instructor_name",
+            "fts_rank",
+            "trigram_score",
+            "score",
         ]
 
 
@@ -463,6 +471,7 @@ class CaseCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:  # type: ignore[misc, assignment]
         model = Case
         fields = [
+            "id",
             "title",
             "repository",
             "patient_name",
@@ -675,7 +684,10 @@ class CaseCloneSerializer(serializers.ModelSerializer):
             "student": self.context["request"].user,
             "case_status": Case.StatusChoices.DRAFT,
             "is_public": False,
-            "cloned_from": source_case,
+            "cloned_from_title": source_case.title,
+            "cloned_from_instructor_name": (
+                source_case.student.get_full_name() if source_case.student else ""
+            ),
         }
 
         # Create the new case
@@ -1355,3 +1367,27 @@ class CaseSummarySerializer(serializers.Serializer):
     recent_cases = CaseListSerializer(many=True)
     top_specialties = serializers.ListField()
     learning_metrics = serializers.DictField()
+
+
+class CaseSearchSerializer(serializers.ModelSerializer):
+    fts_rank = serializers.FloatField(read_only=True)
+    trigram_score = serializers.FloatField(read_only=True)
+    score = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = Case
+        fields = [
+            "id",
+            "title",
+            "fts_rank",
+            "trigram_score",
+            "score",
+        ]
+
+
+
+
+class CaseSearchTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseSearchToken
+        fields = ["display"]

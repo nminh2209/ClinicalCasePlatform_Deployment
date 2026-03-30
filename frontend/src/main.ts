@@ -7,8 +7,11 @@ import {
   type RouteRecordRaw,
 } from "vue-router";
 import { createI18n } from "vue-i18n";
+import PrimeVue from "primevue/config";
+import Aura from "@primeuix/themes/aura";
 import App from "./App.vue";
 import "../styles/globals.css";
+import "primeicons/primeicons.css";
 
 // Extend RouteMeta to include custom requiresRoles
 declare module "vue-router" {
@@ -30,18 +33,23 @@ import CreateCase from "./views/CreateCase.vue";
 import CaseNotes from "./views/CaseNotes.vue";
 import NotFound from "./views/NotFound.vue";
 import Landing from "./views/Landing.vue";
+import Profile from "./views/Profile.vue";
 import PatientProfile from "./views/PatientProfile.vue";
 import PatientRecords from "./views/PatientRecords.vue";
 import ViewStudentList from "./views/ViewStudentList.vue";
-import Users from "./views/Users.vue";
 import UserManagement from "./views/UserManagement.vue";
 import SharedCases from "./views/SharedCases.vue";
 import PublicFeed from "./views/PublicFeed.vue";
 import CaseSummary from "./views/CaseSummary.vue";
+import ToastService from "primevue/toastservice";
 
-import { useToast } from "@/composables/useToast";
-
-const { toast } = useToast();
+// Fallback logger for route guards (before component mount)
+// Note: Route guards run before app is mounted, so we can't access PrimeVue toast service
+// Auth failures are handled via redirects; messages logged here are for debugging only
+const guardLogger = {
+  info: (message: string) => console.info("[Auth Guard]", message),
+  error: (message: string) => console.error("[Auth Guard]", message),
+};
 
 // ---- Router ----
 
@@ -54,6 +62,7 @@ const routes: RouteRecordRaw[] = [
   { path: "/auth/google/callback", component: OAuthCallback },
   { path: "/auth/microsoft/callback", component: OAuthCallback },
   { path: "/home", component: Home, meta: { requiresAuth: true } },
+  { path: "/profile", component: Profile, meta: { requiresAuth: true } },
 
   // Student & Instructor routes (admin restricted)
   {
@@ -111,11 +120,6 @@ const routes: RouteRecordRaw[] = [
   },
 
   // Admin routes
-  {
-    path: "/users",
-    component: Users,
-    meta: { requiresAuth: true, requiresRoles: ["admin"] },
-  },
   {
     path: "/admin/users",
     component: UserManagement,
@@ -980,9 +984,19 @@ const app = createApp(App);
 app.use(pinia);
 app.use(router);
 app.use(i18n);
+app.use(PrimeVue, {
+  theme: {
+    preset: Aura,
+    options: {
+      darkModeSelector: false,
+    },
+  },
+});
+app.use(ToastService);
 
 // ---- Navigation guard ----
-
+// Note: Auth failures result in redirects; user sees destination page's content
+// Guard messages are logged to console for debugging purposes
 router.beforeEach((to, from, next) => {
   const authStore = pinia!.state.value.auth;
   const token = localStorage.getItem("access_token");
@@ -991,8 +1005,7 @@ router.beforeEach((to, from, next) => {
   // Check authentication
   if (to.meta.requiresAuth) {
     if (!token) {
-      // Inform the user they need to login
-      toast.info("Please log in to continue.");
+      guardLogger.info("No auth token found. Redirecting to login.");
       next("/login");
       return;
     }
@@ -1004,21 +1017,17 @@ router.beforeEach((to, from, next) => {
 
     // Ensure user is loaded
     if (!user) {
-      toast.info("Your session is expired. Please log in again.");
+      guardLogger.info("User session expired. Redirecting to login.");
       next("/login");
       return;
     }
 
     // Check if user's role is in required roles
     if (!requiredRoles.includes(user.role)) {
-      console.warn(
-        `Access denied: user role "${user.role}" not in allowed roles:`,
-        requiredRoles
+      guardLogger.error(
+        `Access denied: user role "${user.role}" not in allowed roles: ${requiredRoles.join(", ")}`,
       );
-      toast.error(
-        "Access denied: You do not have permission to view this page."
-      );
-      // Redirect to home or 403 page
+      // Redirect to home; user will see permission denied message
       next("/home");
       return;
     }

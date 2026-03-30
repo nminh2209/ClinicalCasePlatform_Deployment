@@ -13,6 +13,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Mount Vietnamese stopwords file for full-text search
+      - ./cases/search/vietnamese.stop:/usr/local/share/postgresql/tsearch_data/vietnamese.stop:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -20,39 +27,76 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: .
     container_name: clinical_backend
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      # Django basics
+      # ── Django ──────────────────────────────────────────────────────────────
       DJANGO_SETTINGS_MODULE: clinical_case_platform.settings
       SECRET_KEY: django-in-docker-change-me
       DEBUG: "False"
-      ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
 
-      # Database config
+      # ── Database ─────────────────────────────────────────────────────────────
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: clinical_case_platform
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_HOST: postgres
-      DB_PORT: 5432
+      DB_PORT: "5432"
 
-      # Redis / Channels / Celery
+      # ── Redis / Channels / Celery ─────────────────────────────────────────────
       REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
 
-      # CORS
-      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      # ── CORS ─────────────────────────────────────────────────────────────────
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
+
+      # ── AI: OCR ──────────────────────────────────────────────────────────────
+      # DOCTR = fast GPU-based text detection (default, no table support)
+      # PPSTRUCTURE = layout analysis with table extraction (slower)
+      OCR_ENGINE: DOCTR
+
+      # ── AI: ASR ──────────────────────────────────────────────────────────────
+      # PhoWhisper-medium (~1.5 GB) downloads from HuggingFace on first use.
+      # Set to "false" to disable ASR (reduces startup/memory overhead).
+      ASR_ENABLED: "true"
+
+      # HuggingFace model cache – persisted across container restarts via volume
+      TRANSFORMERS_CACHE: /app/ai/asr/phowhisper
+      HF_HOME: /app/ai/asr/phowhisper
 
     ports:
       - "8000:8000"
     working_dir: /app
 
+    volumes:
+      # Persist uploaded media files (OCR outputs, audio, etc.) across restarts
+      - backend_media:/app/media
+      # Persist downloaded AI models (PhoWhisper) across restarts
+      - backend_asr_models:/app/ai/asr/phowhisper
+      # Persist log files
+      - backend_logs:/app/logs
+
 volumes:
   postgres_data:
+    driver: local
+  backend_media:
+    driver: local
+  backend_asr_models:
+    driver: local
+  backend_logs:
     driver: local

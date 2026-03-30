@@ -65,13 +65,17 @@ from .views import (
     review_case,
     revoke_case_permission,
     submit_case_for_review,
+    CaseSearchAPIView,
+    CaseSuggestionAPIView,
 )
 
 # Router for ViewSets
 router = DefaultRouter()
-router.register(r'specialties', SpecialtyViewSet, basename='specialty')
-router.register(r'priority-levels', CasePriorityLevelViewSet, basename='priority-level')
-router.register(r'complexity-levels', CaseComplexityLevelViewSet, basename='complexity-level')
+router.register(r"specialties", SpecialtyViewSet, basename="specialty")
+router.register(r"priority-levels", CasePriorityLevelViewSet, basename="priority-level")
+router.register(
+    r"complexity-levels", CaseComplexityLevelViewSet, basename="complexity-level"
+)
 
 urlpatterns = [
     # Departments
@@ -252,7 +256,10 @@ urlpatterns = [
     ),
     path("summary/list/", case_summary_list, name="case-summary-list"),
     path("summary/export/", export_case_summary, name="case-summary-export"),
-    
+    # Case Search FTS
+    path("search/", CaseSearchAPIView.as_view(), name="case-search"),
     # Include router URLs for specialties (at the end to avoid conflicts)
-    path('', include(router.urls)),
+    path("search/suggestion/", CaseSuggestionAPIView.as_view(), name="case-search"),
+
+    path("", include(router.urls)),
 ]

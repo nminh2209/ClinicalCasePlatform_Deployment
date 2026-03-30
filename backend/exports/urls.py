@@ -43,4 +43,3 @@ urlpatterns = [
     # Utility endpoints
     path("formats/", export_formats, name="export-formats"),
 ]
-

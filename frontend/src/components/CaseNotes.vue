@@ -1,702 +1,1477 @@
 <template>
   <div class="p-6 space-y-4 max-w-7xl mx-auto">
-    <!-- Compact Header -->
-    <div class="flex items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm">
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm"
+    >
       <div class="flex items-center gap-3">
-        <Button variant="ghost" size="sm" @click="$emit('navigate', 'dashboard')">
-          <ArrowLeft class="h-4 w-4" />
-        </Button>
+        <Button
+          class="h-button"
+          size="small"
+          icon="pi pi-arrow-left"
+          @click="$emit('navigate', 'dashboard')"
+        />
         <div>
           <h1 class="text-xl font-bold text-gray-800">{{ caseData.title }}</h1>
           <div class="flex items-center gap-2 mt-1">
-            <Badge variant="secondary" class="text-xs">{{ caseData.specialty }}</Badge>
-            <Badge v-if="caseStatus === 'draft'" class="bg-yellow-500 text-white text-xs">Bản nháp</Badge>
-            <Badge v-else-if="caseStatus === 'submitted'" class="bg-blue-500 text-white text-xs">Đã nộp</Badge>
-            <Badge v-else-if="caseStatus === 'reviewed'" class="bg-purple-500 text-white text-xs">Đã xem xét</Badge>
-            <Badge v-else-if="caseStatus === 'approved'" class="bg-green-500 text-white text-xs">Đã phê duyệt</Badge>
-            <Badge v-if="caseData.priority_level === 'urgent'" class="bg-red-500 text-white text-xs">Khẩn cấp</Badge>
-            <Badge v-else-if="caseData.priority_level === 'high'" class="bg-orange-500 text-white text-xs">Cao</Badge>
+            <Badge variant="outlined" class="text-xs badge">{{
+              caseData.specialty
+            }}</Badge>
+            <Badge v-if="caseStatus === 'draft'" class="text-xs p-1"
+              >Bản nháp</Badge
+            >
+            <Badge
+              severity="success"
+              v-else-if="caseStatus === 'submitted'"
+              class="text-xs p-1"
+              >Đã nộp</Badge
+            >
+            <Badge
+              severity="success"
+              v-else-if="caseStatus === 'reviewed'"
+              class="text-xs p-1"
+              >Đã xem xét</Badge
+            >
+            <Badge
+              severity="success"
+              v-else-if="caseStatus === 'approved'"
+              class="text-xs p-1"
+              >Đã phê duyệt</Badge
+            >
+            <Badge
+              severity="danger"
+              v-if="caseData.priority_level === 'urgent'"
+              class="text-xs p-1"
+              >Khẩn cấp</Badge
+            >
+            <Badge
+              severity="warn"
+              v-else-if="caseData.priority_level === 'high'"
+              class="text-xs p-1"
+              >Cao</Badge
+            >
           </div>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <Button variant="outline" size="sm" @click="exportPDF" :disabled="exportingPDF">
-          <FileText class="h-4 w-4 mr-2" />
-          {{ exportingPDF ? 'Đang tạo PDF...' : 'Xem PDF' }}
-        </Button>
-        <Button variant="outline" size="sm" @click="handleSave" :disabled="!hasUnsavedChanges || !canEdit">
-          <Save class="h-4 w-4 mr-2" />
-          Lưu
-        </Button>
-        <Button size="sm" @click="handleSubmit" class="bg-blue-600 hover:bg-blue-700" :disabled="!canEdit">
-          <Send class="h-4 w-4 mr-2" />
-          Nộp
-        </Button>
+        <Button
+          class="h-button"
+          size="small"
+          icon="pi pi-file-pdf"
+          label="Xem PDF"
+          @click="exportPDF"
+          :disabled="exportingPDF"
+        />
+        <Button
+          class="h-button"
+          size="small"
+          icon="pi pi-save"
+          label="Lưu"
+          @click="handleSave"
+          :disabled="!hasUnsavedChanges || !canEdit"
+        />
+        <Button
+          class="h-button"
+          size="small"
+          icon="pi pi-send"
+          label="Nộp"
+          @click="handleSubmit"
+          :disabled="!canEdit"
+        />
       </div>
     </div>
 
-    <!-- Permission Notice -->
-    <div v-if="!canEdit" class="text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-md border border-amber-200">
-      <span v-if="!isOwner">⚠️ Bạn không phải là chủ sở hữu của ca bệnh này. Chỉ được xem.</span>
-      <span v-else-if="!isDraft">ℹ️ Ca bệnh đã được nộp. Không thể chỉnh sửa.</span>
-    </div>
+    <!-- Permission Notices -->
+    <Tag
+      style="color: var(--destructive)"
+      class="me-1"
+      severity="danger"
+      v-if="!canEdit && !isOwner"
+      value="Bạn không phải là chủ sở hữu của ca bệnh này. Chỉ được xem."
+    />
+    <Tag
+      style="color: var(--destructive)"
+      severity="danger"
+      v-if="!canEdit && !isDraft"
+      value="Ca bệnh đã được nộp. Không thể chỉnh sửa."
+    />
 
     <!-- Grade Display for Students -->
-    <Card v-if="gradeData && gradeData.is_final" class="bg-linear-to-br from-purple-50 to-indigo-50 border-purple-200">
-      <CardHeader>
-        <div class="flex items-center justify-between">
+    <Card v-if="gradeData && gradeData.is_final" class="bg-white">
+      <template #header>
+        <div class="flex items-center justify-between p-4 pb-0">
           <div class="flex items-center gap-2">
-            <div class="p-2 bg-purple-100 rounded-lg">
-              <svg class="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z">
-                </path>
-              </svg>
+            <div class="p-2 bg-blue-100 rounded-lg">
+              <i class="pi pi-verified text-blue-700"></i>
             </div>
-            <CardTitle class="text-purple-900">Kết quả đánh giá</CardTitle>
+            <span class="font-semibold text-blue-900">Kết quả đánh giá</span>
           </div>
           <div class="text-right">
-            <div class="text-3xl font-bold text-purple-900">{{ gradeData.score }}%</div>
-            <div class="text-sm text-purple-700">Xếp loại: {{ gradeData.letter_grade }}</div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent class="space-y-3">
-        <div v-if="gradeData.evaluation_notes">
-          <label class="text-sm font-semibold text-purple-900">Nhận xét chung</label>
-          <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ gradeData.evaluation_notes }}</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div v-if="gradeData.strengths">
-            <label class="text-sm font-semibold text-green-900">✓ Điểm mạnh</label>
-            <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ gradeData.strengths }}</p>
-          </div>
-          <div v-if="gradeData.weaknesses">
-            <label class="text-sm font-semibold text-orange-900">⚠ Cần cải thiện</label>
-            <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ gradeData.weaknesses }}</p>
-          </div>
-        </div>
-        <div v-if="gradeData.recommendations">
-          <label class="text-sm font-semibold text-blue-900">💡 Khuyến nghị</label>
-          <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ gradeData.recommendations }}</p>
-        </div>
-        <div v-if="gradeData.grading_criteria" class="border-t border-purple-200 pt-3">
-          <label class="text-sm font-semibold text-purple-900 mb-2 block">Tiêu chí đánh giá chi tiết</label>
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-            <div class="text-center p-2 bg-white rounded border border-purple-100">
-              <div class="text-xs text-gray-500">Tiền sử</div>
-              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.history || 0 }}</div>
+            <div class="text-3xl font-bold text-blue-900">
+              {{ gradeData.score }}%
             </div>
-            <div class="text-center p-2 bg-white rounded border border-purple-100">
-              <div class="text-xs text-gray-500">Khám</div>
-              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.examination || 0 }}</div>
-            </div>
-            <div class="text-center p-2 bg-white rounded border border-purple-100">
-              <div class="text-xs text-gray-500">Chẩn đoán</div>
-              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.differential || 0 }}</div>
-            </div>
-            <div class="text-center p-2 bg-white rounded border border-purple-100">
-              <div class="text-xs text-gray-500">Điều trị</div>
-              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.treatment || 0 }}</div>
-            </div>
-            <div class="text-center p-2 bg-white rounded border border-purple-100">
-              <div class="text-xs text-gray-500">Trình bày</div>
-              <div class="text-lg font-bold text-purple-900">{{ gradeData.grading_criteria.presentation || 0 }}</div>
+            <div class="text-sm">
+              <span class="text-gray-700">Xếp loại:</span>
+              <span class="text-blue-900 font-bold">{{
+                gradeData.letter_grade
+              }}</span>
             </div>
           </div>
         </div>
-      </CardContent>
+      </template>
+      <template #content>
+        <div class="space-y-3">
+          <div v-if="gradeData.evaluation_notes">
+            <label class="text-md font-semibold text-blue-900"
+              >Nhận xét chung</label
+            >
+            <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
+              {{ gradeData.evaluation_notes }}
+            </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div v-if="gradeData.strengths">
+              <label class="text-md text-blue-900 font-semibold"
+                >Điểm mạnh</label
+              >
+              <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
+                {{ gradeData.strengths }}
+              </p>
+            </div>
+            <div v-if="gradeData.weaknesses">
+              <label class="text-md font-semibold text-blue-900"
+                >Cần cải thiện</label
+              >
+              <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
+                {{ gradeData.weaknesses }}
+              </p>
+            </div>
+          </div>
+          <div v-if="gradeData.recommendations">
+            <label class="text-md font-semibold text-blue-900"
+              >Khuyến nghị</label
+            >
+            <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
+              {{ gradeData.recommendations }}
+            </p>
+          </div>
+          <div v-if="gradeData.grading_criteria" class="border-t pt-3">
+            <label class="text-md font-semibold text-blue-900 mb-2 block"
+              >Tiêu chí đánh giá chi tiết</label
+            >
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+              <div
+                class="text-center p-2 bg-white rounded border border-gray-100"
+              >
+                <div class="text-xs text-gray-500">Tiền sử</div>
+                <div class="text-2xl font-bold text-blue-900">
+                  {{ gradeData.grading_criteria.history || 0 }}
+                </div>
+              </div>
+              <div
+                class="text-center p-2 bg-white rounded border border-gray-100"
+              >
+                <div class="text-xs text-gray-500">Khám</div>
+                <div class="text-2xl font-bold text-blue-900">
+                  {{ gradeData.grading_criteria.examination || 0 }}
+                </div>
+              </div>
+              <div
+                class="text-center p-2 bg-white rounded border border-gray-100"
+              >
+                <div class="text-xs text-gray-500">Chẩn đoán</div>
+                <div class="text-2xl font-bold text-blue-900">
+                  {{ gradeData.grading_criteria.differential || 0 }}
+                </div>
+              </div>
+              <div
+                class="text-center p-2 bg-white rounded border border-gray-100"
+              >
+                <div class="text-xs text-gray-500">Điều trị</div>
+                <div class="text-2xl font-bold text-blue-900">
+                  {{ gradeData.grading_criteria.treatment || 0 }}
+                </div>
+              </div>
+              <div
+                class="text-center p-2 bg-white rounded border border-gray-100"
+              >
+                <div class="text-xs text-gray-500">Trình bày</div>
+                <div class="text-2xl font-bold text-blue-900">
+                  {{ gradeData.grading_criteria.presentation || 0 }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
     </Card>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <!-- Left Column: Case Information (Collapsible Sections) -->
+      <!-- Left Column: Collapsible Case Information Sections -->
       <div class="space-y-3">
         <!-- Basic Information -->
-        <Card>
-          <button @click="toggleSection('basic')"
-            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <Button
+            text
+            class="w-full p-4 flex items-center justify-between"
+            @click="toggleSection('basic')"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-lg">🏥</span>
-              <CardTitle class="text-base">Thông tin cơ bản</CardTitle>
+              <i class="pi pi-info-circle text-gray-600"></i>
+              <span class="font-semibold text-base">Thông tin cơ bản</span>
             </div>
-            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.basic && 'rotate-180']" />
-          </button>
-          <CardContent v-show="expandedSections.basic" class="pt-0 pb-4 px-4 space-y-3">
-            <div class="space-y-3">
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="text-xs text-gray-500">Tiêu đề</label>
-                  <Input v-model="caseData.title" placeholder="Nhập tiêu đề..." :disabled="!canEdit" class="text-sm" />
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Chuyên khoa</label>
-                  <select v-model="caseData.specialty" class="w-full p-2 text-sm border rounded-md"
-                    :disabled="!canEdit || choicesLoading">
-                    <option value="">{{ choicesLoading ? 'Đang tải...' : 'Chọn chuyên khoa' }}</option>
-                    <option v-for="s in specialties" :key="s.id" :value="s.name">
-                      {{ s.name }}
-                    </option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Mức độ ưu tiên</label>
-                  <select v-model="caseData.priority_level" class="w-full p-2 text-sm border rounded-md"
-                    :disabled="!canEdit || choicesLoading">
-                    <option value="">{{ choicesLoading ? 'Đang tải...' : 'Chọn mức độ' }}</option>
-                    <option v-for="p in priorities" :key="p.id" :value="p.key">
-                      {{ p.name }}
-                    </option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Mức độ phức tạp</label>
-                  <select v-model="caseData.complexity_level" class="w-full p-2 text-sm border rounded-md"
-                    :disabled="!canEdit || choicesLoading">
-                    <option value="">{{ choicesLoading ? 'Đang tải...' : 'Chọn mức độ' }}</option>
-                    <option v-for="c in complexities" :key="c.id" :value="c.key">
-                      {{ c.name }}
-                    </option>
-                  </select>
-                </div>
+            <i
+              :class="[
+                'pi pi-chevron-down text-gray-400 transition-transform duration-200',
+                expandedSections.basic && 'rotate-180',
+              ]"
+            ></i>
+          </Button>
+          <div v-if="expandedSections.basic" class="px-4 pb-4 space-y-3 mt-6">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-2">
+                <label for="tieude" class="text-xs text-gray-500"
+                  >Tiêu đề</label
+                >
+                <InputText
+                  id="tieude"
+                  v-model="caseData.title"
+                  placeholder="Nhập tiêu đề..."
+                  :disabled="!canEdit"
+                  class="text-sm"
+                />
+              </div>
+              <div class="flex flex-col gap-2">
+                <label for="chuyenkhoa" class="text-xs text-gray-500"
+                  >Chuyên khoa</label
+                >
+                <Select
+                  id="chuyenkhoa"
+                  v-model="caseData.specialty"
+                  :options="specialties"
+                  option-label="name"
+                  option-value="name"
+                  :placeholder="
+                    choicesLoading ? 'Đang tải...' : 'Chọn chuyên khoa'
+                  "
+                  class="w-full text-sm"
+                  :disabled="!canEdit || choicesLoading"
+                />
+              </div>
+              <div class="flex flex-col gap-2">
+                <label for="uutien" class="text-xs text-gray-500"
+                  >Mức độ ưu tiên</label
+                >
+                <Select
+                  id="uutien"
+                  v-model="caseData.priority_level"
+                  :options="priorities"
+                  option-label="name"
+                  option-value="key"
+                  :placeholder="choicesLoading ? 'Đang tải...' : 'Chọn mức độ'"
+                  class="w-full text-sm"
+                  :disabled="!canEdit || choicesLoading"
+                />
+              </div>
+              <div class="flex flex-col gap-2">
+                <label for="phuctap" class="text-xs text-gray-500"
+                  >Mức độ phức tạp</label
+                >
+                <Select
+                  id="phuctap"
+                  v-model="caseData.complexity_level"
+                  :options="complexities"
+                  option-label="name"
+                  option-value="key"
+                  :placeholder="choicesLoading ? 'Đang tải...' : 'Chọn mức độ'"
+                  class="w-full text-sm"
+                  :disabled="!canEdit || choicesLoading"
+                />
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label for="tomtat" class="text-xs text-gray-500"
+                  >Tóm tắt ca bệnh</label
+                >
+                <VoiceToText v-model="caseData.case_summary" size="small" />
+              </div>
+              <Textarea
+                id="tomtat"
+                v-model="caseData.case_summary"
+                placeholder="Tóm tắt ngắn gọn..."
+                :disabled="!canEdit"
+                rows="2"
+                class="text-sm"
+              />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-2">
+                <label for="tag" class="text-xs text-gray-500"
+                  >Tags học tập</label
+                >
+                <InputText
+                  id="tag"
+                  v-model="caseData.learning_tags"
+                  placeholder="tim mạch, cấp cứu"
+                  :disabled="!canEdit"
+                  class="text-sm"
+                />
               </div>
               <div>
-                <label class="text-xs text-gray-500">Tóm tắt ca bệnh</label>
-                <Textarea v-model="caseData.case_summary" placeholder="Tóm tắt ngắn gọn..." :disabled="!canEdit"
-                  rows="2" class="text-sm" />
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="text-xs text-gray-500">Tags học tập</label>
-                  <Input v-model="caseData.learning_tags" placeholder="tim mạch, cấp cứu" :disabled="!canEdit"
-                    class="text-sm" />
-                </div>
-                <div>
-                  <label class="text-xs text-gray-500">Giờ học ước tính</label>
-                  <Input v-model="caseData.estimated_study_hours" type="number" placeholder="Số giờ"
-                    :disabled="!canEdit" class="text-sm" />
-                </div>
+                <label class="text-xs text-gray-500">Giờ học ước tính</label>
+                <InputNumber
+                  showButtons
+                  fluid
+                  v-model="caseData.estimated_study_hours"
+                  placeholder="Số giờ"
+                  :disabled="!canEdit"
+                  class="text-sm"
+                />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Patient Information -->
-        <Card>
-          <button @click="toggleSection('patient')"
-            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <Button
+            text
+            class="w-full p-4 flex items-center justify-between"
+            @click="toggleSection('patient')"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-lg">👤</span>
-              <CardTitle class="text-base">Thông tin bệnh nhân</CardTitle>
+              <i class="pi pi-user text-gray-600"></i>
+              <span class="font-semibold text-base">Thông tin bệnh nhân</span>
             </div>
-            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.patient && 'rotate-180']" />
-          </button>
-          <CardContent v-show="expandedSections.patient" class="pt-0 pb-4 px-4 space-y-3">
+            <i
+              :class="[
+                'pi pi-chevron-down text-gray-400 transition-transform duration-200',
+                expandedSections.patient && 'rotate-180',
+              ]"
+            ></i>
+          </Button>
+          <div v-if="expandedSections.patient" class="px-4 pb-4 space-y-3 mt-6">
             <div class="grid grid-cols-2 gap-4">
-              <!-- Patient name hidden - auto-generated -->
               <input type="hidden" v-model="caseData.patient_name" />
-              <div>
-                <label class="text-sm text-gray-500">Tuổi</label>
-                <Input v-model="caseData.patient_age" type="number" placeholder="Tuổi..." :disabled="!canEdit" />
+              <div class="flex flex-col gap-2">
+                <label for="age" class="text-sm text-gray-500">Tuổi</label>
+                <InputText
+                  id="age"
+                  v-model="caseData.patient_age"
+                  placeholder="Tuổi..."
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Giới tính</label>
-                <select v-model="caseData.patient_gender" class="w-full p-2 border rounded-md" :disabled="!canEdit">
-                  <option value="">Chọn giới tính</option>
-                  <option value="male">Nam</option>
-                  <option value="female">Nữ</option>
-                  <option value="other">Khác</option>
-                  <option value="not_specified">Không xác định</option>
-                </select>
+              <div class="flex flex-col gap-2">
+                <label for="gender" class="text-sm text-gray-500"
+                  >Giới tính</label
+                >
+                <Select
+                  id="gender"
+                  v-model="caseData.patient_gender"
+                  :options="genderOptions"
+                  option-label="name"
+                  option-value="value"
+                  placeholder="Chọn giới tính"
+                  class="w-full"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Số hồ sơ bệnh án</label>
-                <Input v-model="caseData.medical_record_number" placeholder="Số hồ sơ..." :disabled="!canEdit" />
+              <div class="flex flex-col gap-2">
+                <label for="rn" class="text-sm text-gray-500"
+                  >Số hồ sơ bệnh án</label
+                >
+                <InputText
+                  id="rn"
+                  v-model="caseData.medical_record_number"
+                  placeholder="Số hồ sơ..."
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Dân tộc</label>
-                <Input v-model="caseData.patient_ethnicity" placeholder="Dân tộc bệnh nhân..." :disabled="!canEdit" />
+              <div class="flex flex-col gap-2">
+                <label for="dantoc" class="text-sm text-gray-500"
+                  >Dân tộc</label
+                >
+                <InputText
+                  id="dantoc"
+                  v-model="caseData.patient_ethnicity"
+                  placeholder="Dân tộc bệnh nhân..."
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Nghề nghiệp</label>
-                <Input v-model="caseData.patient_occupation" placeholder="Nghề nghiệp..." :disabled="!canEdit" />
+              <div class="flex flex-col gap-2">
+                <label for="job" class="text-sm text-gray-500"
+                  >Nghề nghiệp</label
+                >
+                <InputText
+                  id="job"
+                  v-model="caseData.patient_occupation"
+                  placeholder="Nghề nghiệp..."
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Ngày nhập viện</label>
-                <Input v-model="caseData.admission_date" type="date" :disabled="!canEdit" />
+                <InputText
+                  v-model="caseData.admission_date"
+                  type="date"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Ngày xuất viện</label>
-                <Input v-model="caseData.discharge_date" type="date" :disabled="!canEdit" />
+                <InputText
+                  v-model="caseData.discharge_date"
+                  type="date"
+                  :disabled="!canEdit"
+                />
               </div>
             </div>
-            <div>
+            <div class="flex flex-col gap-2">
               <label class="text-sm text-gray-500">Lý do khám ngắn gọn</label>
-              <Input v-model="caseData.chief_complaint_brief" placeholder="Lý do chính đến khám..."
-                :disabled="!canEdit" />
+              <InputText
+                v-model="caseData.chief_complaint_brief"
+                placeholder="Lý do chính đến khám..."
+                :disabled="!canEdit"
+              />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div class="flex items-center space-x-2">
-                <input v-model="caseData.requires_follow_up" type="checkbox" :disabled="!canEdit" class="w-4 h-4" />
+                <Checkbox
+                  v-model="caseData.requires_follow_up"
+                  :disabled="!canEdit"
+                  binary
+                />
                 <label class="text-sm text-gray-500">Yêu cầu theo dõi</label>
               </div>
               <div v-if="caseData.requires_follow_up">
                 <label class="text-sm text-gray-500">Ngày theo dõi</label>
-                <Input v-model="caseData.follow_up_date" type="date" :disabled="!canEdit" />
+                <InputText
+                  v-model="caseData.follow_up_date"
+                  type="date"
+                  :disabled="!canEdit"
+                />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Clinical History -->
-        <Card>
-          <button @click="toggleSection('clinical')"
-            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <Button
+            text
+            class="w-full p-5 flex items-center justify-between"
+            @click="toggleSection('clinical')"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-lg">📋</span>
-              <CardTitle class="text-base">Tiền sử lâm sàng</CardTitle>
+              <i class="pi pi-book text-gray-600"></i>
+              <span class="font-semibold text-base">Tiền sử lâm sàng</span>
             </div>
-            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.clinical && 'rotate-180']" />
-          </button>
-          <CardContent v-show="expandedSections.clinical" class="pt-0 pb-4 px-4 space-y-3">
-            <div>
-              <label class="text-sm text-gray-500">Lý do khám chính</label>
-              <Textarea v-model="caseData.clinical_history.chief_complaint" placeholder="Lý do khám chính..."
-                :disabled="!canEdit" />
+            <i
+              :class="[
+                'pi pi-chevron-down text-gray-400 transition-transform duration-200',
+                expandedSections.clinical && 'rotate-180',
+              ]"
+            ></i>
+          </Button>
+          <div v-if="expandedSections.clinical" class="px-4 pb-4 space-y-3 mt-6">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Lý do khám chính</label>
+                <VoiceToText
+                  v-model="caseData.clinical_history.chief_complaint"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.clinical_history.chief_complaint"
+                placeholder="Lý do khám chính..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Bệnh sử hiện tại</label>
-              <Textarea v-model="caseData.clinical_history.history_present_illness" placeholder="Bệnh sử hiện tại..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Bệnh sử hiện tại</label>
+                <VoiceToText
+                  v-model="caseData.clinical_history.history_present_illness"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.clinical_history.history_present_illness"
+                placeholder="Bệnh sử hiện tại..."
+                :disabled="!canEdit"
+              />
             </div>
             <div class="grid grid-cols-3 gap-4">
-              <div>
-                <label class="text-sm text-gray-500">Thời gian có triệu chứng (ngày)</label>
-                <Input v-model="caseData.clinical_history.symptom_duration_days" type="number" placeholder="Số ngày..."
-                  :disabled="!canEdit" />
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-gray-500"
+                  >Thời gian có triệu chứng</label
+                >
+                <InputNumber
+                  v-model="caseData.clinical_history.symptom_duration_days"
+                  showButtons
+                  fluid
+                  placeholder="Số ngày..."
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Khởi phát triệu chứng</label>
-                <select v-model="caseData.clinical_history.symptom_onset" class="w-full p-2 border rounded-md"
-                  :disabled="!canEdit">
-                  <option value="">Chọn</option>
-                  <option value="sudden">Đột ngột</option>
-                  <option value="gradual">Từ từ</option>
-                  <option value="chronic">Mạn tính</option>
-                </select>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-gray-500"
+                  >Khởi phát triệu chứng</label
+                >
+                <Select
+                  v-model="caseData.clinical_history.symptom_onset"
+                  :options="symptomOnsetOptions"
+                  option-label="name"
+                  option-value="value"
+                  placeholder="Chọn"
+                  class="w-full"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Diễn biến triệu chứng</label>
-                <select v-model="caseData.clinical_history.symptom_progression" class="w-full p-2 border rounded-md"
-                  :disabled="!canEdit">
-                  <option value="">Chọn</option>
-                  <option value="improving">Cải thiện</option>
-                  <option value="worsening">Xấu đi</option>
-                  <option value="stable">Ổn định</option>
-                  <option value="fluctuating">Biến đổi</option>
-                </select>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-gray-500"
+                  >Diễn biến triệu chứng</label
+                >
+                <Select
+                  v-model="caseData.clinical_history.symptom_progression"
+                  :options="symptomProgressionOptions"
+                  option-label="name"
+                  option-value="value"
+                  placeholder="Chọn"
+                  class="w-full"
+                  :disabled="!canEdit"
+                />
               </div>
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Tiền sử bệnh tật</label>
-              <Textarea v-model="caseData.clinical_history.past_medical_history" placeholder="Tiền sử bệnh tật..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Tiền sử bệnh tật</label>
+                <VoiceToText
+                  v-model="caseData.clinical_history.past_medical_history"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.clinical_history.past_medical_history"
+                placeholder="Tiền sử bệnh tật..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Tiền sử gia đình</label>
-              <Textarea v-model="caseData.clinical_history.family_history" placeholder="Tiền sử gia đình..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Tiền sử gia đình</label>
+                <VoiceToText
+                  v-model="caseData.clinical_history.family_history"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.clinical_history.family_history"
+                placeholder="Tiền sử gia đình..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Tiền sử xã hội (hút thuốc, uống rượu, v.v.)</label>
-              <Textarea v-model="caseData.clinical_history.social_history" placeholder="Tiền sử xã hội..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500"
+                  >Tiền sử xã hội (hút thuốc, uống rượu, v.v.)</label
+                >
+                <VoiceToText
+                  v-model="caseData.clinical_history.social_history"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.clinical_history.social_history"
+                placeholder="Tiền sử xã hội..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Dị ứng</label>
-              <Textarea v-model="caseData.clinical_history.allergies" placeholder="Các chất gây dị ứng..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Dị ứng</label>
+                <VoiceToText
+                  v-model="caseData.clinical_history.allergies"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.clinical_history.allergies"
+                placeholder="Các chất gây dị ứng..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Thuốc đang sử dụng</label>
-              <Textarea v-model="caseData.clinical_history.medications" placeholder="Thuốc đang dùng..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Thuốc đang sử dụng</label>
+                <VoiceToText
+                  v-model="caseData.clinical_history.medications"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.clinical_history.medications"
+                placeholder="Thuốc đang dùng..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Hỏi bệnh theo hệ thống</label>
-              <Textarea v-model="caseData.clinical_history.review_systems" placeholder="Đánh giá các hệ thống..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500"
+                  >Hỏi bệnh theo hệ thống</label
+                >
+                <VoiceToText
+                  v-model="caseData.clinical_history.review_systems"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.clinical_history.review_systems"
+                placeholder="Đánh giá các hệ thống..."
+                :disabled="!canEdit"
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Physical Examination -->
-        <Card>
-          <button @click="toggleSection('physical')"
-            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <Button
+            text
+            class="w-full p-4 flex items-center justify-between"
+            @click="toggleSection('physical')"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-lg">🩺</span>
-              <CardTitle class="text-base">Khám lâm sàng</CardTitle>
+              <i class="pi pi-heart text-gray-600"></i>
+              <span class="font-semibold text-base">Khám lâm sàng</span>
             </div>
-            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.physical && 'rotate-180']" />
-          </button>
-          <CardContent v-show="expandedSections.physical" class="pt-0 pb-4 px-4 space-y-3">
-            <div>
-              <label class="text-sm text-gray-500">Tình trạng chung</label>
-              <Textarea v-model="caseData.physical_examination.general_appearance" placeholder="Tình trạng chung..."
-                :disabled="!canEdit" />
+            <i
+              :class="[
+                'pi pi-chevron-down text-gray-400 transition-transform duration-200',
+                expandedSections.physical && 'rotate-180',
+              ]"
+            ></i>
+          </Button>
+          <div v-if="expandedSections.physical" class="px-4 pb-4 space-y-3 mt-6">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Tình trạng chung</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.general_appearance"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.general_appearance"
+                placeholder="Tình trạng chung..."
+                :disabled="!canEdit"
+              />
             </div>
-
-            <!-- Vital Signs Detail -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div>
                 <label class="text-sm text-gray-500">Nhiệt Độ (°C)</label>
-                <Input v-model="caseData.physical_examination.vital_signs_temp" type="number" step="0.1"
-                  placeholder="37.0" :disabled="!canEdit" />
+                <InputNumber
+                  showButtons
+                  fluid
+                  v-model="caseData.physical_examination.vital_signs_temp"
+                  :step="0.1"
+                  placeholder="37.0"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Nhịp Tim (bpm)</label>
-                <Input v-model="caseData.physical_examination.vital_signs_hr" type="number" placeholder="72"
-                  :disabled="!canEdit" />
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-gray-500">Nhịp Tim (BPM)</label>
+                <InputNumber
+                  showButtons
+                  fluid
+                  v-model="caseData.physical_examination.vital_signs_hr"
+                  placeholder="72"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Huyết Áp (mmHg)</label>
-                <Input v-model="caseData.physical_examination.vital_signs_bp" placeholder="120/80"
-                  :disabled="!canEdit" />
+                <InputText
+                  fluid
+                  v-model="caseData.physical_examination.vital_signs_bp"
+                  placeholder="120/80"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Nhịp Thở (lần/phút)</label>
-                <Input v-model="caseData.physical_examination.vital_signs_rr" type="number" placeholder="16"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.physical_examination.vital_signs_rr"
+                  placeholder="16"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Độ Bão Hòa Oxy (%)</label>
-                <Input v-model="caseData.physical_examination.vital_signs_spo2" type="number" placeholder="98"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.physical_examination.vital_signs_spo2"
+                  placeholder="98"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Cân Nặng (kg)</label>
-                <Input v-model="caseData.physical_examination.weight_kg" type="number" step="0.1" placeholder="70"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.physical_examination.weight_kg"
+                  :step="0.1"
+                  placeholder="70"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Chiều Cao (cm)</label>
-                <Input v-model="caseData.physical_examination.height_cm" type="number" step="0.1" placeholder="170"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.physical_examination.height_cm"
+                  :step="0.1"
+                  placeholder="170"
+                  :disabled="!canEdit"
+                />
               </div>
             </div>
-
-            <div>
-              <label class="text-sm text-gray-500">Sinh hiệu (Ghi chú)</label>
-              <Textarea v-model="caseData.physical_examination.vital_signs" placeholder="Ghi chú về sinh hiệu..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Sinh hiệu (Ghi chú)</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.vital_signs"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.vital_signs"
+                placeholder="Ghi chú về sinh hiệu..."
+                :disabled="!canEdit"
+              />
             </div>
-
-            <div>
-              <label class="text-sm text-gray-500">Tim mạch</label>
-              <Textarea v-model="caseData.physical_examination.cardiovascular" placeholder="Khám tim mạch..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Tim mạch</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.cardiovascular"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.cardiovascular"
+                placeholder="Khám tim mạch..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Hô hấp</label>
-              <Textarea v-model="caseData.physical_examination.respiratory" placeholder="Khám hô hấp..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Hô hấp</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.respiratory"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.respiratory"
+                placeholder="Khám hô hấp..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Bụng</label>
-              <Textarea v-model="caseData.physical_examination.abdominal" placeholder="Khám bụng..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Bụng</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.abdominal"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.abdominal"
+                placeholder="Khám bụng..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Thần kinh</label>
-              <Textarea v-model="caseData.physical_examination.neurological" placeholder="Khám thần kinh..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Thần kinh</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.neurological"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.neurological"
+                placeholder="Khám thần kinh..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Cơ xương khớp</label>
-              <Textarea v-model="caseData.physical_examination.musculoskeletal" placeholder="Khám cơ xương khớp..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Cơ xương khớp</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.musculoskeletal"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.musculoskeletal"
+                placeholder="Khám cơ xương khớp..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Da</label>
-              <Textarea v-model="caseData.physical_examination.skin" placeholder="Khám da..." :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Da</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.skin"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.skin"
+                placeholder="Khám da..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Đầu và cổ</label>
-              <Textarea v-model="caseData.physical_examination.head_neck" placeholder="Khám đầu và cổ..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Đầu và cổ</label>
+                <VoiceToText
+                  v-model="caseData.physical_examination.head_neck"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.physical_examination.head_neck"
+                placeholder="Khám đầu và cổ..."
+                :disabled="!canEdit"
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Investigations -->
-        <Card>
-          <button @click="toggleSection('investigations')"
-            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <Button
+            text
+            class="w-full p-4 flex items-center justify-between"
+            @click="toggleSection('investigations')"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-lg">🧪</span>
-              <CardTitle class="text-base">Cận lâm sàng</CardTitle>
+              <i class="pi pi-search text-gray-600"></i>
+              <span class="font-semibold text-base">Cận lâm sàng</span>
             </div>
-            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.investigations && 'rotate-180']" />
-          </button>
-          <CardContent v-show="expandedSections.investigations" class="pt-0 pb-4 px-4 space-y-3">
-            <div>
-              <label class="text-sm text-gray-500">Xét nghiệm (Tổng quan)</label>
-              <Textarea v-model="caseData.investigations.laboratory_results"
-                placeholder="Kết quả xét nghiệm tổng quan..." :disabled="!canEdit" />
+            <i
+              :class="[
+                'pi pi-chevron-down text-gray-400 transition-transform duration-200',
+                expandedSections.investigations && 'rotate-180',
+              ]"
+            ></i>
+          </Button>
+          <div
+            v-if="expandedSections.investigations"
+            class="px-4 pb-4 space-y-3 mt-6"
+          >
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500"
+                  >Xét nghiệm (Tổng quan)</label
+                >
+                <VoiceToText
+                  v-model="caseData.investigations.laboratory_results"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.investigations.laboratory_results"
+                placeholder="Kết quả xét nghiệm tổng quan..."
+                :disabled="!canEdit"
+              />
             </div>
-
-            <!-- Lab Values Detail -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Hemoglobin (g/dL)</label>
-                <Input v-model="caseData.investigations.hemoglobin_level" type="number" step="0.1" placeholder="14.0"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.investigations.hemoglobin_level"
+                  :step="0.1"
+                  placeholder="14.0"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Số Lượng Bạch Cầu (10^9/L)</label>
-                <Input v-model="caseData.investigations.white_cell_count" type="number" step="0.1" placeholder="7.5"
-                  :disabled="!canEdit" />
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-gray-500"
+                  >Số Lượng Bạch Cầu (10^9/L)</label
+                >
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.investigations.white_cell_count"
+                  :step="0.1"
+                  placeholder="7.5"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
-                <label class="text-sm text-gray-500">Số Lượng Tiểu Cầu (10^9/L)</label>
-                <Input v-model="caseData.investigations.platelet_count" type="number" placeholder="250"
-                  :disabled="!canEdit" />
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-gray-500"
+                  >Số Lượng Tiểu Cầu (10^9/L)</label
+                >
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.investigations.platelet_count"
+                  placeholder="250"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Natri (mmol/L)</label>
-                <Input v-model="caseData.investigations.sodium_level" type="number" step="0.1" placeholder="140"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.investigations.sodium_level"
+                  :step="0.1"
+                  placeholder="140"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Kali (mmol/L)</label>
-                <Input v-model="caseData.investigations.potassium_level" type="number" step="0.1" placeholder="4.0"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.investigations.potassium_level"
+                  :step="0.1"
+                  placeholder="4.0"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Creatinine (mg/dL)</label>
-                <Input v-model="caseData.investigations.creatinine_level" type="number" step="0.1" placeholder="1.0"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.investigations.creatinine_level"
+                  :step="0.1"
+                  placeholder="1.0"
+                  :disabled="!canEdit"
+                />
               </div>
-              <div>
+              <div class="flex flex-col gap-2">
                 <label class="text-sm text-gray-500">Glucose (mg/dL)</label>
-                <Input v-model="caseData.investigations.glucose_level" type="number" placeholder="100"
-                  :disabled="!canEdit" />
+                <InputNumber
+                  fluid
+                  showButtons
+                  v-model="caseData.investigations.glucose_level"
+                  placeholder="100"
+                  :disabled="!canEdit"
+                />
               </div>
             </div>
-
-            <div>
-              <label class="text-sm text-gray-500">Chẩn đoán hình ảnh</label>
-              <Textarea v-model="caseData.investigations.imaging_studies" placeholder="Kết quả chẩn đoán hình ảnh..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Chẩn đoán hình ảnh</label>
+                <VoiceToText
+                  v-model="caseData.investigations.imaging_studies"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.investigations.imaging_studies"
+                placeholder="Kết quả chẩn đoán hình ảnh..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Điện tâm đồ</label>
-              <Textarea v-model="caseData.investigations.ecg_findings" placeholder="Kết quả điện tâm đồ..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Điện tâm đồ</label>
+                <VoiceToText
+                  v-model="caseData.investigations.ecg_findings"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.investigations.ecg_findings"
+                placeholder="Kết quả điện tâm đồ..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Kết quả giải phẫu bệnh</label>
-              <Textarea v-model="caseData.investigations.pathology_results" placeholder="Kết quả giải phẫu bệnh..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500"
+                  >Kết quả giải phẫu bệnh</label
+                >
+                <VoiceToText
+                  v-model="caseData.investigations.pathology_results"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.investigations.pathology_results"
+                placeholder="Kết quả giải phẫu bệnh..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Kết quả Vi sinh</label>
-              <Textarea v-model="caseData.investigations.microbiology_results" placeholder="Kết quả vi sinh..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Kết quả Vi sinh</label>
+                <VoiceToText
+                  v-model="caseData.investigations.microbiology_results"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.investigations.microbiology_results"
+                placeholder="Kết quả vi sinh..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Xét nghiệm khác</label>
-              <Textarea v-model="caseData.investigations.other_investigations" placeholder="Các xét nghiệm khác..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Xét nghiệm khác</label>
+                <VoiceToText
+                  v-model="caseData.investigations.other_investigations"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.investigations.other_investigations"
+                placeholder="Các xét nghiệm khác..."
+                :disabled="!canEdit"
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Diagnosis and Management -->
-        <Card>
-          <button @click="toggleSection('diagnosis')"
-            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <Button
+            text
+            class="w-full p-4 flex items-center justify-between"
+            @click="toggleSection('diagnosis')"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-lg">💊</span>
-              <CardTitle class="text-base">Chẩn đoán và điều trị</CardTitle>
+              <i class="pi pi-tag text-gray-600"></i>
+              <span class="font-semibold text-base">Chẩn đoán và điều trị</span>
             </div>
-            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.diagnosis && 'rotate-180']" />
-          </button>
-          <CardContent v-show="expandedSections.diagnosis" class="pt-0 pb-4 px-4 space-y-3">
-            <div>
-              <label class="text-sm text-gray-500">Chẩn đoán chính</label>
-              <Textarea v-model="caseData.diagnosis_management.primary_diagnosis" placeholder="Chẩn đoán chính..."
-                :disabled="!canEdit" />
+            <i
+              :class="[
+                'pi pi-chevron-down text-gray-400 transition-transform duration-200',
+                expandedSections.diagnosis && 'rotate-180',
+              ]"
+            ></i>
+          </Button>
+          <div v-if="expandedSections.diagnosis" class="px-4 pb-4 space-y-3 mt-6">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Chẩn đoán chính</label>
+                <VoiceToText
+                  v-model="caseData.diagnosis_management.primary_diagnosis"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.diagnosis_management.primary_diagnosis"
+                placeholder="Chẩn đoán chính..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Chẩn đoán phân biệt</label>
-              <Textarea v-model="caseData.diagnosis_management.differential_diagnosis"
-                placeholder="Các chẩn đoán phân biệt..." :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Chẩn đoán phân biệt</label>
+                <VoiceToText
+                  v-model="caseData.diagnosis_management.differential_diagnosis"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.diagnosis_management.differential_diagnosis"
+                placeholder="Các chẩn đoán phân biệt..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
+            <div class="flex flex-col gap-2">
               <label class="text-sm text-gray-500">Mã ICD-10</label>
-              <Input v-model="caseData.diagnosis_management.icd10_codes" placeholder="Mã ICD-10..."
-                :disabled="!canEdit" />
+              <InputText
+                v-model="caseData.diagnosis_management.icd10_codes"
+                placeholder="Mã ICD-10..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Kế hoạch điều trị</label>
-              <Textarea v-model="caseData.diagnosis_management.treatment_plan" placeholder="Kế hoạch điều trị..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Kế hoạch điều trị</label>
+                <VoiceToText
+                  v-model="caseData.diagnosis_management.treatment_plan"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.diagnosis_management.treatment_plan"
+                placeholder="Kế hoạch điều trị..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Thủ thuật đã thực hiện</label>
-              <Textarea v-model="caseData.diagnosis_management.procedures_performed"
-                placeholder="Các thủ thuật đã thực hiện..." :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500"
+                  >Thủ thuật đã thực hiện</label
+                >
+                <VoiceToText
+                  v-model="caseData.diagnosis_management.procedures_performed"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.diagnosis_management.procedures_performed"
+                placeholder="Các thủ thuật đã thực hiện..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Tiên lượng</label>
-              <Textarea v-model="caseData.diagnosis_management.prognosis" placeholder="Tiên lượng bệnh..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Tiên lượng</label>
+                <VoiceToText
+                  v-model="caseData.diagnosis_management.prognosis"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.diagnosis_management.prognosis"
+                placeholder="Tiên lượng bệnh..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Kế hoạch theo dõi</label>
-              <Textarea v-model="caseData.diagnosis_management.follow_up_plan" placeholder="Kế hoạch theo dõi..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Kế hoạch theo dõi</label>
+                <VoiceToText
+                  v-model="caseData.diagnosis_management.follow_up_plan"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.diagnosis_management.follow_up_plan"
+                placeholder="Kế hoạch theo dõi..."
+                :disabled="!canEdit"
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Learning Outcomes -->
-        <Card>
-          <button @click="toggleSection('learning')"
-            class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        >
+          <Button
+            text
+            class="w-full p-4 flex items-center justify-between"
+            @click="toggleSection('learning')"
+          >
             <div class="flex items-center gap-2">
-              <span class="text-lg">📚</span>
-              <CardTitle class="text-base">Kết quả học tập</CardTitle>
+              <i class="pi pi-graduation-cap text-gray-600"></i>
+              <span class="font-semibold text-base">Kết quả học tập</span>
             </div>
-            <ChevronDown :class="['h-5 w-5 transition-transform', expandedSections.learning && 'rotate-180']" />
-          </button>
-          <CardContent v-show="expandedSections.learning" class="pt-0 pb-4 px-4 space-y-3">
-            <div>
-              <label class="text-sm text-gray-500">Mục tiêu học tập</label>
-              <Textarea v-model="caseData.learning_outcomes.learning_objectives"
-                placeholder="Mục tiêu học tập từ ca bệnh này..." :disabled="!canEdit" />
+            <i
+              :class="[
+                'pi pi-chevron-down text-gray-400 transition-transform duration-200',
+                expandedSections.learning && 'rotate-180',
+              ]"
+            ></i>
+          </Button>
+          <div v-if="expandedSections.learning" class="px-4 pb-4 space-y-3 mt-6">
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Mục tiêu học tập</label>
+                <VoiceToText
+                  v-model="caseData.learning_outcomes.learning_objectives"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.learning_outcomes.learning_objectives"
+                placeholder="Mục tiêu học tập từ ca bệnh này..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Khái niệm chính</label>
-              <Textarea v-model="caseData.learning_outcomes.key_concepts" placeholder="Các khái niệm y khoa chính..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Khái niệm chính</label>
+                <VoiceToText
+                  v-model="caseData.learning_outcomes.key_concepts"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.learning_outcomes.key_concepts"
+                placeholder="Các khái niệm y khoa chính..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Kinh nghiệm lâm sàng</label>
-              <Textarea v-model="caseData.learning_outcomes.clinical_pearls"
-                placeholder="Những bài học và kinh nghiệm lâm sàng quan trọng..." :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500"
+                  >Kinh nghiệm lâm sàng</label
+                >
+                <VoiceToText
+                  v-model="caseData.learning_outcomes.clinical_pearls"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.learning_outcomes.clinical_pearls"
+                placeholder="Những bài học và kinh nghiệm lâm sàng quan trọng..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Điểm thảo luận</label>
-              <Textarea v-model="caseData.learning_outcomes.discussion_points" placeholder="Các điểm để thảo luận..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Điểm thảo luận</label>
+                <VoiceToText
+                  v-model="caseData.learning_outcomes.discussion_points"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.learning_outcomes.discussion_points"
+                placeholder="Các điểm để thảo luận..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Tiêu chí đánh giá</label>
-              <Textarea v-model="caseData.learning_outcomes.assessment_criteria"
-                placeholder="Tiêu chí để đánh giá hiểu biết..." :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Tiêu chí đánh giá</label>
+                <VoiceToText
+                  v-model="caseData.learning_outcomes.assessment_criteria"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.learning_outcomes.assessment_criteria"
+                placeholder="Tiêu chí để đánh giá hiểu biết..."
+                :disabled="!canEdit"
+              />
             </div>
-            <div>
-              <label class="text-sm text-gray-500">Tài liệu tham khảo</label>
-              <Textarea v-model="caseData.learning_outcomes.references" placeholder="Tài liệu, bài báo tham khảo..."
-                :disabled="!canEdit" />
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-500">Tài liệu tham khảo</label>
+                <VoiceToText
+                  v-model="caseData.learning_outcomes.references"
+                  size="small"
+                />
+              </div>
+              <Textarea
+                v-model="caseData.learning_outcomes.references"
+                placeholder="Tài liệu, bài báo tham khảo..."
+                :disabled="!canEdit"
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <!-- Student Notes Section -->
+      <!-- Right Column: Student Notes & Attachments -->
       <div class="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ghi chú lâm sàng của bạn</CardTitle>
-            <CardDescription>
-              Hoàn thành đánh giá và kế hoạch cho ca bệnh này
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs v-model="activeTab" default-value="assessment" class="w-full">
-              <TabsList class="grid w-full grid-cols-2 sm:grid-cols-4">
-                <TabsTrigger value="assessment">Đánh giá</TabsTrigger>
-                <TabsTrigger value="differential">Chẩn đoán</TabsTrigger>
-                <TabsTrigger value="plan">Kế hoạch</TabsTrigger>
-                <TabsTrigger value="learning">Học tập</TabsTrigger>
-              </TabsList>
+        <!-- Student Notes -->
+        <Card class="p-1">
+          <template #title>
+            <div class="p-4 pb-0">
+              <p class="font-semibold text-lg">Ghi chú lâm sàng của bạn</p>
+              <p class="text-sm text-gray-500 mt-1">
+                Hoàn thành đánh giá và kế hoạch cho ca bệnh này
+              </p>
+            </div>
+          </template>
+          <template #content>
+            <Tabs
+              v-model:value="activeTab"
+              class="mt-4"
+              :dt="{
+                activeBarBackground: '##1e3a8a',
+                tabActiveBorderColor: '#1e3a8a',
+              }"
+            >
+              <TabList>
+                <Tab value="assessment">Đánh giá</Tab>
+                <Tab value="differential">Chẩn đoán</Tab>
+                <Tab value="plan">Kế hoạch</Tab>
+                <Tab value="learning">Học tập</Tab>
+              </TabList>
 
-              <TabsContent value="assessment" class="space-y-4">
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-800">Đánh giá lâm sàng</label>
-                  <p class="text-sm text-gray-500">
-                    Đưa ra đánh giá lâm sàng của bạn về bệnh nhân này dựa trên tiền sử, khám lâm sàng và các kết quả
-                    chẩn đoán.
-                  </p>
-                  <Textarea rows="10" v-model="notes.clinical_assessment"
-                    placeholder="Viết đánh giá lâm sàng của bạn ở đây..." class="min-h-[400px]"
-                    @input="handleNoteChange" :disabled="!canEdit" />
-                </div>
-              </TabsContent>
+              <TabPanels>
+                <TabPanel value="assessment" class="space-y-4">
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <label class="text-sm font-medium text-gray-800"
+                        >Đánh giá lâm sàng</label
+                      >
+                      <VoiceToText
+                        v-model="notes.clinical_assessment"
+                        size="small"
+                      />
+                    </div>
+                    <p class="text-sm text-gray-500">
+                      Đưa ra đánh giá lâm sàng của bạn về bệnh nhân này dựa trên
+                      tiền sử, khám lâm sàng và các kết quả chẩn đoán.
+                    </p>
+                    <Textarea
+                      fluid
+                      rows="10"
+                      v-model="notes.clinical_assessment"
+                      placeholder="Viết đánh giá lâm sàng của bạn ở đây..."
+                      class="min-h-[400px]"
+                      @input="handleNoteChange"
+                      :disabled="!canEdit"
+                    />
+                  </div>
+                </TabPanel>
 
-              <TabsContent value="differential" class="space-y-4">
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-800">Chẩn đoán phân biệt</label>
-                  <p class="text-sm text-gray-500">
-                    Liệt kê và giải thích các chẩn đoán phân biệt theo thứ tự khả năng.
-                  </p>
-                  <Textarea rows="10" v-model="notes.differential_diagnosis"
-                    placeholder="1. Chẩn đoán có khả năng nhất và lý do&#10;2. Chẩn đoán phân biệt thứ hai và tại sao...&#10;3. Những cân nhắc khác..."
-                    class="min-h-[400px]" @input="handleNoteChange" :disabled="!canEdit" />
-                </div>
-              </TabsContent>
+                <TabPanel value="differential" class="space-y-4">
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <label class="text-sm font-medium text-gray-800"
+                        >Chẩn đoán phân biệt</label
+                      >
+                      <VoiceToText
+                        v-model="notes.differential_diagnosis"
+                        size="small"
+                      />
+                    </div>
+                    <p class="text-sm text-gray-500">
+                      Liệt kê và giải thích các chẩn đoán phân biệt theo thứ tự
+                      khả năng.
+                    </p>
+                    <Textarea
+                      rows="10"
+                      fluid
+                      v-model="notes.differential_diagnosis"
+                      placeholder="1. Chẩn đoán có khả năng nhất và lý do&#10;2. Chẩn đoán phân biệt thứ hai và tại sao...&#10;3. Những cân nhắc khác..."
+                      class="min-h-[400px]"
+                      @input="handleNoteChange"
+                      :disabled="!canEdit"
+                    />
+                  </div>
+                </TabPanel>
 
-              <TabsContent value="plan" class="space-y-4">
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-800">Kế hoạch điều trị</label>
-                  <p class="text-sm text-gray-500">
-                    Phác thảo kế hoạch quản lý ngay lập tức và dài hạn cho bệnh nhân này.
-                  </p>
-                  <Textarea rows="10" v-model="notes.treatment_plan"
-                    placeholder="Xử trí ngay:&#10;- &#10;&#10;Xét nghiệm thêm:&#10;- &#10;&#10;Quản lý dài hạn:&#10;- "
-                    class="min-h-[400px]" @input="handleNoteChange" :disabled="!canEdit" />
-                </div>
-              </TabsContent>
+                <TabPanel value="plan" class="space-y-4">
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <label class="text-sm font-medium text-gray-800"
+                        >Kế hoạch điều trị</label
+                      >
+                      <VoiceToText
+                        v-model="notes.treatment_plan"
+                        size="small"
+                      />
+                    </div>
+                    <p class="text-sm text-gray-500">
+                      Phác thảo kế hoạch quản lý ngay lập tức và dài hạn cho
+                      bệnh nhân này.
+                    </p>
+                    <Textarea
+                      rows="10"
+                      fluid
+                      v-model="notes.treatment_plan"
+                      placeholder="Xử trí ngay:&#10;- &#10;&#10;Xét nghiệm thêm:&#10;- &#10;&#10;Quản lý dài hạn:&#10;- "
+                      class="min-h-[400px]"
+                      @input="handleNoteChange"
+                      :disabled="!canEdit"
+                    />
+                  </div>
+                </TabPanel>
 
-              <TabsContent value="learning" class="space-y-4">
-                <div class="space-y-2">
-                  <label class="text-sm font-medium text-gray-800">Điểm học tập</label>
-                  <p class="text-sm text-gray-500">
-                    Suy ngẫm về những gì bạn đã học được từ ca bệnh này và bất kỳ câu hỏi nào bạn có.
-                  </p>
-                  <Textarea rows="10" v-model="notes.learning_reflections"
-                    placeholder="Điểm học tập chính:&#10;- &#10;&#10;Câu hỏi cho giảng viên:&#10;- &#10;&#10;Lĩnh vực cần nghiên cứu thêm:&#10;- "
-                    class="min-h-[400px]" @input="handleNoteChange" :disabled="!canEdit" />
-                </div>
-              </TabsContent>
+                <TabPanel value="learning" class="space-y-4">
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <label class="text-sm font-medium text-gray-800"
+                        >Điểm học tập</label
+                      >
+                      <VoiceToText
+                        v-model="notes.learning_reflections"
+                        size="small"
+                      />
+                    </div>
+                    <p class="text-sm text-gray-500">
+                      Suy ngẫm về những gì bạn đã học được từ ca bệnh này và bất
+                      kỳ câu hỏi nào bạn có.
+                    </p>
+                    <Textarea
+                      rows="10"
+                      fluid
+                      v-model="notes.learning_reflections"
+                      placeholder="Điểm học tập chính:&#10;- &#10;&#10;Câu hỏi cho giảng viên:&#10;- &#10;&#10;Lĩnh vực cần nghiên cứu thêm:&#10;- "
+                      class="min-h-[400px]"
+                      @input="handleNoteChange"
+                      :disabled="!canEdit"
+                    />
+                  </div>
+                </TabPanel>
+              </TabPanels>
             </Tabs>
-          </CardContent>
+          </template>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>📎 Tệp đính kèm y tế</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <!-- File Upload Area - Only show when canEdit is true -->
-            <div v-if="canEdit"
+        <!-- Medical Attachments -->
+        <Card class="p-1">
+          <template #title>
+            <div class="p-4 pb-0">
+              <p class="font-semibold text-lg">
+                <i class="pi pi-folder me-2"></i>Tệp đính kèm y tế
+              </p>
+            </div>
+          </template>
+          <template #content>
+            <!-- Upload Area -->
+            <div
+              v-if="canEdit"
               class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors mb-4 cursor-pointer"
-              :class="{ 'border-blue-400 bg-blue-50': isDragOver }" @dragover.prevent="isDragOver = true"
-              @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop" @click="fileInput?.click()">
+              :class="{ 'border-blue-400 bg-blue-50': isDragOver }"
+              @dragover.prevent="isDragOver = true"
+              @dragleave.prevent="isDragOver = false"
+              @drop.prevent="handleDrop"
+              @click="fileInput?.click()"
+            >
               <div class="space-y-3">
-                <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
+                <i
+                  class="pi pi-cloud-upload text-gray-400"
+                  style="font-size: 3rem"
+                ></i>
                 <div>
-                  <p class="text-md font-medium text-gray-900">Kéo thả file vào đây</p>
+                  <p class="text-md font-medium text-gray-900">
+                    Kéo thả file vào đây
+                  </p>
                   <p class="text-sm text-gray-500">hoặc nhấp để chọn file</p>
                 </div>
-                <input ref="fileInput" type="file" multiple accept="image/*,.pdf,.doc,.docx" class="hidden"
-                  @change="handleFileSelect" />
+                <input
+                  ref="fileInput"
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx"
+                  class="hidden"
+                  @change="handleFileSelect"
+                />
               </div>
             </div>
 
@@ -707,199 +1482,299 @@
 
             <!-- Uploaded Files -->
             <div v-if="attachments.length > 0" class="space-y-4 mt-6">
-              <h4 class="font-semibold text-gray-900">File đã tải lên ({{ attachments.length }})</h4>
+              <h4 class="font-semibold text-gray-900">
+                File đã tải lên ({{ attachments.length }})
+              </h4>
 
-              <div v-for="(file, index) in attachments" :key="file.id || index"
-                class="border border-gray-200 rounded-lg p-4">
+              <div
+                v-for="(file, index) in attachments"
+                :key="file.id || index"
+                class="border border-gray-200 rounded-lg p-4"
+              >
                 <div class="flex items-start justify-between mb-4">
                   <div class="flex flex-col space-y-2 flex-1 min-w-0">
-                    <!-- Title and size placed above preview -->
                     <div class="flex items-start justify-between gap-2">
                       <div class="min-w-0 flex-1">
-                        <p class="font-medium text-gray-900 truncate" :title="file.title || file.name">
+                        <p
+                          class="font-medium text-gray-900 truncate"
+                          :title="file.title || file.name"
+                        >
                           {{ file.title || file.name }}
                         </p>
                         <p class="text-xs text-gray-500">
                           {{ formatFileSize(file.size) }}
-                          <span v-if="file.attachment_type_display"
-                            class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
-                            {{ file.attachment_type_display }}
-                          </span>
-                          <span v-if="file.uploaded_by_name" class="ml-2 text-gray-400">
-                            • {{ file.uploaded_by_name }}
-                          </span>
+                          <span
+                            v-if="file.attachment_type_display"
+                            class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs"
+                            >{{ file.attachment_type_display }}</span
+                          >
+                          <span
+                            v-if="file.uploaded_by_name"
+                            class="ml-2 text-gray-400"
+                            >• {{ file.uploaded_by_name }}</span
+                          >
                         </p>
-                        <p v-if="file.description" class="text-xs text-gray-600 mt-1">
+                        <p
+                          v-if="file.description"
+                          class="text-xs text-gray-600 mt-1"
+                        >
                           {{ file.description }}
                         </p>
                       </div>
 
                       <div class="flex gap-2 shrink-0">
                         <!-- Download button for existing files -->
-                        <a v-if="file.id" :href="getFileUrl(file.url || file.file)" target="_blank"
-                          class="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Tải xuống">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                        </a>
-
+                        <Button
+                          v-if="file.id"
+                          as="a"
+                          :href="getFileUrl(file.url || file.file)"
+                          target="_blank"
+                          icon="pi pi-download"
+                          text
+                          size="small"
+                          title="Tải xuống"
+                        />
                         <!-- Delete button for new uploads only -->
-                        <Button v-if="canEdit && !file.id" variant="outline" size="sm" @click="removeFile(index)"
-                          class="text-red-600 hover:text-red-700 shrink-0">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </Button>
+                        <Button
+                          v-if="canEdit && !file.id"
+                          icon="pi pi-trash"
+                          text
+                          size="small"
+                          severity="danger"
+                          @click="removeFile(index)"
+                        />
                       </div>
                     </div>
 
-                    <!-- Image Preview or Icon - takes full width -->
+                    <!-- Image preview or file icon -->
                     <div class="w-full">
-                      <div v-if="isImageFile(file)"
-                        class="w-full h-64 rounded-lg overflow-hidden border border-gray-200">
-                        <img :src="getFileUrl(file.url || file.file)" :alt="file.name || file.title"
-                          class="w-full h-full object-cover" />
+                      <div
+                        v-if="isImageFile(file)"
+                        class="w-full h-64 rounded-lg overflow-hidden border border-gray-200"
+                      >
+                        <img
+                          :src="getFileUrl(file.url || file.file)"
+                          :alt="file.name || file.title"
+                          class="w-full h-full object-cover"
+                        />
                       </div>
-
-                      <div v-else class="w-full h-64 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <div
+                        v-else
+                        class="w-full h-64 rounded-lg bg-blue-100 flex items-center justify-center"
+                      >
                         <div class="text-center">
-                          <svg class="w-24 h-24 text-blue-600 mx-auto" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <p class="mt-2 text-sm text-gray-600">{{ file.name || file.title }}</p>
+                          <i
+                            class="pi pi-file text-blue-600"
+                            style="font-size: 6rem"
+                          ></i>
+                          <p class="mt-2 text-sm text-gray-600">
+                            {{ file.name || file.title }}
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- Attachment Metadata Form - Only show for new uploads -->
-                <div v-if="!file.id && canEdit" class="border-t border-gray-200 pt-4 mt-4">
+                <!-- Attachment Metadata Form — new uploads only -->
+                <div
+                  v-if="!file.id && canEdit"
+                  class="border-t border-gray-200 pt-4 mt-4"
+                >
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <!-- Attachment Type -->
                     <div>
-                      <label class="block text-xs font-medium text-gray-700 mb-1">Loại tài liệu</label>
-                      <select v-model="file.attachment_type" :disabled="!canEdit"
-                        class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Chọn loại</option>
-                        <option value="xray">📷 Ảnh chụp X-quang</option>
-                        <option value="ct_scan">🔬 Ảnh chụp CT</option>
-                        <option value="mri">🧠 Ảnh chụp MRI</option>
-                        <option value="ultrasound">📡 Ảnh siêu âm</option>
-                        <option value="ecg">❤️ Điện tim đồ</option>
-                        <option value="lab_report">🧪 Phiếu xét nghiệm</option>
-                        <option value="blood_test">💉 Xét nghiệm máu</option>
-                        <option value="urine_test">🧪 Xét nghiệm nước tiểu</option>
-                        <option value="pathology">🔬 Giải phẫu bệnh</option>
-                        <option value="injury_photo">📸 Ảnh chấn thương</option>
-                        <option value="surgical_photo">🔪 Ảnh phẫu thuật</option>
-                        <option value="endoscopy">🔍 Ảnh nội soi</option>
-                        <option value="prescription">💊 Đơn thuốc</option>
-                        <option value="discharge_summary">📋 Tóm tắt xuất viện</option>
-                        <option value="consent_form">📝 Phiếu đồng ý</option>
-                        <option value="other">📄 Khác</option>
-                      </select>
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        >Loại tài liệu</label
+                      >
+                      <Select
+                        v-model="file.attachment_type"
+                        :disabled="!canEdit"
+                        :options="attachmentTypeOptions"
+                        option-label="name"
+                        option-value="value"
+                        placeholder="Chọn loại"
+                        class="w-full text-sm"
+                      />
                     </div>
 
                     <!-- Title -->
                     <div>
-                      <label class="block text-xs font-medium text-gray-700 mb-1">Tiêu đề</label>
-                      <input v-model="file.title" type="text" :disabled="!canEdit"
-                        class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Nhập tiêu đề..." />
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        >Tiêu đề</label
+                      >
+                      <InputText
+                        v-model="file.title"
+                        :disabled="!canEdit"
+                        class="w-full text-sm"
+                        placeholder="Nhập tiêu đề..."
+                      />
                     </div>
 
                     <!-- Date Taken -->
                     <div>
-                      <label class="block text-xs font-medium text-gray-700 mb-1">Ngày thực hiện</label>
-                      <input v-model="file.date_taken" type="date" :disabled="!canEdit"
-                        class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        >Ngày thực hiện</label
+                      >
+                      <InputText
+                        v-model="file.date_taken"
+                        type="date"
+                        :disabled="!canEdit"
+                        class="w-full text-sm"
+                      />
                     </div>
 
-                    <!-- Description (Full Width) -->
+                    <!-- Description -->
                     <div class="md:col-span-2">
-                      <label class="block text-xs font-medium text-gray-700 mb-1">Mô tả</label>
-                      <textarea v-model="file.description" rows="2" :disabled="!canEdit"
-                        class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Nhập mô tả chi tiết..."></textarea>
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        >Mô tả</label
+                      >
+                      <Textarea
+                        v-model="file.description"
+                        rows="2"
+                        :disabled="!canEdit"
+                        class="w-full text-sm"
+                        placeholder="Nhập mô tả chi tiết..."
+                      />
                     </div>
 
-                    <!-- Physician Notes (Full Width) -->
+                    <!-- Physician Notes -->
                     <div class="md:col-span-2">
-                      <label class="block text-xs font-medium text-gray-700 mb-1">Ghi chú bác sĩ</label>
-                      <textarea v-model="file.physician_notes" rows="2" :disabled="!canEdit"
-                        class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ghi chú của bác sĩ..."></textarea>
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        >Ghi chú bác sĩ</label
+                      >
+                      <Textarea
+                        v-model="file.physician_notes"
+                        rows="2"
+                        :disabled="!canEdit"
+                        class="w-full text-sm"
+                        placeholder="Ghi chú của bác sĩ..."
+                      />
                     </div>
 
                     <!-- Is Confidential -->
-                    <div class="md:col-span-2">
-                      <label class="flex items-center space-x-2 cursor-pointer">
-                        <input v-model="file.is_confidential" type="checkbox" :disabled="!canEdit"
-                          class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                        <span class="text-xs font-medium text-gray-700">Tài liệu bảo mật</span>
-                        <span class="text-xs text-gray-500">(Chỉ giảng viên xem được)</span>
-                      </label>
+                    <div class="md:col-span-2 flex items-center gap-2">
+                      <Checkbox
+                        v-model="file.is_confidential"
+                        :disabled="!canEdit"
+                        binary
+                      />
+                      <span class="text-xs font-medium text-gray-700"
+                        >Tài liệu bảo mật</span
+                      >
+                      <span class="text-xs text-gray-500"
+                        >(Chỉ giảng viên xem được)</span
+                      >
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </CardContent>
+          </template>
         </Card>
 
         <!-- Preview Button -->
-        <Button variant="outline" class="w-full" @click="showPreview = true">
-          <Eye class="h-4 w-4 mr-2" />
-          Xem trước bệnh án trước khi nộp
-        </Button>
+        <Button
+          class="w-full h-button"
+          icon="pi pi-eye"
+          label="Xem trước bệnh án trước khi nộp"
+          @click="showPreview = true"
+        />
       </div>
     </div>
 
     <!-- Preview Dialog -->
-    <CasePreview v-if="showPreview" :case-data="previewData" @close="showPreview = false" @submit="handleSubmit"
-      :show-submit-button="true" />
+    <CasePreview
+      v-if="showPreview"
+      :case-data="previewData"
+      @close="showPreview = false"
+      @submit="handleSubmit"
+      :show-submit-button="true"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useToast } from '@/composables/useToast'
-import { useAuthStore } from '@/stores/auth'
-import { useChoices } from '@/composables/useChoices'
-import Button from '@/components/ui/Button.vue'
-import Card from '@/components/ui/Card.vue'
-import CardContent from '@/components/ui/CardContent.vue'
-import CardDescription from '@/components/ui/CardDescription.vue'
-import CardHeader from '@/components/ui/CardHeader.vue'
-import CardTitle from '@/components/ui/CardTitle.vue'
-import Textarea from '@/components/ui/Textarea.vue'
-import Input from '@/components/ui/Input.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Tabs from '@/components/ui/Tabs.vue'
-import TabsContent from '@/components/ui/TabsContent.vue'
-import TabsList from '@/components/ui/TabsList.vue'
-import TabsTrigger from '@/components/ui/TabsTrigger.vue'
-import CasePreview from '@/components/CasePreview.vue'
-import { ArrowLeft, Save, Send, Eye, ChevronDown, FileText } from '@/components/icons'
-import { casesService } from '@/services/cases'
-import { gradesService } from '@/services/grades'
-import api from '@/services/api'
+import { ref, computed, onMounted } from "vue";
+import { useToast } from "@/composables/useToast";
+import { useAuthStore } from "@/stores/auth";
+import { useChoices } from "@/composables/useChoices";
+import Badge from "primevue/badge";
+import Button from "primevue/button";
+import Tag from "primevue/tag";
+import Card from "primevue/card";
+import Checkbox from "primevue/checkbox";
+import Textarea from "primevue/textarea";
+import InputNumber from "primevue/inputnumber";
+import InputText from "primevue/inputtext";
+import Select from "primevue/select";
+import Tabs from "primevue/tabs";
+import Tab from "primevue/tab";
+import TabList from "primevue/tablist";
+import TabPanel from "primevue/tabpanel";
+import TabPanels from "primevue/tabpanels";
+import VoiceToText from "@/components/VoiceToText.vue";
+import CasePreview from "@/components/CasePreview.vue";
+import { casesService } from "@/services/cases";
+import { gradesService } from "@/services/grades";
+import api from "@/services/api";
 
-const { specialties, priorities, complexities, loading: choicesLoading } = useChoices()
+const {
+  specialties,
+  priorities,
+  complexities,
+  loading: choicesLoading,
+} = useChoices();
+
+const genderOptions = [
+  { name: "Nam", value: "male" },
+  { name: "Nữ", value: "female" },
+  { name: "Khác", value: "other" },
+  { name: "Không xác định", value: "not_specified" },
+];
+
+const symptomOnsetOptions = [
+  { name: "Đột ngột", value: "sudden" },
+  { name: "Từ từ", value: "gradual" },
+  { name: "Mạn tính", value: "chronic" },
+];
+
+const symptomProgressionOptions = [
+  { name: "Cải thiện", value: "improving" },
+  { name: "Xấu đi", value: "worsening" },
+  { name: "Ổn định", value: "stable" },
+  { name: "Biến đổi", value: "fluctuating" },
+];
+
+const attachmentTypeOptions = [
+  { name: "Ảnh chụp X-quang", value: "xray" },
+  { name: "Ảnh chụp CT", value: "ct_scan" },
+  { name: "Ảnh chụp MRI", value: "mri" },
+  { name: "Ảnh siêu âm", value: "ultrasound" },
+  { name: "Điện tim đồ", value: "ecg" },
+  { name: "Phiếu xét nghiệm", value: "lab_report" },
+  { name: "Xét nghiệm máu", value: "blood_test" },
+  { name: "Xét nghiệm nước tiểu", value: "urine_test" },
+  { name: "Giải phẫu bệnh", value: "pathology" },
+  { name: "Ảnh chấn thương", value: "injury_photo" },
+  { name: "Ảnh phẫu thuật", value: "surgical_photo" },
+  { name: "Ảnh nội soi", value: "endoscopy" },
+  { name: "Đơn thuốc", value: "prescription" },
+  { name: "Tóm tắt xuất viện", value: "discharge_summary" },
+  { name: "Phiếu đồng ý", value: "consent_form" },
+  { name: "Khác", value: "other" },
+];
 
 const props = defineProps({
-  caseId: {
-    type: String,
-    required: true
-  }
-})
+  caseId: { type: String, required: true },
+});
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(["navigate"]);
 
 // Collapsible sections state
 const expandedSections = ref<Record<string, boolean>>({
@@ -911,196 +1786,181 @@ const expandedSections = ref<Record<string, boolean>>({
   diagnosis: false,
   learning: false,
   attachments: false,
-  notes: true
-})
+  notes: true,
+});
 
 const toggleSection = (section: string) => {
-  expandedSections.value[section] = !expandedSections.value[section]
-}
+  expandedSections.value[section] = !expandedSections.value[section];
+};
 
-// Grade data for students
-const gradeData = ref<any>(null)
+const gradeData = ref<any>(null);
 
 const notes = ref({
-  clinical_assessment: '',
-  differential_diagnosis: '',
-  treatment_plan: '',
-  learning_reflections: '',
-  questions_for_instructor: '',
-  challenges_faced: '',
-  resources_used: '',
-  final_diagnosis: '',
-  plan: '',
-  learning: ''
-})
+  clinical_assessment: "",
+  differential_diagnosis: "",
+  treatment_plan: "",
+  learning_reflections: "",
+  questions_for_instructor: "",
+  challenges_faced: "",
+  resources_used: "",
+  final_diagnosis: "",
+  plan: "",
+  learning: "",
+});
 
-const hasUnsavedChanges = ref(false)
-const showPreview = ref(false)
-const activeTab = ref('assessment')
-const { toast } = useToast()
-const authStore = useAuthStore()
+const hasUnsavedChanges = ref(false);
+const showPreview = ref(false);
+const activeTab = ref("assessment");
+const { toast } = useToast();
+const authStore = useAuthStore();
 
-// Loaded case metadata
-const caseOwnerId = ref<number | null>(null)
-const caseStatus = ref<string>('draft')
+const caseOwnerId = ref<number | null>(null);
+const caseStatus = ref<string>("draft");
 
-// Permission checks
-const isOwner = computed(() => {
-  return authStore.user && caseOwnerId.value && authStore.user.id === caseOwnerId.value
-})
+const isOwner = computed(
+  () =>
+    authStore.user &&
+    caseOwnerId.value &&
+    authStore.user.id === caseOwnerId.value,
+);
+const isDraft = computed(() => caseStatus.value === "draft");
+const canEdit = computed(() => isOwner.value && isDraft.value);
 
-const isDraft = computed(() => {
-  return caseStatus.value === 'draft'
-})
-
-const canEdit = computed(() => {
-  return isOwner.value && isDraft.value
-})
-
-// File upload state
-const fileInput = ref<HTMLInputElement>()
-const isDragOver = ref(false)
-const attachments = ref<any[]>([])
-const exportingPDF = ref(false)
+const fileInput = ref<HTMLInputElement>();
+const isDragOver = ref(false);
+const attachments = ref<any[]>([]);
+const exportingPDF = ref(false);
 
 const handleDrop = (event: DragEvent) => {
-  isDragOver.value = false
-  const files = Array.from(event.dataTransfer?.files || [])
-  addFiles(files)
-}
+  isDragOver.value = false;
+  addFiles(Array.from(event.dataTransfer?.files || []));
+};
 
 const handleFileSelect = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const files = Array.from(target.files || [])
-  addFiles(files)
-}
+  addFiles(Array.from((event.target as HTMLInputElement).files || []));
+};
 
 const addFiles = (files: File[]) => {
-  const validFiles = files.filter(file => {
-    // Check file size (10MB limit)
+  const validFiles = files.filter((file) => {
     if (file.size > 10 * 1024 * 1024) {
-      toast.error(`File ${file.name} quá lớn. Kích thước tối đa là 10MB.`)
-      return false
+      toast.error(`File ${file.name} quá lớn. Kích thước tối đa là 10MB.`);
+      return false;
     }
-
-    // Check file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      toast.error(`File ${file.name} không được hỗ trợ.`)
-      return false
+      toast.error(`File ${file.name} không được hỗ trợ.`);
+      return false;
     }
+    return true;
+  });
 
-    return true
-  })
-
-  // Create file objects with URLs for preview and metadata fields
-  const fileObjects = validFiles.map(file => ({
-    name: file.name,
-    size: file.size,
-    type: file.type,
-    url: URL.createObjectURL(file),
-    file: file,
-    attachment_type: '',
-    title: file.name.split('.')[0] || '',
-    department: '',
-    description: '',
-    date_taken: '',
-    physician_notes: '',
-    is_confidential: false
-  }))
-
-  attachments.value = [...attachments.value, ...fileObjects]
-  hasUnsavedChanges.value = true
-}
+  attachments.value = [
+    ...attachments.value,
+    ...validFiles.map((file) => ({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: URL.createObjectURL(file),
+      file,
+      attachment_type: "",
+      title: file.name.split(".")[0] || "",
+      department: "",
+      description: "",
+      date_taken: "",
+      physician_notes: "",
+      is_confidential: false,
+    })),
+  ];
+  hasUnsavedChanges.value = true;
+};
 
 const removeFile = (index: number) => {
-  const fileToRemove = attachments.value[index]
-  if (fileToRemove.url) {
-    URL.revokeObjectURL(fileToRemove.url)
-  }
-  attachments.value.splice(index, 1)
-  hasUnsavedChanges.value = true
-}
+  const f = attachments.value[index];
+  if (f.url) URL.revokeObjectURL(f.url);
+  attachments.value.splice(index, 1);
+  hasUnsavedChanges.value = true;
+};
 
-const isImageFile = (file: any) => {
-  return file.type?.startsWith('image/')
-}
+const isImageFile = (file: any) => file.type?.startsWith("image/");
 
 const getFileUrl = (filePath: string): string => {
-  // If it's already a full URL (blob or http), return as-is
-  if (filePath?.startsWith('http') || filePath?.startsWith('blob:')) return filePath;
-  // Otherwise prepend the API base URL
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  return `${baseUrl}${filePath}`;
-}
+  if (filePath?.startsWith("http") || filePath?.startsWith("blob:"))
+    return filePath;
+  return `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${filePath}`;
+};
 
 const formatFileSize = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
 
-// Case data using the same structure as CreateCase.vue
 const caseData = ref({
-  title: '',
-  specialty: '',
-  patient_name: '',
-  patient_age: '',
-  patient_gender: '',
-  medical_record_number: '',
-  patient_ethnicity: '',
-  patient_occupation: '',
-  admission_date: '',
-  discharge_date: '',
-  chief_complaint_brief: '',
+  title: "",
+  specialty: "",
+  patient_name: "",
+  patient_age: "",
+  patient_gender: "",
+  medical_record_number: "",
+  patient_ethnicity: "",
+  patient_occupation: "",
+  admission_date: "",
+  discharge_date: "",
+  chief_complaint_brief: "",
   requires_follow_up: false,
-  follow_up_date: '',
-  priority_level: 'medium',
-  complexity_level: 'basic',
-  case_summary: '',
-  learning_tags: '',
+  follow_up_date: "",
+  priority_level: "medium",
+  complexity_level: "basic",
+  case_summary: "",
+  learning_tags: "",
   estimated_study_hours: null,
-  keywords: '',
+  keywords: "",
   template: null,
   repository: null,
-  // Detailed medical sections
   clinical_history: {
-    chief_complaint: '',
-    history_present_illness: '',
+    chief_complaint: "",
+    history_present_illness: "",
     symptom_duration_days: null,
-    symptom_onset: '',
-    symptom_progression: '',
-    past_medical_history: '',
-    family_history: '',
-    social_history: '',
-    allergies: '',
-    medications: '',
-    review_systems: ''
+    symptom_onset: "",
+    symptom_progression: "",
+    past_medical_history: "",
+    family_history: "",
+    social_history: "",
+    allergies: "",
+    medications: "",
+    review_systems: "",
   },
   physical_examination: {
-    general_appearance: '',
-    consciousness_level: '',
-    vital_signs: '',
-    vital_signs_bp: '',
+    general_appearance: "",
+    consciousness_level: "",
+    vital_signs: "",
+    vital_signs_bp: "",
     vital_signs_hr: null,
     vital_signs_rr: null,
     vital_signs_temp: null,
     vital_signs_spo2: null,
     weight_kg: null,
     height_cm: null,
-    head_neck: '',
-    cardiovascular: '',
-    respiratory: '',
-    abdominal: '',
-    neurological: '',
-    musculoskeletal: '',
-    skin: '',
-    other_findings: ''
+    head_neck: "",
+    cardiovascular: "",
+    respiratory: "",
+    abdominal: "",
+    neurological: "",
+    musculoskeletal: "",
+    skin: "",
+    other_findings: "",
   },
   investigations: {
-    laboratory_results: '',
+    laboratory_results: "",
     hemoglobin_level: null,
     white_cell_count: null,
     platelet_count: null,
@@ -1108,86 +1968,74 @@ const caseData = ref({
     potassium_level: null,
     glucose_level: null,
     creatinine_level: null,
-    imaging_studies: '',
-    ecg_findings: '',
-    ecg_rhythm: '',
+    imaging_studies: "",
+    ecg_findings: "",
+    ecg_rhythm: "",
     ecg_rate: null,
-    pathology_results: '',
-    microbiology_results: '',
-    other_investigations: '',
-    arterial_blood_gas: '',
+    pathology_results: "",
+    microbiology_results: "",
+    other_investigations: "",
+    arterial_blood_gas: "",
     ph_level: null,
-    special_tests: '',
-    biochemistry: '',
-    hematology: '',
-    microbiology: ''
+    special_tests: "",
+    biochemistry: "",
+    hematology: "",
+    microbiology: "",
   },
   diagnosis_management: {
-    primary_diagnosis: '',
-    differential_diagnosis: '',
-    icd10_codes: '',
-    treatment_plan: '',
-    procedures_performed: '',
-    prognosis: '',
-    medications_prescribed: '',
-    follow_up_plan: '',
-    complications: ''
+    primary_diagnosis: "",
+    differential_diagnosis: "",
+    icd10_codes: "",
+    treatment_plan: "",
+    procedures_performed: "",
+    prognosis: "",
+    medications_prescribed: "",
+    follow_up_plan: "",
+    complications: "",
   },
   learning_outcomes: {
-    learning_objectives: '',
-    key_concepts: '',
-    clinical_pearls: '',
-    references: '',
-    discussion_points: '',
-    assessment_criteria: ''
-  }
-})
+    learning_objectives: "",
+    key_concepts: "",
+    clinical_pearls: "",
+    references: "",
+    discussion_points: "",
+    assessment_criteria: "",
+  },
+});
 
 const handleNoteChange = () => {
-  hasUnsavedChanges.value = true
-}
+  hasUnsavedChanges.value = true;
+};
 
 const handleSave = async () => {
   try {
-    console.log('=== SAVING CASE ===')
-    console.log('Current notes data:', notes.value)
-    console.log('Current case data:', caseData.value)
+    console.log("=== SAVING CASE ===");
 
-    // Helper function to clean nested objects
     const cleanObject = (obj: any) => {
-      if (!obj || typeof obj !== 'object') return obj
-
-      const cleaned: any = {}
+      if (!obj || typeof obj !== "object") return obj;
+      const cleaned: any = {};
       for (const [key, value] of Object.entries(obj)) {
-        if (value !== '' && value !== null && value !== undefined) {
-          cleaned[key] = value
-        }
+        if (value !== "" && value !== null && value !== undefined)
+          cleaned[key] = value;
       }
-      return Object.keys(cleaned).length > 0 ? cleaned : undefined
-    }
+      return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+    };
 
-    // Helper function to format date to YYYY-MM-DD or null
     const formatDate = (dateValue: any) => {
-      if (!dateValue || dateValue === '') return null
-      // If already in YYYY-MM-DD format, return as-is
-      if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-        return dateValue
-      }
-      // Try to parse and format
-      try {
-        const date = new Date(dateValue)
-        if (isNaN(date.getTime())) return null
-        return date.toISOString().split('T')[0]
-      } catch {
-        return null
-      }
-    }
+      if (!dateValue) return null;
+      if (
+        typeof dateValue === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(dateValue)
+      )
+        return dateValue;
+      const d = new Date(dateValue);
+      if (isNaN(d.getTime())) return null;
+      return d.toISOString().split("T")[0];
+    };
 
-    // 1. Update main case data with properly formatted nested objects
-    const caseUpdateData: any = {
+    const payload: any = {
       title: caseData.value.title,
       specialty: caseData.value.specialty,
-      patient_name: caseData.value.patient_name,
       patient_age: caseData.value.patient_age,
       patient_gender: caseData.value.patient_gender,
       medical_record_number: caseData.value.medical_record_number,
@@ -1203,472 +2051,395 @@ const handleSave = async () => {
       case_summary: caseData.value.case_summary,
       learning_tags: caseData.value.learning_tags,
       estimated_study_hours: caseData.value.estimated_study_hours,
-      keywords: caseData.value.keywords,
-      case_status: 'draft',
-    }
+    };
 
-    // Build nested objects and only include if they have data
-    const clinicalHistory = cleanObject({
-      chief_complaint: caseData.value.clinical_history?.chief_complaint,
-      history_present_illness: caseData.value.clinical_history?.history_present_illness,
-      symptom_duration_days: caseData.value.clinical_history?.symptom_duration_days,
-      symptom_onset: caseData.value.clinical_history?.symptom_onset,
-      symptom_progression: caseData.value.clinical_history?.symptom_progression,
-      past_medical_history: caseData.value.clinical_history?.past_medical_history,
-      family_history: caseData.value.clinical_history?.family_history,
-      social_history: caseData.value.clinical_history?.social_history,
-      allergies: caseData.value.clinical_history?.allergies,
-      medications: caseData.value.clinical_history?.medications,
-      review_systems: caseData.value.clinical_history?.review_systems
-    })
-    if (clinicalHistory) caseUpdateData.clinical_history = clinicalHistory
+    const clinicalHistory = cleanObject(caseData.value.clinical_history);
+    if (clinicalHistory) payload.clinical_history = clinicalHistory;
 
-    const physicalExam = cleanObject({
-      general_appearance: caseData.value.physical_examination?.general_appearance,
-      consciousness_level: caseData.value.physical_examination?.consciousness_level,
-      vital_signs: caseData.value.physical_examination?.vital_signs,
-      vital_signs_bp: caseData.value.physical_examination?.vital_signs_bp,
-      vital_signs_hr: caseData.value.physical_examination?.vital_signs_hr,
-      vital_signs_rr: caseData.value.physical_examination?.vital_signs_rr,
-      vital_signs_temp: caseData.value.physical_examination?.vital_signs_temp,
-      vital_signs_spo2: caseData.value.physical_examination?.vital_signs_spo2,
-      weight_kg: caseData.value.physical_examination?.weight_kg,
-      height_cm: caseData.value.physical_examination?.height_cm,
-      head_neck: caseData.value.physical_examination?.head_neck,
-      cardiovascular: caseData.value.physical_examination?.cardiovascular,
-      respiratory: caseData.value.physical_examination?.respiratory,
-      abdominal: caseData.value.physical_examination?.abdominal,
-      neurological: caseData.value.physical_examination?.neurological,
-      musculoskeletal: caseData.value.physical_examination?.musculoskeletal,
-      skin: caseData.value.physical_examination?.skin,
-      other_systems: caseData.value.physical_examination?.other_findings
-    })
-    if (physicalExam) caseUpdateData.physical_examination = physicalExam
+    const physicalExam = cleanObject(caseData.value.physical_examination);
+    if (physicalExam) payload.physical_examination = physicalExam;
 
-    const investigations = cleanObject({
-      laboratory_results: caseData.value.investigations?.laboratory_results,
-      hemoglobin_level: caseData.value.investigations?.hemoglobin_level,
-      white_cell_count: caseData.value.investigations?.white_cell_count,
-      platelet_count: caseData.value.investigations?.platelet_count,
-      sodium_level: caseData.value.investigations?.sodium_level,
-      potassium_level: caseData.value.investigations?.potassium_level,
-      glucose_level: caseData.value.investigations?.glucose_level,
-      creatinine_level: caseData.value.investigations?.creatinine_level,
-      imaging_studies: caseData.value.investigations?.imaging_studies,
-      ecg_findings: caseData.value.investigations?.ecg_findings,
-      ecg_rhythm: caseData.value.investigations?.ecg_rhythm,
-      ecg_rate: caseData.value.investigations?.ecg_rate,
-      pathology_results: caseData.value.investigations?.pathology_results,
-      microbiology_results: caseData.value.investigations?.microbiology_results,
-      other_investigations: caseData.value.investigations?.other_investigations,
-      arterial_blood_gas: caseData.value.investigations?.arterial_blood_gas,
-      ph_level: caseData.value.investigations?.ph_level,
-      special_tests: caseData.value.investigations?.special_tests,
-      biochemistry: caseData.value.investigations?.biochemistry,
-      hematology: caseData.value.investigations?.hematology,
-      microbiology: caseData.value.investigations?.microbiology
-    })
-    if (investigations) caseUpdateData.detailed_investigations = investigations
+    const investigations = cleanObject(caseData.value.investigations);
+    if (investigations) payload.detailed_investigations = investigations;
 
-    const diagnosisManagement = cleanObject({
-      primary_diagnosis: caseData.value.diagnosis_management?.primary_diagnosis,
-      differential_diagnosis: caseData.value.diagnosis_management?.differential_diagnosis,
-      icd10_codes: caseData.value.diagnosis_management?.icd10_codes,
-      treatment_plan: caseData.value.diagnosis_management?.treatment_plan,
-      procedures_performed: caseData.value.diagnosis_management?.procedures_performed,
-      prognosis: caseData.value.diagnosis_management?.prognosis,
-      medications_prescribed: caseData.value.diagnosis_management?.medications_prescribed,
-      follow_up_plan: caseData.value.diagnosis_management?.follow_up_plan,
-      complications: caseData.value.diagnosis_management?.complications
-    })
-    if (diagnosisManagement) caseUpdateData.diagnosis_management = diagnosisManagement
+    const diagMgmt = cleanObject(caseData.value.diagnosis_management);
+    if (diagMgmt) payload.diagnosis_management = diagMgmt;
 
-    const learningOutcomes = cleanObject({
-      learning_objectives: caseData.value.learning_outcomes?.learning_objectives,
-      key_concepts: caseData.value.learning_outcomes?.key_concepts,
-      clinical_pearls: caseData.value.learning_outcomes?.clinical_pearls,
-      references: caseData.value.learning_outcomes?.references,
-      discussion_points: caseData.value.learning_outcomes?.discussion_points,
-      assessment_criteria: caseData.value.learning_outcomes?.assessment_criteria
-    })
-    if (learningOutcomes) caseUpdateData.learning_outcomes = learningOutcomes
+    const learningOutcomes = cleanObject(caseData.value.learning_outcomes);
+    if (learningOutcomes) payload.learning_outcomes = learningOutcomes;
 
-    // Only include repository and template if they exist and are valid IDs
-    if (caseData.value.repository) {
-      caseUpdateData.repository = caseData.value.repository
-    }
-    if (caseData.value.template) {
-      caseUpdateData.template = caseData.value.template
-    }
+    await casesService.updateCase(props.caseId, payload);
 
-    console.log('Sending case update:', caseUpdateData)
-    await casesService.updateCase(props.caseId, caseUpdateData)
-
-    // 2. Save/Update student notes (case and student are set by backend)
     const notesData = {
+      case: props.caseId,
       clinical_assessment: notes.value.clinical_assessment,
       differential_diagnosis: notes.value.differential_diagnosis,
       treatment_plan: notes.value.treatment_plan,
       learning_reflections: notes.value.learning_reflections,
-      questions_for_instructor: notes.value.questions_for_instructor || '',
-      challenges_faced: notes.value.challenges_faced || '',
-      resources_used: notes.value.resources_used || ''
-    }
+      questions_for_instructor: notes.value.questions_for_instructor,
+      challenges_faced: notes.value.challenges_faced,
+      resources_used: notes.value.resources_used,
+    };
 
-    console.log('Saving student notes:', notesData)
-
-    // Check if notes already exist
-    const existingNotes = await casesService.getStudentNotes(props.caseId)
-    console.log('Existing notes found:', existingNotes)
+    const existingNotes = await casesService.getStudentNotes(props.caseId);
     if (existingNotes && existingNotes.id) {
-      console.log('Updating existing notes with ID:', existingNotes.id)
-      const updateResult = await casesService.updateStudentNotes(existingNotes.id, notesData)
-      console.log('Update result:', updateResult)
+      await casesService.updateStudentNotes(existingNotes.id, notesData);
     } else {
-      console.log('Creating new notes for case:', props.caseId)
-      const createResult = await casesService.saveStudentNotes(props.caseId, notesData)
-      console.log('Create result:', createResult)
+      await casesService.saveStudentNotes(props.caseId, notesData);
     }
 
-    // 3. Upload new attachments
     for (const attachment of attachments.value) {
-      // Only upload if this is a new file (has the 'file' property)
       if (attachment.file && !attachment.id) {
-        const formData = new FormData()
-        formData.append('file', attachment.file)
-        formData.append('title', attachment.title || attachment.name)
-        formData.append('attachment_type', attachment.attachment_type || 'other')
-        if (attachment.description) formData.append('description', attachment.description)
-        // Don't send department field - it's optional and backend will handle it
-        // if (attachment.department) formData.append('department', attachment.department)
-        if (attachment.date_taken) formData.append('date_taken', attachment.date_taken)
-        if (attachment.physician_notes) formData.append('physician_notes', attachment.physician_notes)
-        formData.append('confidentiality_level', attachment.is_confidential ? 'confidential' : 'public')
-
-        await casesService.uploadAttachment(props.caseId, formData)
+        const formData = new FormData();
+        formData.append("file", attachment.file);
+        formData.append("title", attachment.title || attachment.name);
+        formData.append(
+          "attachment_type",
+          attachment.attachment_type || "other",
+        );
+        if (attachment.description)
+          formData.append("description", attachment.description);
+        if (attachment.date_taken)
+          formData.append("date_taken", attachment.date_taken);
+        if (attachment.physician_notes)
+          formData.append("physician_notes", attachment.physician_notes);
+        formData.append(
+          "confidentiality_level",
+          attachment.is_confidential ? "confidential" : "public",
+        );
+        await casesService.uploadAttachment(props.caseId, formData);
       }
     }
 
-    toast.success('Đã lưu nháp thành công!')
-    hasUnsavedChanges.value = false
+    toast.success("Đã lưu nháp thành công!");
+    hasUnsavedChanges.value = false;
   } catch (error: any) {
-    console.error('Error saving case:', error)
-    console.error('Error response:', error.response?.data)
-    console.error('Error status:', error.response?.status)
-    console.error('Full error object:', JSON.stringify(error.response?.data, null, 2))
-
-    // Show specific error messages
+    console.error("Error saving case:", error);
     if (error.response?.data) {
-      const errors = error.response.data
-      if (typeof errors === 'object') {
-        const errorMessages = Object.entries(errors).map(([field, msgs]) => {
-          const messages = Array.isArray(msgs) ? msgs : [msgs]
-          return `${field}: ${messages.join(', ')}`
-        }).join('\n')
-        toast.error(`Lỗi: ${errorMessages}`)
+      const errors = error.response.data;
+      if (typeof errors === "object") {
+        const errorMessages = Object.entries(errors)
+          .map(
+            ([field, msgs]) =>
+              `${field}: ${(Array.isArray(msgs) ? msgs : [msgs]).join(", ")}`,
+          )
+          .join("\n");
+        toast.error(`Lỗi: ${errorMessages}`);
       } else {
-        toast.error(error.response?.data?.message || error.response?.data || 'Không thể lưu nháp. Vui lòng thử lại.')
+        toast.error(
+          error.response?.data?.message ||
+            error.response?.data ||
+            "Không thể lưu nháp. Vui lòng thử lại.",
+        );
       }
     } else {
-      toast.error('Không thể lưu nháp. Vui lòng thử lại.')
+      toast.error("Không thể lưu nháp. Vui lòng thử lại.");
     }
   }
-}
+};
 
 const handleSubmit = async () => {
   try {
-    console.log('Starting submit...')
-
-    // First save all data
-    await handleSave()
-
-    // Then submit the case (this will change status to 'submitted')
-    console.log('Submitting case...')
-    await casesService.submitCase(props.caseId)
-
-    toast.success('Ca bệnh đã được nộp để xem xét!')
-    setTimeout(() => emit('navigate', 'dashboard'), 1500)
+    await handleSave();
+    await casesService.submitCase(props.caseId);
+    toast.success("Ca bệnh đã được nộp để xem xét!");
+    setTimeout(() => emit("navigate", "dashboard"), 1500);
   } catch (error: any) {
-    console.error('Error submitting case:', error)
-    console.error('Error response:', error.response?.data)
-
-    // Show specific error messages
+    console.error("Error submitting case:", error);
     if (error.response?.data) {
-      const errorData = error.response.data
+      const errorData = error.response.data;
       if (errorData.error) {
-        toast.error(errorData.error)
-      } else if (typeof errorData === 'object') {
-        const errorMessages = Object.entries(errorData).map(([field, msgs]) => {
-          const messages = Array.isArray(msgs) ? msgs : [msgs]
-          return `${field}: ${messages.join(', ')}`
-        }).join('\n')
-        toast.error(`Lỗi: ${errorMessages}`)
+        toast.error(errorData.error);
+      } else if (typeof errorData === "object") {
+        const errorMessages = Object.entries(errorData)
+          .map(
+            ([field, msgs]) =>
+              `${field}: ${(Array.isArray(msgs) ? msgs : [msgs]).join(", ")}`,
+          )
+          .join("\n");
+        toast.error(`Lỗi: ${errorMessages}`);
       } else {
-        toast.error(errorData || 'Không thể nộp ca bệnh. Vui lòng thử lại.')
+        toast.error(errorData || "Không thể nộp ca bệnh. Vui lòng thử lại.");
       }
     } else {
-      toast.error('Không thể nộp ca bệnh. Vui lòng thử lại.')
+      toast.error("Không thể nộp ca bệnh. Vui lòng thử lại.");
     }
   }
-}
+};
 
 const exportPDF = async () => {
-  exportingPDF.value = true
+  exportingPDF.value = true;
   try {
-    // Use the case export PDF endpoint (ReportLab-based, works on Windows)
     const response = await api.get(`/cases/${props.caseId}/export_pdf/`, {
-      responseType: 'blob'
-    })
-
-    // Open PDF in new tab for preview instead of downloading
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-    window.open(url, '_blank')
-
-    // Clean up the URL after a delay
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url)
-    }, 100)
-
-    toast.success('Đã mở PDF trong tab mới!')
+      responseType: "blob",
+    });
+    const blob = new Blob([response.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    toast.success("Đã mở PDF trong tab mới!");
   } catch (err: any) {
-    console.error('PDF export failed:', err)
-    toast.error('Không thể tạo PDF. Vui lòng thử lại.')
+    console.error("PDF export failed:", err);
+    toast.error("Không thể tạo PDF. Vui lòng thử lại.");
   } finally {
-    exportingPDF.value = false
+    exportingPDF.value = false;
   }
-}
+};
 
 const previewData = computed(() => ({
-  // Basic Information
-  title: caseData.value?.title || 'Chưa có tiêu đề',
-  specialty: caseData.value?.specialty || 'Chưa chọn chuyên khoa',
-
-  // Patient Information
-  patientName: caseData.value?.patient_name || 'Chưa nhập',
-  patientAge: caseData.value?.patient_age || 'Chưa nhập',
-  patientGender: caseData.value?.patient_gender === 'male' ? 'Nam' : caseData.value?.patient_gender === 'female' ? 'Nữ' : caseData.value?.patient_gender || 'Chưa nhập',
-  medicalRecordNumber: caseData.value?.medical_record_number || 'Chưa nhập',
-
-  // Clinical History
-  chief_complaint: caseData.value?.clinical_history?.chief_complaint || 'Chưa nhập',
-  historyOfPresentIllness: caseData.value?.clinical_history?.history_present_illness || 'Chưa nhập',
-  pastMedicalHistory: caseData.value?.clinical_history?.past_medical_history || 'Chưa nhập',
-  medications: caseData.value?.clinical_history?.medications || 'Chưa nhập',
-
-  // Physical Examination
-  generalAppearance: caseData.value?.physical_examination?.general_appearance || 'Chưa nhập',
-  vitalSigns: caseData.value?.physical_examination?.vital_signs || 'Chưa nhập',
-  cardiovascular: caseData.value?.physical_examination?.cardiovascular || 'Chưa nhập',
-  respiratory: caseData.value?.physical_examination?.respiratory || 'Chưa nhập',
-
-  // Investigations
-  labsAndImaging: caseData.value?.investigations?.laboratory_results || 'Chưa nhập',
-  imagingStudies: caseData.value?.investigations?.imaging_studies || 'Chưa nhập',
-  ecgFindings: caseData.value?.investigations?.ecg_findings || 'Chưa nhập',
-
-  // Diagnosis and Management (from form)
-  primaryDiagnosis: caseData.value?.diagnosis_management?.primary_diagnosis || 'Chưa nhập',
-  treatmentPlanForm: caseData.value?.diagnosis_management?.treatment_plan || 'Chưa nhập',
-
-  // Student Notes
-  differentialDiagnosis: notes.value?.differential_diagnosis || 'Chưa nhập',
-  finalDiagnosis: notes.value?.clinical_assessment || 'Chưa nhập',
-  treatmentPlan: notes.value?.treatment_plan || 'Chưa nhập',
-  notes: notes.value?.learning_reflections || 'Chưa nhập',
-
-  // Attachments
-  attachments: attachments.value || []
-}))
+  title: caseData.value?.title || "Chưa có tiêu đề",
+  specialty: caseData.value?.specialty || "Chưa chọn chuyên khoa",
+  patientName: caseData.value?.patient_name || "Chưa nhập",
+  patientAge: caseData.value?.patient_age || "Chưa nhập",
+  patientGender:
+    caseData.value?.patient_gender === "male"
+      ? "Nam"
+      : caseData.value?.patient_gender === "female"
+        ? "Nữ"
+        : caseData.value?.patient_gender || "Chưa nhập",
+  medicalRecordNumber: caseData.value?.medical_record_number || "Chưa nhập",
+  chief_complaint:
+    caseData.value?.clinical_history?.chief_complaint || "Chưa nhập",
+  historyOfPresentIllness:
+    caseData.value?.clinical_history?.history_present_illness || "Chưa nhập",
+  pastMedicalHistory:
+    caseData.value?.clinical_history?.past_medical_history || "Chưa nhập",
+  medications: caseData.value?.clinical_history?.medications || "Chưa nhập",
+  generalAppearance:
+    caseData.value?.physical_examination?.general_appearance || "Chưa nhập",
+  vitalSigns: caseData.value?.physical_examination?.vital_signs || "Chưa nhập",
+  cardiovascular:
+    caseData.value?.physical_examination?.cardiovascular || "Chưa nhập",
+  respiratory: caseData.value?.physical_examination?.respiratory || "Chưa nhập",
+  labsAndImaging:
+    caseData.value?.investigations?.laboratory_results || "Chưa nhập",
+  imagingStudies:
+    caseData.value?.investigations?.imaging_studies || "Chưa nhập",
+  ecgFindings: caseData.value?.investigations?.ecg_findings || "Chưa nhập",
+  primaryDiagnosis:
+    caseData.value?.diagnosis_management?.primary_diagnosis || "Chưa nhập",
+  treatmentPlanForm:
+    caseData.value?.diagnosis_management?.treatment_plan || "Chưa nhập",
+  differentialDiagnosis: notes.value?.differential_diagnosis || "Chưa nhập",
+  finalDiagnosis: notes.value?.clinical_assessment || "Chưa nhập",
+  treatmentPlan: notes.value?.treatment_plan || "Chưa nhập",
+  notes: notes.value?.learning_reflections || "Chưa nhập",
+  attachments: attachments.value || [],
+}));
 
 onMounted(async () => {
   try {
-    // Load case data from API
-    const caseDetails = await casesService.getCase(props.caseId)
+    const caseDetails = await casesService.getCase(props.caseId);
 
-    // Store owner and status for permission checks
-    // Backend uses 'student' field instead of 'created_by'
     if (caseDetails.student) {
-      caseOwnerId.value = typeof caseDetails.student === 'object'
-        ? caseDetails.student.id
-        : caseDetails.student
+      caseOwnerId.value =
+        typeof caseDetails.student === "object"
+          ? caseDetails.student.id
+          : caseDetails.student;
     } else if (caseDetails.created_by) {
-      caseOwnerId.value = typeof caseDetails.created_by === 'object'
-        ? caseDetails.created_by.id
-        : caseDetails.created_by
+      caseOwnerId.value =
+        typeof caseDetails.created_by === "object"
+          ? caseDetails.created_by.id
+          : caseDetails.created_by;
     }
 
-    caseStatus.value = caseDetails.case_status || caseDetails.status || 'draft'
+    caseStatus.value = caseDetails.case_status || caseDetails.status || "draft";
 
-    // Merge all basic fields
     Object.assign(caseData.value, {
-      title: caseDetails.title || '',
-      specialty: caseDetails.specialty || '',
-      patient_name: caseDetails.patient_name || '',
-      patient_age: caseDetails.patient_age || '',
-      patient_gender: caseDetails.patient_gender || '',
-      medical_record_number: caseDetails.medical_record_number || '',
-      patient_ethnicity: caseDetails.patient_ethnicity || '',
-      patient_occupation: caseDetails.patient_occupation || '',
-      admission_date: caseDetails.admission_date || '',
-      discharge_date: caseDetails.discharge_date || '',
-      chief_complaint_brief: caseDetails.chief_complaint_brief || '',
+      title: caseDetails.title || "",
+      specialty: caseDetails.specialty || "",
+      patient_name: caseDetails.patient_name || "",
+      patient_age: caseDetails.patient_age || "",
+      patient_gender: caseDetails.patient_gender || "",
+      medical_record_number: caseDetails.medical_record_number || "",
+      patient_ethnicity: caseDetails.patient_ethnicity || "",
+      patient_occupation: caseDetails.patient_occupation || "",
+      admission_date: caseDetails.admission_date || "",
+      discharge_date: caseDetails.discharge_date || "",
+      chief_complaint_brief: caseDetails.chief_complaint_brief || "",
       requires_follow_up: caseDetails.requires_follow_up || false,
-      follow_up_date: caseDetails.follow_up_date || '',
-      priority_level: caseDetails.priority_level || 'medium',
-      complexity_level: caseDetails.complexity_level || 'basic',
-      case_summary: caseDetails.case_summary || '',
-      learning_tags: caseDetails.learning_tags || '',
+      follow_up_date: caseDetails.follow_up_date || "",
+      priority_level: caseDetails.priority_level || "medium",
+      complexity_level: caseDetails.complexity_level || "basic",
+      case_summary: caseDetails.case_summary || "",
+      learning_tags: caseDetails.learning_tags || "",
       estimated_study_hours: caseDetails.estimated_study_hours || null,
-      keywords: caseDetails.keywords || '',
+      keywords: caseDetails.keywords || "",
       template: caseDetails.template || null,
-      repository: caseDetails.repository || null
-    })
+      repository: caseDetails.repository || null,
+    });
 
-    // Merge nested objects to preserve reactivity
-    if (caseDetails.clinical_history) {
+    if (caseDetails.clinical_history)
       Object.assign(caseData.value.clinical_history, {
-        chief_complaint: caseDetails.clinical_history.chief_complaint || '',
-        history_present_illness: caseDetails.clinical_history.history_present_illness || '',
-        symptom_duration_days: caseDetails.clinical_history.symptom_duration_days || null,
-        symptom_onset: caseDetails.clinical_history.symptom_onset || '',
-        symptom_progression: caseDetails.clinical_history.symptom_progression || '',
-        past_medical_history: caseDetails.clinical_history.past_medical_history || '',
-        family_history: caseDetails.clinical_history.family_history || '',
-        social_history: caseDetails.clinical_history.social_history || '',
-        allergies: caseDetails.clinical_history.allergies || '',
-        medications: caseDetails.clinical_history.medications || '',
-        review_systems: caseDetails.clinical_history.review_systems || ''
-      })
-    }
-
-    if (caseDetails.physical_examination) {
+        chief_complaint: caseDetails.clinical_history.chief_complaint || "",
+        history_present_illness:
+          caseDetails.clinical_history.history_present_illness || "",
+        symptom_duration_days:
+          caseDetails.clinical_history.symptom_duration_days || null,
+        symptom_onset: caseDetails.clinical_history.symptom_onset || "",
+        symptom_progression:
+          caseDetails.clinical_history.symptom_progression || "",
+        past_medical_history:
+          caseDetails.clinical_history.past_medical_history || "",
+        family_history: caseDetails.clinical_history.family_history || "",
+        social_history: caseDetails.clinical_history.social_history || "",
+        allergies: caseDetails.clinical_history.allergies || "",
+        medications: caseDetails.clinical_history.medications || "",
+        review_systems: caseDetails.clinical_history.review_systems || "",
+      });
+    if (caseDetails.physical_examination)
       Object.assign(caseData.value.physical_examination, {
-        general_appearance: caseDetails.physical_examination.general_appearance || '',
-        consciousness_level: caseDetails.physical_examination.consciousness_level || '',
-        vital_signs: caseDetails.physical_examination.vital_signs || '',
-        vital_signs_bp: caseDetails.physical_examination.vital_signs_bp || '',
+        general_appearance:
+          caseDetails.physical_examination.general_appearance || "",
+        consciousness_level:
+          caseDetails.physical_examination.consciousness_level || "",
+        vital_signs: caseDetails.physical_examination.vital_signs || "",
+        vital_signs_bp: caseDetails.physical_examination.vital_signs_bp || "",
         vital_signs_hr: caseDetails.physical_examination.vital_signs_hr || null,
         vital_signs_rr: caseDetails.physical_examination.vital_signs_rr || null,
-        vital_signs_temp: caseDetails.physical_examination.vital_signs_temp || null,
-        vital_signs_spo2: caseDetails.physical_examination.vital_signs_spo2 || null,
+        vital_signs_temp:
+          caseDetails.physical_examination.vital_signs_temp || null,
+        vital_signs_spo2:
+          caseDetails.physical_examination.vital_signs_spo2 || null,
         weight_kg: caseDetails.physical_examination.weight_kg || null,
         height_cm: caseDetails.physical_examination.height_cm || null,
-        head_neck: caseDetails.physical_examination.head_neck || '',
-        cardiovascular: caseDetails.physical_examination.cardiovascular || '',
-        respiratory: caseDetails.physical_examination.respiratory || '',
-        abdominal: caseDetails.physical_examination.abdominal || '',
-        neurological: caseDetails.physical_examination.neurological || '',
-        musculoskeletal: caseDetails.physical_examination.musculoskeletal || '',
-        skin: caseDetails.physical_examination.skin || '',
-        other_findings: caseDetails.physical_examination.other_systems || ''
-      })
-    }
-
-    if (caseDetails.detailed_investigations) {
+        head_neck: caseDetails.physical_examination.head_neck || "",
+        cardiovascular: caseDetails.physical_examination.cardiovascular || "",
+        respiratory: caseDetails.physical_examination.respiratory || "",
+        abdominal: caseDetails.physical_examination.abdominal || "",
+        neurological: caseDetails.physical_examination.neurological || "",
+        musculoskeletal: caseDetails.physical_examination.musculoskeletal || "",
+        skin: caseDetails.physical_examination.skin || "",
+        other_findings: caseDetails.physical_examination.other_systems || "",
+      });
+    if (caseDetails.detailed_investigations)
       Object.assign(caseData.value.investigations, {
-        laboratory_results: caseDetails.detailed_investigations.laboratory_results || '',
-        hemoglobin_level: caseDetails.detailed_investigations.hemoglobin_level || null,
-        white_cell_count: caseDetails.detailed_investigations.white_cell_count || null,
-        platelet_count: caseDetails.detailed_investigations.platelet_count || null,
+        laboratory_results:
+          caseDetails.detailed_investigations.laboratory_results || "",
+        hemoglobin_level:
+          caseDetails.detailed_investigations.hemoglobin_level || null,
+        white_cell_count:
+          caseDetails.detailed_investigations.white_cell_count || null,
+        platelet_count:
+          caseDetails.detailed_investigations.platelet_count || null,
         sodium_level: caseDetails.detailed_investigations.sodium_level || null,
-        potassium_level: caseDetails.detailed_investigations.potassium_level || null,
-        glucose_level: caseDetails.detailed_investigations.glucose_level || null,
-        creatinine_level: caseDetails.detailed_investigations.creatinine_level || null,
-        imaging_studies: caseDetails.detailed_investigations.imaging_studies || '',
-        ecg_findings: caseDetails.detailed_investigations.ecg_findings || '',
-        ecg_rhythm: caseDetails.detailed_investigations.ecg_rhythm || '',
+        potassium_level:
+          caseDetails.detailed_investigations.potassium_level || null,
+        glucose_level:
+          caseDetails.detailed_investigations.glucose_level || null,
+        creatinine_level:
+          caseDetails.detailed_investigations.creatinine_level || null,
+        imaging_studies:
+          caseDetails.detailed_investigations.imaging_studies || "",
+        ecg_findings: caseDetails.detailed_investigations.ecg_findings || "",
+        ecg_rhythm: caseDetails.detailed_investigations.ecg_rhythm || "",
         ecg_rate: caseDetails.detailed_investigations.ecg_rate || null,
-        pathology_results: caseDetails.detailed_investigations.pathology_results || '',
-        microbiology_results: caseDetails.detailed_investigations.microbiology_results || '',
-        other_investigations: caseDetails.detailed_investigations.other_investigations || '',
-        arterial_blood_gas: caseDetails.detailed_investigations.arterial_blood_gas || '',
+        pathology_results:
+          caseDetails.detailed_investigations.pathology_results || "",
+        microbiology_results:
+          caseDetails.detailed_investigations.microbiology_results || "",
+        other_investigations:
+          caseDetails.detailed_investigations.other_investigations || "",
+        arterial_blood_gas:
+          caseDetails.detailed_investigations.arterial_blood_gas || "",
         ph_level: caseDetails.detailed_investigations.ph_level || null,
-        special_tests: caseDetails.detailed_investigations.special_tests || '',
-        biochemistry: caseDetails.detailed_investigations.biochemistry || '',
-        hematology: caseDetails.detailed_investigations.hematology || '',
-        microbiology: caseDetails.detailed_investigations.microbiology || ''
-      })
-    }
-
-    if (caseDetails.diagnosis_management) {
+        special_tests: caseDetails.detailed_investigations.special_tests || "",
+        biochemistry: caseDetails.detailed_investigations.biochemistry || "",
+        hematology: caseDetails.detailed_investigations.hematology || "",
+        microbiology: caseDetails.detailed_investigations.microbiology || "",
+      });
+    if (caseDetails.diagnosis_management)
       Object.assign(caseData.value.diagnosis_management, {
-        primary_diagnosis: caseDetails.diagnosis_management.primary_diagnosis || '',
-        differential_diagnosis: caseDetails.diagnosis_management.differential_diagnosis || '',
-        icd10_codes: caseDetails.diagnosis_management.icd10_codes || '',
-        treatment_plan: caseDetails.diagnosis_management.treatment_plan || '',
-        procedures_performed: caseDetails.diagnosis_management.procedures_performed || '',
-        prognosis: caseDetails.diagnosis_management.prognosis || '',
-        medications_prescribed: caseDetails.diagnosis_management.medications_prescribed || '',
-        follow_up_plan: caseDetails.diagnosis_management.follow_up_plan || '',
-        complications: caseDetails.diagnosis_management.complications || ''
-      })
-    }
-
-    if (caseDetails.learning_outcomes) {
+        primary_diagnosis:
+          caseDetails.diagnosis_management.primary_diagnosis || "",
+        differential_diagnosis:
+          caseDetails.diagnosis_management.differential_diagnosis || "",
+        icd10_codes: caseDetails.diagnosis_management.icd10_codes || "",
+        treatment_plan: caseDetails.diagnosis_management.treatment_plan || "",
+        procedures_performed:
+          caseDetails.diagnosis_management.procedures_performed || "",
+        prognosis: caseDetails.diagnosis_management.prognosis || "",
+        medications_prescribed:
+          caseDetails.diagnosis_management.medications_prescribed || "",
+        follow_up_plan: caseDetails.diagnosis_management.follow_up_plan || "",
+        complications: caseDetails.diagnosis_management.complications || "",
+      });
+    if (caseDetails.learning_outcomes)
       Object.assign(caseData.value.learning_outcomes, {
-        learning_objectives: caseDetails.learning_outcomes.learning_objectives || '',
-        key_concepts: caseDetails.learning_outcomes.key_concepts || '',
-        clinical_pearls: caseDetails.learning_outcomes.clinical_pearls || '',
-        references: caseDetails.learning_outcomes.references || '',
-        discussion_points: caseDetails.learning_outcomes.discussion_points || '',
-        assessment_criteria: caseDetails.learning_outcomes.assessment_criteria || ''
-      })
-    }
+        learning_objectives:
+          caseDetails.learning_outcomes.learning_objectives || "",
+        key_concepts: caseDetails.learning_outcomes.key_concepts || "",
+        clinical_pearls: caseDetails.learning_outcomes.clinical_pearls || "",
+        references: caseDetails.learning_outcomes.references || "",
+        discussion_points:
+          caseDetails.learning_outcomes.discussion_points || "",
+        assessment_criteria:
+          caseDetails.learning_outcomes.assessment_criteria || "",
+      });
 
-    // Load existing attachments
-    if (caseDetails.medical_attachments && caseDetails.medical_attachments.length > 0) {
-      console.log('📎 Loading attachments:', caseDetails.medical_attachments)
+    if (caseDetails.medical_attachments?.length > 0) {
       attachments.value = caseDetails.medical_attachments.map((att: any) => ({
         ...att,
         url: att.file,
         type: att.file_type,
         size: att.file_size || 0,
-        name: att.title
-      }))
-      console.log('📎 Attachments loaded into state:', attachments.value)
-    } else {
-      console.log('📎 No attachments found in case details')
+        name: att.title,
+      }));
     }
 
-    // Load existing student notes if any
-    console.log('Attempting to load student notes for case:', props.caseId)
     try {
-      const existingNotes = await casesService.getStudentNotes(props.caseId)
-      console.log('Loaded student notes:', existingNotes)
+      const existingNotes = await casesService.getStudentNotes(props.caseId);
       if (existingNotes) {
         Object.assign(notes.value, {
-          clinical_assessment: existingNotes.clinical_assessment || '',
-          differential_diagnosis: existingNotes.differential_diagnosis || '',
-          treatment_plan: existingNotes.treatment_plan || '',
-          learning_reflections: existingNotes.learning_reflections || '',
-          questions_for_instructor: existingNotes.questions_for_instructor || '',
-          challenges_faced: existingNotes.challenges_faced || '',
-          resources_used: existingNotes.resources_used || ''
-        })
-        console.log('Notes after assignment:', notes.value)
+          clinical_assessment: existingNotes.clinical_assessment || "",
+          differential_diagnosis: existingNotes.differential_diagnosis || "",
+          treatment_plan: existingNotes.treatment_plan || "",
+          learning_reflections: existingNotes.learning_reflections || "",
+          questions_for_instructor:
+            existingNotes.questions_for_instructor || "",
+          challenges_faced: existingNotes.challenges_faced || "",
+          resources_used: existingNotes.resources_used || "",
+        });
       }
     } catch (notesError) {
-      console.error('Error loading student notes:', notesError)
+      console.error("Error loading student notes:", notesError);
     }
 
-    // Load grade if available
     if (caseDetails.has_grade) {
       try {
-        const grade = await gradesService.getGrade(props.caseId)
-        console.log('Loaded grade for student:', grade)
-        if (grade && grade.is_final) {
-          gradeData.value = grade
-        }
+        const grade = await gradesService.getGrade(props.caseId);
+        if (grade && grade.is_final) gradeData.value = grade;
       } catch (gradeError) {
-        console.error('Error loading grade:', gradeError)
+        console.error("Error loading grade:", gradeError);
       }
     }
-
-    console.log('Final caseData:', caseData.value)
   } catch (error) {
-    console.error('Error loading case data:', error)
-    toast.error('Không thể tải dữ liệu ca bệnh')
+    console.error("Error loading case data:", error);
+    toast.error("Không thể tải dữ liệu ca bệnh");
   }
-})
+});
 </script>
+
+<style scoped>
+.h-button {
+  background: var(--primary) !important;
+  border: 1px solid var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer;
+}
+.h-button:hover {
+  background: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+  box-shadow: 0 6px 16px var(--shadow-blue-hover) !important;
+}
+.badge {
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    rgba(59, 130, 246, 0.1) 100%
+  );
+  border: 1px solid var(--shadow-blue);
+  color: var(--primary);
+}
+</style>

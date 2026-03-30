@@ -190,4 +190,3 @@ print("\n✅ System templates created successfully!")
 print(
     f"Total templates: {ExportTemplate.objects.filter(is_system_template=True).count()}"
 )
-

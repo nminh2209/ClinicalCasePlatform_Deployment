@@ -50,7 +50,7 @@ export function useBackendTranslations() {
     }
 
     // Type check - if not a string, return as-is or extract name
-    if (typeof value !== 'string') {
+    if (typeof value !== "string") {
       return String(value);
     }
 
@@ -108,7 +108,7 @@ export function useBackendTranslations() {
   const registerMapping = (
     category: "specialty" | "department" | string,
     backendValue: string,
-    translationKey: string
+    translationKey: string,
   ) => {
     if (!backendTranslationMap[category]) {
       backendTranslationMap[category] = {};

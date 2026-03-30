@@ -433,4 +433,3 @@ class BatchExportAdmin(admin.ModelAdmin):
         self.message_user(request, f"{count} batch exports queued for retry.")
 
     retry_batch.short_description = "Retry failed batch exports"  # type: ignore[attr-defined]
-
