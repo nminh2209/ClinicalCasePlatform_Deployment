@@ -17,12 +17,32 @@ echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
 echo "Running database migrations..."
-python manage.py migrate
+migration_attempts="${MIGRATION_RETRIES:-5}"
+migration_delay="${MIGRATION_RETRY_DELAY_SECONDS:-10}"
+migration_success=0
 
-echo "Resetting and populating fresh data..."
-python manage.py reset_test_data --skip-confirm || echo "Reset failed, trying fresh populate..."
+for i in $(seq 1 "$migration_attempts"); do
+	echo "Migration attempt $i/$migration_attempts..."
+	if python manage.py migrate --noinput; then
+		migration_success=1
+		break
+	fi
 
-echo "Populating medical terms..."
-python populate_medical_terms.py || echo "Medical terms already populated"
+	if [ "$i" -lt "$migration_attempts" ]; then
+		echo "Migration failed, retrying in ${migration_delay}s..."
+		sleep "$migration_delay"
+	fi
+done
+
+if [ "$migration_success" -ne 1 ]; then
+	echo "Database migrations failed after $migration_attempts attempts"
+	exit 1
+fi
+
+if [ "${RUN_SEED_DATA:-false}" = "true" ]; then
+	echo "Seeding data because RUN_SEED_DATA=true..."
+	python manage.py reset_test_data --skip-confirm || echo "Reset failed, continuing..."
+	python populate_medical_terms.py || echo "Medical terms already populated"
+fi
 
 echo "Build completed successfully!"
