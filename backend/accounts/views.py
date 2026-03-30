@@ -16,6 +16,7 @@ from rest_framework.decorators import (  # type: ignore[reportMissingTypeStubs]
     action,
 )
 from rest_framework.response import Response  # type: ignore[reportMissingTypeStubs]
+from rest_framework.exceptions import ValidationError  # type: ignore[reportMissingTypeStubs]
 from rest_framework_simplejwt.tokens import (
     RefreshToken,  # type: ignore[reportMissingTypeStubs]
 )
@@ -119,6 +120,8 @@ class UserLoginView(generics.GenericAPIView):
                 },
                 status=status.HTTP_200_OK,
             )
+        except ValidationError as exc:
+            return Response(exc.detail, status=status.HTTP_401_UNAUTHORIZED)
         except Exception:
             logger.exception("Unhandled error during login")
             return Response(
