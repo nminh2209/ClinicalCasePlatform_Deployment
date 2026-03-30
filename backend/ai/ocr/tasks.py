@@ -1,5 +1,4 @@
 from celery import shared_task
-from .ocr_service import ocr_service
 import os
 
 
@@ -10,6 +9,8 @@ def process_ocr_task(self, file_path, mime_type):
     Used for very large files.
     """
     try:
+        from .ocr_service import ocr_service
+
         result = ocr_service.process(file_path, mime_type)
 
         # Clean up temp file if needed
@@ -50,6 +51,8 @@ def extract_tables_images_task(self, file_path, mime_type):
     print(f"[CELERY TASK] File exists: {os.path.exists(file_path)}")
 
     try:
+        from .ocr_service import ocr_service
+
         tables = []
         images = []
 

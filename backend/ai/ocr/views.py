@@ -8,8 +8,13 @@ import os
 import uuid
 import time
 from celery.result import AsyncResult
-from .ocr_service import ocr_service
-from .tasks import process_ocr_task
+
+
+def _get_ocr_service():
+    # Lazy import to avoid loading heavy ML libs during Django app startup.
+    from .ocr_service import ocr_service
+
+    return ocr_service
 
 
 class OCRExtractView(views.APIView):
@@ -65,6 +70,8 @@ class OCRExtractView(views.APIView):
 
         if is_very_large:
             # Fully async path for very large files
+            from .tasks import process_ocr_task
+
             task = process_ocr_task.delay(abs_file_path, file_obj.content_type)
             return Response(
                 {
@@ -78,6 +85,7 @@ class OCRExtractView(views.APIView):
         # 4. Phase 1: Sync text extraction (always runs)
         try:
             start = time.time()
+            ocr_service = _get_ocr_service()
             result = ocr_service.process(abs_file_path)
             text_elapsed = time.time() - start
 

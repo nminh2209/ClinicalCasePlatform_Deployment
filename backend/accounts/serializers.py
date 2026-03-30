@@ -108,10 +108,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source="get_full_name", read_only=True)
-    department_name = serializers.CharField(source="department.name", read_only=True)
-    department_vietnamese_name = serializers.CharField(
-        source="department.vietnamese_name", read_only=True
-    )
+    department_name = serializers.SerializerMethodField()
+    department_vietnamese_name = serializers.SerializerMethodField()
 
     class Meta:  # type: ignore[misc, assignment]
         model = User
@@ -132,6 +130,20 @@ class UserSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]
+
+    def get_department_name(self, obj: User) -> str | None:
+        try:
+            dept = getattr(obj, "department", None)
+            return getattr(dept, "name", None)
+        except Exception:
+            return None
+
+    def get_department_vietnamese_name(self, obj: User) -> str | None:
+        try:
+            dept = getattr(obj, "department", None)
+            return getattr(dept, "vietnamese_name", None)
+        except Exception:
+            return None
 
 
 class AdminUserSerializer(serializers.ModelSerializer):

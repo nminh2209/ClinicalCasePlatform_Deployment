@@ -15,22 +15,38 @@ ASR_ENABLED = os.environ.get("ASR_ENABLED", "true").lower() in ("true", "1", "ye
 if not ASR_ENABLED:
     logger.info("ASR service disabled via ASR_ENABLED=false")
 
-# Try to import ML libraries - they're optional
-try:
-    import torch
-    import numpy as np
-    from transformers import pipeline
+# Heavy ML libraries are imported lazily when ASR is first used.
+DEPENDENCIES_AVAILABLE = None
+torch = None  # type: ignore
+np = None  # type: ignore
+pipeline = None  # type: ignore
 
-    DEPENDENCIES_AVAILABLE = True
-except ImportError as e:
-    DEPENDENCIES_AVAILABLE = False
-    torch = None  # type: ignore
-    np = None  # type: ignore
-    pipeline = None  # type: ignore
-    logger.warning(f"ASR dependencies not available: {str(e)}")
-    logger.warning(
-        "Install with: pip install torch transformers accelerate soundfile librosa"
-    )
+
+def _ensure_asr_dependencies_loaded() -> bool:
+    global DEPENDENCIES_AVAILABLE, torch, np, pipeline
+
+    if DEPENDENCIES_AVAILABLE is True:
+        return True
+    if DEPENDENCIES_AVAILABLE is False:
+        return False
+
+    try:
+        import torch as _torch
+        import numpy as _np
+        from transformers import pipeline as _pipeline
+
+        torch = _torch  # type: ignore
+        np = _np  # type: ignore
+        pipeline = _pipeline  # type: ignore
+        DEPENDENCIES_AVAILABLE = True
+        return True
+    except ImportError as e:
+        DEPENDENCIES_AVAILABLE = False
+        logger.warning(f"ASR dependencies not available: {str(e)}")
+        logger.warning(
+            "Install with: pip install torch transformers accelerate soundfile librosa"
+        )
+        return False
 
 
 class ASRService:
@@ -80,7 +96,7 @@ class ASRService:
             return
 
         # Check if dependencies are available
-        if not DEPENDENCIES_AVAILABLE or torch is None or pipeline is None:
+        if not _ensure_asr_dependencies_loaded() or torch is None or pipeline is None:
             logger.warning(
                 "ASR dependencies not installed. ASR service will not be available."
             )
