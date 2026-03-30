@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
                 # Drop existing dictionary (safe re-run)
                 "DROP TEXT SEARCH DICTIONARY IF EXISTS public.vietnamese;",
 
-                # Create dictionary using external stopwords file
+                # Create a portable dictionary that does not depend on
+                # postgres server filesystem stopword files.
                 """
                 CREATE TEXT SEARCH DICTIONARY public.vietnamese (
-                    TEMPLATE = pg_catalog.simple,
-                    STOPWORDS = vietnamese
+                    TEMPLATE = pg_catalog.simple
                 );
                 """,
 
