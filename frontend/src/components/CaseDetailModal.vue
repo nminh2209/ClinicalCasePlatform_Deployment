@@ -564,28 +564,8 @@ const loadCaseDetails = async () => {
   try {
     const response = await api.get(`/cases/${props.caseId}/`);
     caseData.value = response.data;
-    console.log("📋 Case data loaded:", response.data);
-    console.log(
-      "📎 Attachments:",
-      response.data.medical_attachments?.length || 0,
-    );
-    console.log("📝 Has clinical_history:", !!response.data.clinical_history);
-    console.log(
-      "🔬 Has physical_examination:",
-      !!response.data.physical_examination,
-    );
-    console.log(
-      "🧪 Has detailed_investigations:",
-      !!response.data.detailed_investigations,
-    );
-    console.log(
-      "💊 Has diagnosis_management:",
-      !!response.data.diagnosis_management,
-    );
-    console.log("📚 Has learning_outcomes:", !!response.data.learning_outcomes);
   } catch (err: any) {
     error.value = "Không thể tải chi tiết bệnh án";
-    console.error("Failed to load case details:", err);
   } finally {
     loading.value = false;
   }
@@ -593,7 +573,6 @@ const loadCaseDetails = async () => {
 
 const loadComments = async () => {
   if (!props.caseId) {
-    console.warn("Cannot load comments: caseId is null");
     return;
   }
   try {
@@ -621,7 +600,6 @@ const submitComment = async () => {
     toast.success("Đã gửi bình luận");
   } catch (err: any) {
     toast.error("Không thể gửi bình luận");
-    console.error("Failed to submit comment:", err);
   }
 };
 
@@ -686,7 +664,6 @@ const exportPDF = async () => {
     setTimeout(() => window.URL.revokeObjectURL(url), 100);
     toast.success("Đã mở PDF trong tab mới!");
   } catch (err: any) {
-    console.error("PDF export failed:", err);
     toast.error("Không thể tạo PDF. Vui lòng thử lại.");
   } finally {
     exportingPDF.value = false;

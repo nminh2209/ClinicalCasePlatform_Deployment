@@ -22,7 +22,6 @@ const handleClose = () => {
 };
 
 const handleComplete = async (result: { caseId: number; caseData: any }) => {
-  console.log("Case created:", result);
   // Fetch updated cases list to ensure the new case appears
   const casesStore = useCasesStore();
   await casesStore.fetchCases();

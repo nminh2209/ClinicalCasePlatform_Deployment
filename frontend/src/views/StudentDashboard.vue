@@ -37,7 +37,10 @@
               <p class="text-xs text-indigo-600 mt-1">Phân tích và báo cáo</p>
             </div>
             <div class="p-3 bg-indigo-100 rounded-lg">
-              <i class="pi pi-chart-bar h-6 w-6 text-indigo-600 stat-glyph" aria-hidden="true"></i>
+              <i
+                class="pi pi-chart-bar h-6 w-6 text-indigo-600 stat-glyph"
+                aria-hidden="true"
+              ></i>
             </div>
           </div>
         </div>
@@ -60,7 +63,10 @@
               <p class="text-xs text-gray-500 mt-1">Bài tập đang thực hiện</p>
             </div>
             <div class="p-3 bg-blue-50 rounded-lg">
-              <i class="pi pi-book h-6 w-6 text-blue-600" aria-hidden="true"></i>
+              <i
+                class="pi pi-book h-6 w-6 text-blue-600"
+                aria-hidden="true"
+              ></i>
             </div>
           </div>
         </div>
@@ -82,7 +88,10 @@
               <p class="text-xs text-gray-500 mt-1">Ghi chú đã nộp</p>
             </div>
             <div class="p-3 bg-green-50 rounded-lg">
-              <i class="pi pi-file h-6 w-6 text-green-600" aria-hidden="true"></i>
+              <i
+                class="pi pi-file h-6 w-6 text-green-600"
+                aria-hidden="true"
+              ></i>
             </div>
           </div>
         </div>
@@ -102,7 +111,10 @@
               <p class="text-xs text-gray-500 mt-1">Chưa hoàn thành</p>
             </div>
             <div class="p-3 bg-yellow-50 rounded-lg">
-              <i class="pi pi-pencil h-6 w-6 text-yellow-600" aria-hidden="true"></i>
+              <i
+                class="pi pi-pencil h-6 w-6 text-yellow-600"
+                aria-hidden="true"
+              ></i>
             </div>
           </div>
         </div>
@@ -122,7 +134,10 @@
               <p class="text-xs text-gray-500 mt-1">Kết quả tổng thể</p>
             </div>
             <div class="p-3 bg-purple-50 rounded-lg">
-              <i class="pi pi-star-fill h-6 w-6 text-purple-600" aria-hidden="true"></i>
+              <i
+                class="pi pi-star-fill h-6 w-6 text-purple-600"
+                aria-hidden="true"
+              ></i>
             </div>
           </div>
         </div>
@@ -189,7 +204,10 @@
 
         <!-- Empty State -->
         <div v-else-if="recentCases.length === 0" class="text-center py-12">
-          <i class="pi pi-inbox mx-auto text-3xl text-gray-400" aria-hidden="true"></i>
+          <i
+            class="pi pi-inbox mx-auto text-3xl text-gray-400"
+            aria-hidden="true"
+          ></i>
           <h3 class="mt-2 text-sm font-medium text-gray-900">
             Chưa có bệnh án
           </h3>
@@ -403,21 +421,7 @@ async function loadDashboardData() {
     gradesData.value = Array.isArray(gradesResponse)
       ? gradesResponse
       : gradesResponse?.results || [];
-
-    // Debug logging
-    // console.log('=== STUDENT DASHBOARD DEBUG ===');
-    // console.log('Cases loaded:', casesData.value.length);
-    // console.log('Cases data:', casesData.value);
-    // console.log('Grades loaded:', gradesData.value.length);
-    // console.log('Grades data:', gradesData.value);
-    // console.log('Grade to Case mapping:');
-    // casesData.value.forEach((c: any) => {
-    //   const grade = gradesData.value.find((g: any) => g.case === c.id);
-    //   console.log(`  Case ${c.id}: Grade =`, grade);
-    // });
-    // console.log('===============================');
   } catch (error) {
-    console.error("Error loading dashboard data:", error);
     casesData.value = [];
     gradesData.value = [];
   } finally {
@@ -508,7 +512,10 @@ onMounted(() => {
 }
 
 /* Headers */
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   color: var(--foreground);
 }
 

@@ -481,7 +481,10 @@
               ]"
             ></i>
           </Button>
-          <div v-if="expandedSections.clinical" class="px-4 pb-4 space-y-3 mt-6">
+          <div
+            v-if="expandedSections.clinical"
+            class="px-4 pb-4 space-y-3 mt-6"
+          >
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
                 <label class="text-sm text-gray-500">Lý do khám chính</label>
@@ -663,7 +666,10 @@
               ]"
             ></i>
           </Button>
-          <div v-if="expandedSections.physical" class="px-4 pb-4 space-y-3 mt-6">
+          <div
+            v-if="expandedSections.physical"
+            class="px-4 pb-4 space-y-3 mt-6"
+          >
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
                 <label class="text-sm text-gray-500">Tình trạng chung</label>
@@ -1083,7 +1089,10 @@
               ]"
             ></i>
           </Button>
-          <div v-if="expandedSections.diagnosis" class="px-4 pb-4 space-y-3 mt-6">
+          <div
+            v-if="expandedSections.diagnosis"
+            class="px-4 pb-4 space-y-3 mt-6"
+          >
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
                 <label class="text-sm text-gray-500">Chẩn đoán chính</label>
@@ -1201,7 +1210,10 @@
               ]"
             ></i>
           </Button>
-          <div v-if="expandedSections.learning" class="px-4 pb-4 space-y-3 mt-6">
+          <div
+            v-if="expandedSections.learning"
+            class="px-4 pb-4 space-y-3 mt-6"
+          >
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
                 <label class="text-sm text-gray-500">Mục tiêu học tập</label>
@@ -2009,8 +2021,6 @@ const handleNoteChange = () => {
 
 const handleSave = async () => {
   try {
-    console.log("=== SAVING CASE ===");
-
     const cleanObject = (obj: any) => {
       if (!obj || typeof obj !== "object") return obj;
       const cleaned: any = {};
@@ -2114,7 +2124,6 @@ const handleSave = async () => {
     toast.success("Đã lưu nháp thành công!");
     hasUnsavedChanges.value = false;
   } catch (error: any) {
-    console.error("Error saving case:", error);
     if (error.response?.data) {
       const errors = error.response.data;
       if (typeof errors === "object") {
@@ -2145,7 +2154,6 @@ const handleSubmit = async () => {
     toast.success("Ca bệnh đã được nộp để xem xét!");
     setTimeout(() => emit("navigate", "dashboard"), 1500);
   } catch (error: any) {
-    console.error("Error submitting case:", error);
     if (error.response?.data) {
       const errorData = error.response.data;
       if (errorData.error) {
@@ -2179,7 +2187,6 @@ const exportPDF = async () => {
     setTimeout(() => window.URL.revokeObjectURL(url), 100);
     toast.success("Đã mở PDF trong tab mới!");
   } catch (err: any) {
-    console.error("PDF export failed:", err);
     toast.error("Không thể tạo PDF. Vui lòng thử lại.");
   } finally {
     exportingPDF.value = false;
@@ -2401,20 +2408,15 @@ onMounted(async () => {
           resources_used: existingNotes.resources_used || "",
         });
       }
-    } catch (notesError) {
-      console.error("Error loading student notes:", notesError);
-    }
+    } catch (notesError) {}
 
     if (caseDetails.has_grade) {
       try {
         const grade = await gradesService.getGrade(props.caseId);
         if (grade && grade.is_final) gradeData.value = grade;
-      } catch (gradeError) {
-        console.error("Error loading grade:", gradeError);
-      }
+      } catch (gradeError) {}
     }
   } catch (error) {
-    console.error("Error loading case data:", error);
     toast.error("Không thể tải dữ liệu ca bệnh");
   }
 });

@@ -293,7 +293,6 @@ const formData = ref({
 const formSubmitted = ref(false);
 
 function submitForm() {
-  console.log("Form submitted:", formData.value);
   formSubmitted.value = true;
 
   setTimeout(() => {

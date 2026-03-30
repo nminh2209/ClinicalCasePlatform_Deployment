@@ -179,12 +179,8 @@ const connectWebSocket = () => {
             });
           }
         }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
+      } catch {}
     };
-
-    websocket.onerror = (error) => console.error("WebSocket error:", error);
 
     websocket.onclose = () => {
       if (pingInterval) {
@@ -196,9 +192,7 @@ const connectWebSocket = () => {
         reconnectTimeout = setTimeout(() => connectWebSocket(), 5000);
       }
     };
-  } catch (error) {
-    console.error("Error creating WebSocket:", error);
-  }
+  } catch {}
 };
 
 const disconnectWebSocket = () => {
@@ -237,8 +231,7 @@ const fetchNotifications = async () => {
     } else {
       notifications.value = [];
     }
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
+  } catch {
     notifications.value = [];
   } finally {
     loading.value = false;
@@ -261,9 +254,7 @@ const markAsRead = async (id) => {
     );
     const idx = notifications.value.findIndex((n) => n.id === id);
     if (idx !== -1) notifications.value[idx].read = true;
-  } catch (error) {
-    console.error("Error marking notification as read:", error);
-  }
+  } catch {}
 };
 
 const markAllAsRead = async () => {
@@ -277,9 +268,7 @@ const markAllAsRead = async () => {
       },
     );
     notifications.value.forEach((n) => (n.read = true));
-  } catch (error) {
-    console.error("Error marking all as read:", error);
-  }
+  } catch {}
 };
 
 const removeNotification = async (id) => {
@@ -289,9 +278,7 @@ const removeNotification = async (id) => {
       headers: { Authorization: `Bearer ${token}` },
     });
     notifications.value = notifications.value.filter((n) => n.id !== id);
-  } catch (error) {
-    console.error("Error deleting notification:", error);
-  }
+  } catch {}
 };
 
 const getIconClass = (type) => {

@@ -82,9 +82,6 @@ export function useChoices() {
       ) {
         // Detected stale/empty cache. Retry max N times, then give up
         if (staleRetryCount >= MAX_STALE_RETRIES) {
-          console.warn(
-            `Stale cache detected after ${MAX_STALE_RETRIES} retries. Returning empty data.`
-          );
           return cachedChoices; // Return as-is instead of infinite loop
         }
         staleRetryCount++;
@@ -120,14 +117,6 @@ export function useChoices() {
         const complexitiesRes =
           results[2].status === "fulfilled" ? results[2].value : null;
 
-        if (!specialtiesRes || !prioritiesRes || !complexitiesRes) {
-          console.warn("Choices API partial failure:", {
-            specialties: results[0].status,
-            priorities: results[1].status,
-            complexities: results[2].status,
-          });
-        }
-
         const specialtiesData = specialtiesRes
           ? Array.isArray(specialtiesRes.data)
             ? specialtiesRes.data
@@ -156,16 +145,10 @@ export function useChoices() {
         specialties.value = data.specialties;
         priorities.value = data.priorities;
         complexities.value = data.complexities;
-        console.log("Choices loaded:", {
-          specialties: data.specialties.length,
-          priorities: data.priorities.length,
-          complexities: data.complexities.length,
-        });
         return data;
       })
       .catch((err) => {
         error.value = "Không thể tải danh sách lựa chọn";
-        console.error("Failed to fetch choices:", err);
         // Explicitly clear promise & cache on error to prevent promise leak
         cachePromise = null;
         cachedChoices = null;

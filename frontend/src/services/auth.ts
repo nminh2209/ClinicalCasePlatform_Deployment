@@ -34,9 +34,7 @@ export const authService = {
     if (refreshToken) {
       try {
         await api.post("/auth/logout/", { refresh_token: refreshToken });
-      } catch (err) {
-        console.warn("Logout request failed:", err);
-      }
+      } catch {}
     }
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);

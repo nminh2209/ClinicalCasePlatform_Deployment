@@ -115,311 +115,326 @@
       </TabList>
 
       <TabPanels>
-      <!-- Analytics Tab -->
-      <TabPanel value="0" class="space-y-6 pt-4">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- User Growth Chart -->
-          <Card class="bg-white">
-            <template #title>{{ t("admin.userGrowth") }}</template>
-            <template #subtitle>Tăng trưởng sinh viên và giảng viên theo tháng</template>
-            <template #content>
-              <div
-                class="w-full h-72 bg-gray-50 rounded-lg p-4 flex flex-col justify-between"
+        <!-- Analytics Tab -->
+        <TabPanel value="0" class="space-y-6 pt-4">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- User Growth Chart -->
+            <Card class="bg-white">
+              <template #title>{{ t("admin.userGrowth") }}</template>
+              <template #subtitle
+                >Tăng trưởng sinh viên và giảng viên theo tháng</template
               >
-                <div class="flex h-full gap-2">
-                  <div
-                    class="flex flex-col justify-between text-xs text-gray-500 pr-2 border-r border-gray-300 min-w-max"
-                  >
-                    <span>160</span>
-                    <span>120</span>
-                    <span>80</span>
-                    <span>40</span>
-                    <span>0</span>
-                  </div>
-                  <div class="flex items-end justify-between flex-1 gap-2">
-                    <div
-                      v-for="(item, idx) in userGrowthData"
-                      :key="idx"
-                      class="flex-1 flex flex-col items-center gap-2"
-                    >
-                      <div
-                        class="w-full flex gap-1 items-end justify-center h-40"
-                      >
-                        <div
-                          class="flex-1 bg-blue-500 rounded-t opacity-80 hover:opacity-100 cursor-pointer transition-opacity relative group/bar"
-                          :style="{ height: (item.students / 160) * 100 + '%' }"
-                        >
-                          <div
-                            class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none"
-                          >
-                            Sinh viên: {{ item.students }}
-                          </div>
-                        </div>
-                        <div
-                          class="flex-1 bg-green-500 rounded-t opacity-80 hover:opacity-100 cursor-pointer transition-opacity relative group/bar"
-                          :style="{ height: (item.teachers / 160) * 100 + '%' }"
-                        >
-                          <div
-                            class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none"
-                          >
-                            Giảng viên: {{ item.teachers }}
-                          </div>
-                        </div>
-                      </div>
-                      <span class="text-xs text-gray-600 truncate">{{
-                        item.month.replace("Tháng ", "T")
-                      }}</span>
-                    </div>
-                  </div>
-                </div>
+              <template #content>
                 <div
-                  class="flex justify-center gap-4 mt-4 text-xs border-t pt-3"
+                  class="w-full h-72 bg-gray-50 rounded-lg p-4 flex flex-col justify-between"
                 >
-                  <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-blue-500 rounded"></div>
-                    <span>Sinh viên</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-green-500 rounded"></div>
-                    <span>Giảng viên</span>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </Card>
-
-          <!-- Submission Trend Chart -->
-          <Card class="bg-white">
-            <template #title>{{ t("admin.caseSubmissions") }}</template>
-            <template #subtitle>Số lượng bài nộp theo tháng</template>
-            <template #content>
-              <div
-                class="w-full h-72 bg-gray-50 rounded-lg p-4 flex flex-col justify-between"
-              >
-                <div class="flex h-40 gap-2 mb-4">
-                  <div
-                    class="flex flex-col justify-between text-xs text-gray-500 pr-2 border-r border-gray-300 min-w-max"
-                  >
-                    <span>200</span>
-                    <span>150</span>
-                    <span>100</span>
-                    <span>50</span>
-                    <span>0</span>
-                  </div>
-                  <div class="flex items-end justify-between flex-1 gap-2">
+                  <div class="flex h-full gap-2">
                     <div
-                      v-for="(item, idx) in submissionData"
-                      :key="idx"
-                      class="flex-1 group relative"
+                      class="flex flex-col justify-between text-xs text-gray-500 pr-2 border-r border-gray-300 min-w-max"
                     >
+                      <span>160</span>
+                      <span>120</span>
+                      <span>80</span>
+                      <span>40</span>
+                      <span>0</span>
+                    </div>
+                    <div class="flex items-end justify-between flex-1 gap-2">
                       <div
-                        class="w-full bg-blue-500 rounded-t hover:opacity-80 cursor-pointer transition-opacity relative"
-                        :style="{
-                          height: (item.submissions / 200) * 160 + 'px',
-                        }"
+                        v-for="(item, idx) in userGrowthData"
+                        :key="idx"
+                        class="flex-1 flex flex-col items-center gap-2"
                       >
                         <div
-                          class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none"
+                          class="w-full flex gap-1 items-end justify-center h-40"
                         >
-                          {{ item.submissions }} bài
+                          <div
+                            class="flex-1 bg-blue-500 rounded-t opacity-80 hover:opacity-100 cursor-pointer transition-opacity relative group/bar"
+                            :style="{
+                              height: (item.students / 160) * 100 + '%',
+                            }"
+                          >
+                            <div
+                              class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none"
+                            >
+                              Sinh viên: {{ item.students }}
+                            </div>
+                          </div>
+                          <div
+                            class="flex-1 bg-green-500 rounded-t opacity-80 hover:opacity-100 cursor-pointer transition-opacity relative group/bar"
+                            :style="{
+                              height: (item.teachers / 160) * 100 + '%',
+                            }"
+                          >
+                            <div
+                              class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none"
+                            >
+                              Giảng viên: {{ item.teachers }}
+                            </div>
+                          </div>
+                        </div>
+                        <span class="text-xs text-gray-600 truncate">{{
+                          item.month.replace("Tháng ", "T")
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex justify-center gap-4 mt-4 text-xs border-t pt-3"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 bg-blue-500 rounded"></div>
+                      <span>Sinh viên</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 bg-green-500 rounded"></div>
+                      <span>Giảng viên</span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Card>
+
+            <!-- Submission Trend Chart -->
+            <Card class="bg-white">
+              <template #title>{{ t("admin.caseSubmissions") }}</template>
+              <template #subtitle>Số lượng bài nộp theo tháng</template>
+              <template #content>
+                <div
+                  class="w-full h-72 bg-gray-50 rounded-lg p-4 flex flex-col justify-between"
+                >
+                  <div class="flex h-40 gap-2 mb-4">
+                    <div
+                      class="flex flex-col justify-between text-xs text-gray-500 pr-2 border-r border-gray-300 min-w-max"
+                    >
+                      <span>200</span>
+                      <span>150</span>
+                      <span>100</span>
+                      <span>50</span>
+                      <span>0</span>
+                    </div>
+                    <div class="flex items-end justify-between flex-1 gap-2">
+                      <div
+                        v-for="(item, idx) in submissionData"
+                        :key="idx"
+                        class="flex-1 group relative"
+                      >
+                        <div
+                          class="w-full bg-blue-500 rounded-t hover:opacity-80 cursor-pointer transition-opacity relative"
+                          :style="{
+                            height: (item.submissions / 200) * 160 + 'px',
+                          }"
+                        >
+                          <div
+                            class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none"
+                          >
+                            {{ item.submissions }} bài
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div class="grid grid-cols-6 gap-2 text-xs text-gray-600 mt-4">
                   <div
-                    v-for="item in submissionData"
-                    :key="item.month"
-                    class="text-center truncate"
-                  >
-                    {{ item.month.replace("Tháng ", "T") }}
-                  </div>
-                </div>
-              </div>
-            </template>
-          </Card>
-
-          <!-- Student Distribution by Department -->
-          <Card class="bg-white">
-            <template #title>{{ t("admin.departmentActivity") }}</template>
-            <template #subtitle>Phân bố sinh viên theo khoa</template>
-            <template #content>
-              <div
-                class="w-full h-72 flex flex-col items-center justify-center"
-              >
-                <div class="relative">
-                  <svg
-                    width="200"
-                    height="200"
-                    viewBox="0 0 280 280"
-                    class="drop-shadow-lg"
-                  >
-                    <g v-for="(slice, idx) in pieslices" :key="idx">
-                      <path
-                        :d="slice.path"
-                        :fill="slice.color"
-                        stroke="white"
-                        stroke-width="2"
-                      />
-                    </g>
-                  </svg>
-                  <div
-                    class="absolute inset-0 flex items-center justify-center"
+                    class="grid grid-cols-6 gap-2 text-xs text-gray-600 mt-4"
                   >
                     <div
-                      class="w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center shadow-lg border-4 border-gray-50"
+                      v-for="item in submissionData"
+                      :key="item.month"
+                      class="text-center truncate"
                     >
-                      <div class="text-center">
-                        <p class="text-lg font-bold text-gray-800">
-                          {{
-                            departments.reduce(
-                              (s: number, d: any) => s + d.students,
-                              0,
-                            )
-                          }}
-                        </p>
-                        <p class="text-xs text-gray-600">sinh viên</p>
+                      {{ item.month.replace("Tháng ", "T") }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Card>
+
+            <!-- Student Distribution by Department -->
+            <Card class="bg-white">
+              <template #title>{{ t("admin.departmentActivity") }}</template>
+              <template #subtitle>Phân bố sinh viên theo khoa</template>
+              <template #content>
+                <div
+                  class="w-full h-72 flex flex-col items-center justify-center"
+                >
+                  <div class="relative">
+                    <svg
+                      width="200"
+                      height="200"
+                      viewBox="0 0 280 280"
+                      class="drop-shadow-lg"
+                    >
+                      <g v-for="(slice, idx) in pieslices" :key="idx">
+                        <path
+                          :d="slice.path"
+                          :fill="slice.color"
+                          stroke="white"
+                          stroke-width="2"
+                        />
+                      </g>
+                    </svg>
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div
+                        class="w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center shadow-lg border-4 border-gray-50"
+                      >
+                        <div class="text-center">
+                          <p class="text-lg font-bold text-gray-800">
+                            {{
+                              departments.reduce(
+                                (s: number, d: any) => s + d.students,
+                                0,
+                              )
+                            }}
+                          </p>
+                          <p class="text-xs text-gray-600">sinh viên</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2 text-xs w-full mt-4 px-4">
-                  <div
-                    v-for="dept in departmentDistribution"
-                    :key="dept.name"
-                    class="flex items-center gap-2"
-                  >
+                  <div class="grid grid-cols-2 gap-2 text-xs w-full mt-4 px-4">
                     <div
-                      class="w-3 h-3 rounded-full"
-                      :style="{ backgroundColor: dept.color }"
-                    ></div>
-                    <span class="truncate"
-                      >{{ dept.name }}: {{ dept.value }}</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </template>
-          </Card>
-
-          <Card class="bg-white">
-            <template #title>{{ t("admin.performanceMetrics") }}</template>
-            <template #subtitle>Số bệnh án theo khoa (tỉ lệ tương đối)</template>
-            <template #content>
-              <div class="w-full h-72 flex flex-col justify-between">
-                <div class="space-y-2">
-                  <div
-                    v-for="dept in performanceData"
-                    :key="dept.department"
-                    class="flex items-center gap-3 group"
-                  >
-                    <div
-                      class="w-24 text-sm font-medium text-gray-700 truncate"
-                    >
-                      {{ dept.department }}
-                    </div>
-                    <div
-                      class="flex-1 bg-gray-200 rounded-full h-6 overflow-visible relative group/bar"
+                      v-for="dept in departmentDistribution"
+                      :key="dept.name"
+                      class="flex items-center gap-2"
                     >
                       <div
-                        class="bg-green-500 h-full rounded-full hover:opacity-80 transition-opacity"
-                        :style="{ width: dept.avgGrade + '%' }"
+                        class="w-3 h-3 rounded-full"
+                        :style="{ backgroundColor: dept.color }"
                       ></div>
-                      <span
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs font-semibold text-white mix-blend-darken"
+                      <span class="truncate"
+                        >{{ dept.name }}: {{ dept.value }}</span
                       >
-                        {{ dept.submissions }}
-                      </span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Card>
+
+            <Card class="bg-white">
+              <template #title>{{ t("admin.performanceMetrics") }}</template>
+              <template #subtitle
+                >Số bệnh án theo khoa (tỉ lệ tương đối)</template
+              >
+              <template #content>
+                <div class="w-full h-72 flex flex-col justify-between">
+                  <div class="space-y-2">
+                    <div
+                      v-for="dept in performanceData"
+                      :key="dept.department"
+                      class="flex items-center gap-3 group"
+                    >
                       <div
-                        class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none"
+                        class="w-24 text-sm font-medium text-gray-700 truncate"
                       >
-                        {{ dept.submissions }} bệnh án
+                        {{ dept.department }}
+                      </div>
+                      <div
+                        class="flex-1 bg-gray-200 rounded-full h-6 overflow-visible relative group/bar"
+                      >
+                        <div
+                          class="bg-green-500 h-full rounded-full hover:opacity-80 transition-opacity"
+                          :style="{ width: dept.avgGrade + '%' }"
+                        ></div>
+                        <span
+                          class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs font-semibold text-white mix-blend-darken"
+                        >
+                          {{ dept.submissions }}
+                        </span>
+                        <div
+                          class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none"
+                        >
+                          {{ dept.submissions }} bệnh án
+                        </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </template>
+            </Card>
+          </div>
+        </TabPanel>
+
+        <!-- Departments Tab -->
+        <TabPanel value="1">
+          <Card class="bg-white">
+            <template #title>Tổng quan các khoa</template>
+            <template #subtitle
+              >Chuyên khoa y khoa và thống kê. Nhấp vào khoa để xem chi tiết
+              người dùng</template
+            >
+            <template #content>
+              <div class="space-y-3">
+                <div
+                  v-for="(dept, index) in departments"
+                  :key="index"
+                  class="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer hover:shadow-sm"
+                  @click="navigateToDepartment(String(dept.id))"
+                >
+                  <div
+                    class="flex flex-col md:flex-row md:items-center justify-between gap-3"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-4 h-4 rounded-full"
+                        :style="{ backgroundColor: dept.color }"
+                      ></div>
+                      <div>
+                        <h3 class="text-base font-semibold text-gray-900 mb-2">
+                          {{ dept.vietnamese_name }}
+                        </h3>
+                        <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+                          <div class="flex items-center gap-1.5">
+                            <Users class="h-4 w-4" />
+                            <span>{{ dept.teachers }} Giảng viên</span>
+                          </div>
+                          <div class="flex items-center gap-1.5">
+                            <GraduationCap class="h-4 w-4" />
+                            <span>{{ dept.students }} Sinh viên</span>
+                          </div>
+                          <div class="flex items-center gap-1.5">
+                            <BookOpen class="h-4 w-4" />
+                            <span>{{ dept.activeCases }} Bệnh án</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <Badge value="Hoạt động" severity="success" />
                   </div>
                 </div>
               </div>
             </template>
           </Card>
-        </div>
-      </TabPanel>
+        </TabPanel>
 
-      <!-- Departments Tab -->
-      <TabPanel value="1">
-        <Card class="bg-white">
-          <template #title>Tổng quan các khoa</template>
-          <template #subtitle>Chuyên khoa y khoa và thống kê. Nhấp vào khoa để xem chi tiết người dùng</template>
-          <template #content>
-            <div class="space-y-3">
-              <div
-                v-for="(dept, index) in departments"
-                :key="index"
-                class="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer hover:shadow-sm"
-                @click="navigateToDepartment(String(dept.id))"
-              >
+        <!-- Activity Tab -->
+        <TabPanel value="2">
+          <Card class="bg-white">
+            <template #title>Hoạt động gần đây</template>
+            <template #subtitle
+              >Cập nhật và thay đổi hệ thống mới nhất</template
+            >
+            <template #content>
+              <div class="space-y-3">
                 <div
-                  class="flex flex-col md:flex-row md:items-center justify-between gap-3"
+                  v-for="(activity, index) in recentActivity"
+                  :key="index"
+                  class="flex items-start gap-3 p-4 border border-gray-200 rounded-lg"
                 >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-4 h-4 rounded-full"
-                      :style="{ backgroundColor: dept.color }"
-                    ></div>
-                    <div>
-                      <h3 class="text-base font-semibold text-gray-900 mb-2">
-                        {{ dept.vietnamese_name }}
-                      </h3>
-                      <div class="flex flex-wrap gap-4 text-sm text-gray-600">
-                        <div class="flex items-center gap-1.5">
-                          <Users class="h-4 w-4" />
-                          <span>{{ dept.teachers }} Giảng viên</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                          <GraduationCap class="h-4 w-4" />
-                          <span>{{ dept.students }} Sinh viên</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                          <BookOpen class="h-4 w-4" />
-                          <span>{{ dept.activeCases }} Bệnh án</span>
-                        </div>
-                      </div>
-                    </div>
+                  <div class="w-2 h-2 rounded-full mt-2 bg-blue-500"></div>
+                  <div class="flex-1">
+                    <p class="text-sm text-gray-900 font-medium">
+                      {{ activity.message }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      {{ formatDate(activity.timestamp) }}
+                    </p>
                   </div>
-                  <Badge value="Hoạt động" severity="success" />
                 </div>
               </div>
-            </div>
-          </template>
-        </Card>
-      </TabPanel>
-
-      <!-- Activity Tab -->
-      <TabPanel value="2">
-        <Card class="bg-white">
-          <template #title>Hoạt động gần đây</template>
-          <template #subtitle>Cập nhật và thay đổi hệ thống mới nhất</template>
-          <template #content>
-            <div class="space-y-3">
-              <div
-                v-for="(activity, index) in recentActivity"
-                :key="index"
-                class="flex items-start gap-3 p-4 border border-gray-200 rounded-lg"
-              >
-                <div class="w-2 h-2 rounded-full mt-2 bg-blue-500"></div>
-                <div class="flex-1">
-                  <p class="text-sm text-gray-900 font-medium">
-                    {{ activity.message }}
-                  </p>
-                  <p class="text-xs text-gray-500 mt-1">
-                    {{ formatDate(activity.timestamp) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </template>
-        </Card>
-      </TabPanel>
+            </template>
+          </Card>
+        </TabPanel>
       </TabPanels>
     </Tabs>
   </div>
@@ -561,10 +576,6 @@ async function loadDepartmentData() {
             color: colors[idx % colors.length],
           };
         } catch (error) {
-          console.error(
-            `Error loading stats for department ${dept.name}:`,
-            error,
-          );
           return {
             id: dept.id,
             name: dept.name,
@@ -593,9 +604,7 @@ async function loadDepartmentData() {
       (sum, d) => sum + d.activeCases,
       0,
     );
-  } catch (error) {
-    console.error("Error loading department data:", error);
-  }
+  } catch {}
 }
 
 const userGrowthData = ref<
@@ -668,7 +677,11 @@ function buildLast6Months() {
   const now = new Date();
   return Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-    return { year: d.getFullYear(), month: d.getMonth(), label: `Tháng ${d.getMonth() + 1}` };
+    return {
+      year: d.getFullYear(),
+      month: d.getMonth(),
+      label: `Tháng ${d.getMonth() + 1}`,
+    };
   });
 }
 
@@ -698,11 +711,19 @@ async function loadChartData() {
       month: m.label,
       students: allUsers.filter((u) => {
         const d = new Date(u.created_at);
-        return u.role === "student" && d.getFullYear() === m.year && d.getMonth() === m.month;
+        return (
+          u.role === "student" &&
+          d.getFullYear() === m.year &&
+          d.getMonth() === m.month
+        );
       }).length,
       teachers: allUsers.filter((u) => {
         const d = new Date(u.created_at);
-        return u.role === "instructor" && d.getFullYear() === m.year && d.getMonth() === m.month;
+        return (
+          u.role === "instructor" &&
+          d.getFullYear() === m.year &&
+          d.getMonth() === m.month
+        );
       }).length,
     }));
 
@@ -718,7 +739,10 @@ async function loadChartData() {
     }));
 
     // Performance data: relative case count per department (bar chart 0-100%)
-    const maxCases = Math.max(1, ...departments.value.map((d) => d.activeCases));
+    const maxCases = Math.max(
+      1,
+      ...departments.value.map((d) => d.activeCases),
+    );
     performanceData.value = departments.value.map((d) => ({
       department: d.vietnamese_name.replace(/^Khoa\s+/i, ""),
       avgGrade: Math.round((d.activeCases / maxCases) * 100),
@@ -727,10 +751,15 @@ async function loadChartData() {
 
     // Recent activity: latest users + latest cases merged by timestamp
     const sortedUsers = [...allUsers]
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      )
       .slice(0, 5);
 
-    const casesRes = await api.get("/cases/", { params: { ordering: "-created_at" } });
+    const casesRes = await api.get("/cases/", {
+      params: { ordering: "-created_at" },
+    });
     const recentCases: any[] = casesRes.data?.results ?? [];
 
     const activities = [
@@ -746,12 +775,11 @@ async function loadChartData() {
       })),
     ];
     activities.sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
     recentActivity.value = activities.slice(0, 8);
-  } catch (err) {
-    console.error("Error loading chart data:", err);
-  }
+  } catch {}
 }
 
 // Load data on mount

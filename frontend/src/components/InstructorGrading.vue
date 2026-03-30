@@ -2023,7 +2023,6 @@ const publishToFeed = async () => {
     publishedIsFeatured.value = publishSettings.value.isFeatured;
     toast.success("Đã xuất bản ca bệnh lên feed công khai!");
   } catch (error) {
-    console.error("Failed to publish:", error);
     toast.error("Không thể xuất bản ca bệnh. Vui lòng thử lại.");
   } finally {
     publishing.value = false;
@@ -2038,7 +2037,6 @@ const unpublishFromFeed = async () => {
     isPublishedToFeed.value = false;
     toast.success("Đã gỡ ca bệnh khỏi feed công khai");
   } catch (error) {
-    console.error("Failed to unpublish:", error);
     toast.error("Không thể gỡ ca bệnh. Vui lòng thử lại.");
   } finally {
     unpublishing.value = false;
@@ -2507,7 +2505,6 @@ async function saveGrade() {
     toast.success("Đánh giá đã được lưu thành công!");
   } catch (error: unknown) {
     const err = error as import("axios").AxiosError<{ [k: string]: string[] }>;
-    console.error("Save error:", err);
     toast.error("Không thể lưu đánh giá.");
   } finally {
     saving.value = false;
@@ -2572,7 +2569,6 @@ async function submitGrade() {
     setTimeout(() => emit("navigate", "dashboard"), 1500);
   } catch (error: unknown) {
     const err = error as import("axios").AxiosError<{ [k: string]: string[] }>;
-    console.error("Submit error:", err);
     toast.error("Không thể hoàn thành chấm điểm.");
   } finally {
     submitting.value = false;
@@ -2592,7 +2588,7 @@ onMounted(async () => {
     try {
       studentNotes.value = await casesService.getStudentNotes(props.caseId);
     } catch {
-      console.log("No student notes");
+      console.log("NSN");
     }
     try {
       const grade = await gradesService.getGrade(props.caseId);
@@ -2615,10 +2611,9 @@ onMounted(async () => {
         };
       }
     } catch {
-      console.log("No grade found");
+      console.log("NGN");
     }
   } catch (error) {
-    console.error("Load failed:", error);
     toast.error("Không thể tải dữ liệu ca bệnh");
   }
 });

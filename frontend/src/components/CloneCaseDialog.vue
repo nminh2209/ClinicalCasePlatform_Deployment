@@ -176,7 +176,6 @@ const loadCaseData = async () => {
     const caseData = await casesService.getCase(String(props.caseId));
     originalCase.value = caseData;
   } catch (error) {
-    console.error("Error loading case data:", error);
     errorMessage.value = "Failed to load case information.";
   }
 };
@@ -223,7 +222,6 @@ const submitClone = async () => {
 
     close();
   } catch (error: any) {
-    console.error("Error cloning case:", error);
     errorMessage.value =
       error.response?.data?.detail ||
       error.response?.data?.message ||

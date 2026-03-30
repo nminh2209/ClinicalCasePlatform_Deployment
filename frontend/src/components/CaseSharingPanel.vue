@@ -323,11 +323,9 @@ const refreshData = async (forceRefresh = false) => {
     ) {
       permissions.value = [...cachedData.permissions];
       guestAccesses.value = [...cachedData.guests];
-      console.log("Using cached data for case", cacheKey);
       return;
     }
 
-    console.log("Loading fresh data for case", cacheKey);
     await Promise.all([loadPermissions(), loadGuestAccesses()]);
 
     dataCache.value.set(cacheKey, {
@@ -338,7 +336,6 @@ const refreshData = async (forceRefresh = false) => {
 
     if (forceRefresh) toast.success("Đã làm mới dữ liệu");
   } catch (error) {
-    console.error("Error in refreshData:", error);
     toast.error("Lỗi khi tải dữ liệu");
   }
 };
@@ -361,7 +358,6 @@ const loadPermissions = async () => {
         share_description: p.share_description || "",
       }));
   } catch (error) {
-    console.error("Error loading permissions:", error);
     permissions.value = [];
     toast.error("Lỗi khi tải quyền truy cập");
   }
@@ -372,7 +368,6 @@ const loadGuestAccesses = async () => {
     const data = await sharingService.getGuestAccesses(props.caseId);
     guestAccesses.value = Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Error loading guest accesses:", error);
     guestAccesses.value = [];
   }
 };
@@ -407,10 +402,6 @@ const onGuestCreated = (guest: any) => {
       timestamp: Date.now(),
     });
   }
-  console.log("Guest created and cache updated", {
-    guestId: guest.id,
-    cacheKey,
-  });
 };
 
 const copyGuestLink = (guest: GuestAccess) => {
@@ -429,13 +420,8 @@ const extendGuestAccess = async (guest: GuestAccess) => {
       cachedData.guests = [...guestAccesses.value];
       cachedData.timestamp = Date.now();
     }
-    console.log("Guest access extended and cache updated", {
-      guestId: guest.id,
-      cacheKey,
-    });
     toast.success("Đã gia hạn 24 giờ");
   } catch (error) {
-    console.error("Error extending guest access:", error);
     toast.error("Lỗi khi gia hạn");
   }
 };
@@ -451,13 +437,8 @@ const deleteGuestAccess = async (guestId: number) => {
       cachedData.guests = [...guestAccesses.value];
       cachedData.timestamp = Date.now();
     }
-    console.log("Guest access deleted and cache updated", {
-      guestId,
-      cacheKey,
-    });
     toast.success("Đã xóa liên kết khách mời");
   } catch (error) {
-    console.error("Error deleting guest access:", error);
     toast.error("Lỗi khi xóa liên kết khách mời");
   }
 };
@@ -481,10 +462,6 @@ const onPermissionCreated = (permission: any) => {
       timestamp: Date.now(),
     });
   }
-  console.log("Permission created and cache updated", {
-    permissionId: permission.id,
-    cacheKey,
-  });
 };
 
 const revokePermission = async (permissionId: number) => {
@@ -498,10 +475,6 @@ const revokePermission = async (permissionId: number) => {
       cachedData.permissions = [...permissions.value];
       cachedData.timestamp = Date.now();
     }
-    console.log("Permission deleted and cache updated", {
-      permissionId,
-      cacheKey,
-    });
     toast.success("Quyền đã được xóa");
   } catch (error) {
     toast.error("Lỗi khi xóa quyền");
@@ -531,7 +504,6 @@ const bulkRevoke = async () => {
       cachedData.permissions = [...permissions.value];
       cachedData.timestamp = Date.now();
     }
-    console.log("Bulk permissions deleted and cache updated", { cacheKey });
     toast.success("Đã xóa các quyền đã chọn");
   } catch (error) {
     toast.error("Lỗi khi xóa quyền");
@@ -590,21 +562,15 @@ watch(
 );
 
 onMounted(() => {
-  console.log("Component mounted for case", props.caseId);
   refreshData(false);
 });
 
 watch(
   () => props.caseId,
   (newCaseId) => {
-    console.log("Case changed to", newCaseId);
     refreshData(false);
   },
 );
-
-onUnmounted(() => {
-  console.log("Component unmounted, keeping cache for case", props.caseId);
-});
 </script>
 
 <style scoped>

@@ -31,12 +31,7 @@
     >
       <p class="text-red-700 font-medium">Lỗi:</p>
       <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-      <Button
-        @click="loadUsers()"
-        label="Thử lại"
-        size="small"
-        class="mt-2"
-      />
+      <Button @click="loadUsers()" label="Thử lại" size="small" class="mt-2" />
     </div>
 
     <!-- Search and Filter -->
@@ -51,10 +46,7 @@
           >
           <IconField>
             <InputIcon class="pi pi-search" />
-            <InputText
-              v-model="searchQuery"
-              placeholder="Tên, email, ID..."
-            />
+            <InputText v-model="searchQuery" placeholder="Tên, email, ID..." />
           </IconField>
         </div>
         <div>
@@ -82,11 +74,7 @@
           />
         </div>
         <div class="flex items-end">
-          <Button
-            @click="resetFilters"
-            label="Xóa bộ lọc"
-            class="w-full"
-          />
+          <Button @click="resetFilters" label="Xóa bộ lọc" class="w-full" />
         </div>
       </div>
     </div>
@@ -98,7 +86,10 @@
     >
       <div class="p-4 border-b border-gray-200">
         <h3 class="font-semibold text-gray-800">
-          Danh sách người dùng ({{ filteredUsers.length }}<span v-if="filteredUsers.length !== users.length"> / {{ users.length }}</span>)
+          Danh sách người dùng ({{ filteredUsers.length
+          }}<span v-if="filteredUsers.length !== users.length">
+            / {{ users.length }}</span
+          >)
         </h3>
       </div>
 
@@ -172,7 +163,9 @@
                   />
                   <Button
                     @click="toggleUserStatus(user)"
-                    :icon="user.is_active ? 'pi pi-eye-slash' : 'pi pi-check-circle'"
+                    :icon="
+                      user.is_active ? 'pi pi-eye-slash' : 'pi pi-check-circle'
+                    "
                     text
                     :severity="user.is_active ? 'warning' : 'success'"
                     rounded
@@ -352,15 +345,12 @@
           </div>
 
           <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <Button
-              type="button"
-              @click="closeModal"
-              label="Hủy"
-              outlined
-            />
+            <Button type="button" @click="closeModal" label="Hủy" outlined />
             <Button
               type="submit"
-              :label="submitting ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo mới'"
+              :label="
+                submitting ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo mới'
+              "
               :disabled="submitting"
             />
           </div>
@@ -381,16 +371,8 @@
           >?
         </p>
         <div class="flex justify-end gap-3">
-          <Button
-            @click="showDeleteConfirm = false"
-            label="Hủy"
-            outlined
-          />
-          <Button
-            @click="deleteUser"
-            label="Xóa"
-            severity="danger"
-          />
+          <Button @click="showDeleteConfirm = false" label="Hủy" outlined />
+          <Button @click="deleteUser" label="Xóa" severity="danger" />
         </div>
       </div>
     </div>
@@ -528,7 +510,6 @@ const loadDepartments = async () => {
       ? data.filter((dept: any) => dept && dept.id)
       : [];
   } catch (err) {
-    console.error("Failed to load departments:", err);
     departments.value = [];
   }
 };
@@ -691,7 +672,10 @@ onMounted(() => {
 }
 
 /* Headers */
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   color: var(--foreground);
 }
 

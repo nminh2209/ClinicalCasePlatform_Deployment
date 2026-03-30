@@ -79,7 +79,6 @@ onMounted(async () => {
 
     router.push("/home");
   } catch (err: any) {
-    console.error("OAuth callback error: ", err);
     error.value =
       err.response?.data?.error || "Xác thực thất bại. Vui lòng thử lại sau.";
   }

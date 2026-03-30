@@ -494,7 +494,6 @@ async function loadProgressData() {
     casesData.value = Array.isArray(cases) ? cases : cases?.results || [];
     gradesData.value = Array.isArray(grades) ? grades : grades?.results || [];
   } catch (error) {
-    console.error("Error loading progress data:", error);
     casesData.value = [];
     gradesData.value = [];
   } finally {

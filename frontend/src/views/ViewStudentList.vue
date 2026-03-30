@@ -178,7 +178,6 @@ async function fetchPage(url: string = "/auth/users/") {
     const page = urlObj.searchParams.get("page");
     currentPageNumber.value = page ? parseInt(page) : 1;
   } catch (err: any) {
-    console.error(err);
     currentPageUsers.value = [];
   } finally {
     loading.value = false;

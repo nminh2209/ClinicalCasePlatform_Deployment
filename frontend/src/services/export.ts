@@ -81,9 +81,6 @@ export const exportService = {
       this.downloadBlob(blob, filename);
 
       return true;
-    } catch (error) {
-      console.error("Export failed:", error);
-      throw error;
-    }
+    } catch {}
   },
 };

@@ -184,14 +184,8 @@ async function loadCases() {
   error.value = null;
 
   try {
-    // Fetch only approved cases from all users
-    console.log("Fetching approved cases...");
+    // Fetch only approved cases from all user
     const data = await casesService.getCases({ case_status: "approved" });
-    console.log("Received data:", data);
-    console.log(
-      "Number of cases:",
-      Array.isArray(data) ? data.length : "Not an array",
-    );
 
     // Check if data is an array or if it's paginated
     if (Array.isArray(data)) {
@@ -200,12 +194,9 @@ async function loadCases() {
       // Handle paginated response
       cases.value = data.results;
     } else {
-      console.warn("Unexpected data format:", data);
       cases.value = [];
     }
   } catch (err: any) {
-    console.error("Failed to load approved cases:", err);
-    console.error("Error response:", err.response?.data);
     error.value = "Không thể tải ca bệnh. Vui lòng thử lại.";
   } finally {
     loading.value = false;

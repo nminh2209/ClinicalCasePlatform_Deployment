@@ -465,12 +465,9 @@ const fetchSummary = async () => {
       department_performance: response.distributions?.by_department || [],
       recent_cases: [],
     };
-
-    console.log("Case summary loaded:", summary.value);
   } catch (err: any) {
     error.value =
       err.response?.data?.detail || "Không thể tải dữ liệu tổng hợp";
-    console.error("Error fetching case summary:", err);
   } finally {
     loading.value = false;
   }

@@ -29,10 +29,6 @@ const handleNavigate = (page: string) => {
 onMounted(() => {
   if (!authStore.isAuthenticated || !user.value) {
     router.push("/login");
-  } else {
-    // Debug: log the user role
-    console.log("User logged in with role:", role.value);
-    console.log("User object:", user.value);
   }
 });
 

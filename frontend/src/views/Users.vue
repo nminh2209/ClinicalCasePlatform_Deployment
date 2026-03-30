@@ -24,12 +24,7 @@
     >
       <p class="text-red-700 font-medium">Lỗi tải dữ liệu:</p>
       <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-      <Button
-        @click="loadData()"
-        label="Thử lại"
-        size="small"
-        class="mt-2"
-      />
+      <Button @click="loadData()" label="Thử lại" size="small" class="mt-2" />
     </div>
 
     <!-- Search and Filter -->
@@ -44,10 +39,7 @@
           >
           <IconField>
             <InputIcon class="pi pi-search" />
-            <InputText
-              v-model="q"
-              placeholder="Tên hoặc email..."
-            />
+            <InputText v-model="q" placeholder="Tên hoặc email..." />
           </IconField>
         </div>
         <div>
@@ -75,11 +67,7 @@
           />
         </div>
         <div class="flex items-end">
-          <Button
-            @click="resetFilters"
-            label="Xóa bộ lọc"
-            class="w-full"
-          />
+          <Button @click="resetFilters" label="Xóa bộ lọc" class="w-full" />
         </div>
       </div>
     </div>
@@ -165,11 +153,7 @@
               </td>
               <td class="px-6 py-4">
                 <div class="flex gap-2">
-                  <Button
-                    @click="edit(user)"
-                    label="Sửa"
-                    size="small"
-                  />
+                  <Button @click="edit(user)" label="Sửa" size="small" />
                   <Button
                     @click="toggleActive(user)"
                     :label="user.is_active ? 'Vô hiệu' : 'Kích hoạt'"
@@ -351,7 +335,6 @@ async function loadData(requestedPage: number = page.value) {
 
     // Handle paginated response (DRF default pagination wraps results)
     const usersData = usersRes.data;
-    console.log("Loaded users:", usersData);
     const results = usersData.results
       ? usersData.results
       : Array.isArray(usersData)
@@ -382,11 +365,11 @@ async function loadData(requestedPage: number = page.value) {
       name: d.name,
       vietnamese_name: d.vietnamese_name,
     }));
-    console.log("Loaded departments:", departments.value);
   } catch (err: any) {
-    console.error("Error loading users/departments", err);
     error.value =
-      err.response?.data?.detail || err.message || "Failed to load data";
+      err.response?.data?.detail ||
+      err.message ||
+      "Lỗi khi tải dữ liệu, vui lòng thử lại sau.";
   } finally {
     loading.value = false;
   }
@@ -420,12 +403,12 @@ function edit(user: any) {
 }
 
 async function toggleActive(user: any) {
-  const action = user.is_active ? 'deactivate' : 'activate';
+  const action = user.is_active ? "deactivate" : "activate";
   try {
     await api.post(`/auth/admin/users/${user.id}/${action}/`);
     await loadData(page.value);
   } catch (err: any) {
-    error.value = err.response?.data?.detail || 'Failed to update user status';
+    error.value = err.response?.data?.detail || "Failed to update user status";
   }
 }
 

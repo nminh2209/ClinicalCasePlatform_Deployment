@@ -11,10 +11,26 @@
       />
     </div>
 
+    <!-- Error State -->
+    <div v-if="error && !loading" class="max-w-4xl mx-auto">
+      <div class="bg-red-50 p-4 rounded-lg border border-red-200 mb-6">
+        <p class="text-red-800 font-medium">{{ error }}</p>
+        <Button
+          label="Thử lại"
+          severity="danger"
+          outlined
+          @click="loadPatientCase"
+          class="mt-3"
+        />
+      </div>
+    </div>
+
     <!-- Content -->
     <div v-else-if="caseData" class="max-w-4xl mx-auto">
       <!-- Header -->
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div
+        class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6"
+      >
         <div class="flex items-center gap-3 sm:gap-4">
           <Button
             icon="pi pi-arrow-left"
@@ -409,6 +425,7 @@ requireRoles(["student", "instructor"]);
 
 const loading = ref(false);
 const caseData = ref<any>(null);
+const error = ref<string | null>(null);
 
 // Get case ID from route params
 const caseId = route.params.id as string;
@@ -417,12 +434,44 @@ async function loadPatientCase() {
   if (!caseId) return;
 
   loading.value = true;
+  error.value = null;
   try {
     caseData.value = await casesService.getCase(caseId);
-  } catch (error) {
-    console.error("Failed to load patient case:", error);
+  } catch (err) {
+    // Log to backend error tracking
+    logErrorToBackend(err, { caseId });
+
+    // Show user-friendly message based on error type
+    if (err instanceof Response && err.status === 404) {
+      error.value = "Không tìm thấy hồ sơ bệnh nhân";
+    } else if (err instanceof Response && err.status === 403) {
+      error.value = "Bạn không có quyền truy cập hồ sơ này";
+    } else if (err instanceof TypeError) {
+      error.value = "Lỗi kết nối. Vui lòng kiểm tra kết nối mạng";
+    } else {
+      error.value = "Lỗi tải hồ sơ. Vui lòng thử lại";
+    }
   } finally {
     loading.value = false;
+  }
+}
+
+// Backend error logging function
+async function logErrorToBackend(err: any, context: Record<string, any>) {
+  try {
+    // Only send non-sensitive info to your backend
+    await fetch("/api/logs/errors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: err?.message || "Unknown error",
+        context,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+      }),
+    });
+  } catch {
+    // Silently fail
   }
 }
 

@@ -12,27 +12,27 @@
     <Card class="search-card">
       <template #content>
         <div class="search-content">
-        <div class="search-grid">
-          <div class="search-field">
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText
-                v-model="searchQuery"
-                class="w-full"
-                type="text"
-                placeholder="Tìm kiếm theo tên bệnh nhân, MRN, chuyên khoa..."
-              />
-            </IconField>
+          <div class="search-grid">
+            <div class="search-field">
+              <IconField>
+                <InputIcon class="pi pi-search" />
+                <InputText
+                  v-model="searchQuery"
+                  class="w-full"
+                  type="text"
+                  placeholder="Tìm kiếm theo tên bệnh nhân, MRN, chuyên khoa..."
+                />
+              </IconField>
+            </div>
+            <Select
+              v-model="specialtyFilter"
+              :options="specialtyOptions"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full specialty-select"
+              placeholder="Tất cả chuyên khoa"
+            />
           </div>
-          <Select
-            v-model="specialtyFilter"
-            :options="specialtyOptions"
-            optionLabel="label"
-            optionValue="value"
-            class="w-full specialty-select"
-            placeholder="Tất cả chuyên khoa"
-          />
-        </div>
         </div>
       </template>
     </Card>
@@ -184,7 +184,6 @@ async function loadPatientRecords() {
     const response = await casesService.getCases();
     cases.value = response.results || response;
   } catch (error) {
-    console.error("Failed to load patient records:", error);
   } finally {
     loading.value = false;
   }

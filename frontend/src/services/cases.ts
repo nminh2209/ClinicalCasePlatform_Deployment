@@ -25,19 +25,11 @@ export const casesService = {
       try {
         const attachmentsResponse = await api.get(`/cases/${id}/attachments/`);
         caseData.medical_attachments = attachmentsResponse.data;
-        console.log(
-          "📎 Fetched attachments from separate endpoint:",
-          caseData.medical_attachments,
-        );
       } catch (error) {
-        console.warn("Failed to fetch medical attachments:", error);
         caseData.medical_attachments = [];
       }
     } else {
-      console.log(
-        "📎 Attachments already in case response:",
-        caseData.medical_attachments,
-      );
+      console.log("AAICR");
     }
 
     return caseData;
@@ -122,15 +114,13 @@ export const casesService = {
   async getStudentNotes(caseId: string) {
     try {
       const response = await api.get(`/cases/${caseId}/notes/`);
-      console.log("getStudentNotes API response:", response.data);
       // Handle paginated response
       if (response.data.results && response.data.results.length > 0) {
         return response.data.results[0];
       }
       // Fallback for non-paginated response
       return response.data.length > 0 ? response.data[0] : null;
-    } catch (error) {
-      console.error("Failed to fetch student notes:", error);
+    } catch {
       return null;
     }
   },

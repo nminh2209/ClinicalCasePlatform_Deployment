@@ -59,8 +59,7 @@ export const useAuthStore = defineStore("auth", () => {
       // Clear cases store to prevent showing previous user's cases
       const casesStore = useCasesStore();
       casesStore.$reset();
-    } catch (err: any) {
-      console.warn("Logout error: ", err);
+    } catch {
     } finally {
       loading.value = false;
     }

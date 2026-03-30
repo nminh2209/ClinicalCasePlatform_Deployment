@@ -1393,8 +1393,7 @@ async function loadStatistics() {
       total_cases: response.summary?.total_cases || 0,
       by_status: response.distributions?.by_status || [],
     };
-  } catch (err) {
-    console.error("Failed to load statistics:", err);
+  } catch {
   } finally {
     statsLoading.value = false;
   }
@@ -1433,9 +1432,7 @@ async function loadCases(page: number = 1) {
       trueTotalCases.value = casesStore.pagination.count;
     }
     await loadStatistics();
-  } catch (err) {
-    console.error("Failed to load cases:", err);
-  }
+  } catch {}
 }
 
 function goToPage(page: number) {
@@ -1512,7 +1509,6 @@ async function exportCase(caseItem: any, format: string) {
       `Đã xuất hồ sơ "${caseItem.title}" sang ${format.toUpperCase()} thành công!`,
     );
   } catch (error) {
-    console.error("Export failed:", error);
     alert("Có lỗi xảy ra khi xuất file. Vui lòng thử lại.");
   } finally {
     exporting.value = false;
@@ -1523,36 +1519,7 @@ async function viewCase(case_: any) {
   try {
     await casesStore.fetchCase(case_.id);
     selectedCase.value = casesStore.currentCase;
-
-    console.log("=== CASE DATA DEBUG ===");
-    console.log("Full case:", selectedCase.value);
-    console.log(
-      "Has clinical_history?",
-      !!selectedCase.value?.clinical_history,
-    );
-    console.log("clinical_history:", selectedCase.value?.clinical_history);
-    console.log(
-      "Has physical_examination?",
-      !!selectedCase.value?.physical_examination,
-    );
-    console.log(
-      "physical_examination:",
-      selectedCase.value?.physical_examination,
-    );
-    console.log(
-      "Has detailed_investigations?",
-      !!selectedCase.value?.detailed_investigations,
-    );
-    console.log(
-      "Has diagnosis_management?",
-      !!selectedCase.value?.diagnosis_management,
-    );
-    console.log(
-      "Has learning_outcomes?",
-      !!selectedCase.value?.learning_outcomes,
-    );
   } catch (error) {
-    console.error("Failed to load case details:", error);
     selectedCase.value = case_;
   }
 }
@@ -1747,8 +1714,7 @@ async function downloadAttachment(attachment: any) {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Error downloading attachment:", error);
+  } catch {
     alert("Lỗi khi tải xuống tệp");
   }
 }
@@ -1814,12 +1780,8 @@ async function uploadMedicalFile() {
 
     resetUploadForm();
     alert("Tải lên thành công!");
-  } catch (error: any) {
-    console.error("Upload error:", error);
-    alert(
-      "Lỗi khi tải lên tệp: " +
-        (error.response?.data?.message || error.message),
-    );
+  } catch {
+    alert("Lỗi khi tải lên tệp!");
   } finally {
     uploading.value = false;
     uploadProgress.value = 0;

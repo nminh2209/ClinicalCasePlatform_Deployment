@@ -421,7 +421,6 @@ onMounted(async () => {
   if (props.caseId) {
     try {
       const existingCase = await casesService.getCase(props.caseId);
-      console.log("Loading existing case:", existingCase);
 
       Object.assign(caseData.value, {
         title: existingCase.title || "",
@@ -473,10 +472,7 @@ onMounted(async () => {
           caseData.value.learning_outcomes,
           existingCase.learning_outcomes,
         );
-
-      console.log("Case data loaded successfully");
     } catch (error) {
-      console.error("Error loading case:", error);
       toast.error("Không thể tải dữ liệu ca bệnh");
     }
   }
@@ -546,12 +542,7 @@ const handleSaveDraft = async () => {
       });
     }, 500);
   } catch (error: any) {
-    console.error("Error saving draft:", error);
-    toast.error(
-      error.response?.data?.message ||
-        error.response?.data?.detail ||
-        t("wizard.failedToDraft"),
-    );
+    toast.error(t("wizard.failedToDraft"));
   }
 };
 
@@ -670,11 +661,6 @@ const handleComplete = async () => {
     const cleanedLearning = cleanObject(caseData.value.learning_outcomes);
     if (cleanedLearning) payload.learning_outcomes = cleanedLearning;
 
-    console.log("=== CASE CREATION PAYLOAD ===");
-    console.log("Full payload:", JSON.stringify(payload, null, 2));
-    console.log("Is instructor template:", isInstructor.value);
-    console.log("=== END PAYLOAD ===");
-
     const apiEndpoint = isInstructor.value ? "/cases/instructor/" : "/cases/";
     const hasAttachments =
       caseData.value.attachments && caseData.value.attachments.length > 0;
@@ -703,10 +689,6 @@ const handleComplete = async () => {
       emit("complete", { caseId: response.data.id, caseData: response.data });
     }, 500);
   } catch (error: any) {
-    console.error("Error creating case:", error);
-    console.error("Error response:", error.response?.data);
-    console.error("Error status:", error.response?.status);
-
     const fieldToI18nKey: Record<string, string> = {
       title: "createCase.caseTitle",
       patient_name: "createCase.firstName",
@@ -783,10 +765,6 @@ const handleComplete = async () => {
     let errorMessage = t("wizard.failedToCreate");
 
     if (error.response?.data) {
-      console.error(
-        "Full error object: ",
-        JSON.stringify(error.response.data, null, 2),
-      );
       if (error.response.data.message) {
         errorMessage = error.response.data.message;
       } else if (error.response.data.detail) {
@@ -795,9 +773,6 @@ const handleComplete = async () => {
         const formattedErrors = formatNestedErrors(error.response.data);
         if (formattedErrors.length > 0) {
           errorMessage = formattedErrors[0] || "";
-          if (formattedErrors.length > 1) {
-            console.error("All validation errors:", formattedErrors);
-          }
         }
       }
     }

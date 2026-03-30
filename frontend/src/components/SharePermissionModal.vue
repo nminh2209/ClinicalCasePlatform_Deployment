@@ -309,7 +309,6 @@ const loadDepartments = async () => {
     });
     departments.value = list;
   } catch (error) {
-    console.error("Failed to load departments:", error);
     departments.value = [];
     toast.toast.error("Không thể tải danh sách khoa");
   }
@@ -337,7 +336,6 @@ const loadUserDepartment = async () => {
       toast.toast.error("Bạn chưa được phân vào khoa nào");
     }
   } catch (error) {
-    console.error("Failed to load user department:", error);
     toast.toast.error("Không thể tải thông tin khoa");
   }
 };
@@ -363,8 +361,7 @@ const searchUsers = async (event: { query: string }) => {
       email: user.email,
       department: user.department?.name || "Unknown Department",
     }));
-  } catch (error) {
-    console.error("Failed to search users:", error);
+  } catch {
     searchResults.value = [];
     toast.toast.error("Không thể tìm kiếm người dùng");
   }
@@ -406,14 +403,8 @@ const handleSubmit = async () => {
     toast.toast.success(successMessage);
     emit("permission-created", permission);
     emit("update:open", false);
-  } catch (error: any) {
-    console.error("Failed to create permission:", error);
-    const errorMessage =
-      error.response?.data?.error ||
-      error.response?.data?.detail ||
-      error.response?.data?.message ||
-      "Không thể cấp quyền truy cập";
-    toast.toast.error(errorMessage);
+  } catch {
+    toast.toast.error("Không thể cấp quyền truy cập");
   } finally {
     loading.value = false;
   }

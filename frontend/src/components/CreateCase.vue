@@ -887,12 +887,8 @@ async function saveDraft() {
     if (attachments.value.length > 0) await uploadAttachments(createdCase.id);
     alert("Đã lưu bản nháp thành công!");
     router.push("/cases");
-  } catch (error: any) {
-    console.error("Error saving draft:", error);
-    alert(
-      "Có lỗi xảy ra khi lưu bản nháp: " +
-        (error.response?.data?.detail || error.message),
-    );
+  } catch {
+    alert("Có lỗi xảy ra khi lưu bản nháp: ");
   } finally {
     saving.value = false;
   }
@@ -919,12 +915,8 @@ async function submitCase() {
     if (attachments.value.length > 0) await uploadAttachments(createdCase.id);
     alert("Đã nộp hồ sơ bệnh án thành công!");
     router.push("/cases");
-  } catch (error: any) {
-    console.error("Error submitting case:", error);
-    alert(
-      "Có lỗi xảy ra khi nộp hồ sơ: " +
-        (error.response?.data?.detail || error.message),
-    );
+  } catch {
+    alert("Có lỗi xảy ra khi nộp hồ sơ bệnh án");
   } finally {
     saving.value = false;
   }
@@ -943,12 +935,7 @@ async function uploadAttachments(caseId: string) {
       if (attachment.date_taken)
         formData.append("date_taken", attachment.date_taken);
       await casesService.uploadAttachment(caseId, formData);
-    } catch (error: any) {
-      console.error(`Error uploading ${attachment.file.name}:`, error);
-      throw new Error(
-        `Lỗi khi tải lên tệp "${attachment.file.name}": ${error.response?.data?.message || error.message}`,
-      );
-    }
+    } catch {}
   });
   await Promise.all(uploadPromises);
 }
@@ -979,8 +966,8 @@ async function loadRepositories() {
     if (repositories.value.length > 0) {
       caseData.value.repository = repositories.value[0]?.id ?? null;
     }
-  } catch (error: any) {
-    console.error("Error loading repositories:", error);
+  } catch {
+    alert("Có lỗi xảy ra khi tải danh sách kho lưu trữ");
   }
 }
 

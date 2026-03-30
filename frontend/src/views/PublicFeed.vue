@@ -87,8 +87,6 @@
         v-for="post in feedPosts"
         :key="post.id"
         :post="post"
-        @react="handleReaction"
-        @comment="handleComment"
         @view-details="openCaseModal"
         @refresh="loadFeed"
       />
@@ -183,7 +181,6 @@ const loadFeed = async (append = false) => {
     }
     hasMore.value = !!response.next;
   } catch (error) {
-    console.error("Failed to load feed:", error);
     toast.error("Không thể tải feed. Vui lòng thử lại.");
   } finally {
     loading.value = false;
@@ -194,9 +191,7 @@ const loadFeed = async (append = false) => {
 const loadStatistics = async () => {
   try {
     statistics.value = await feedService.getStatistics();
-  } catch (error) {
-    console.error("Failed to load statistics:", error);
-  }
+  } catch (error) {}
 };
 
 const loadMore = () => {
@@ -206,13 +201,6 @@ const loadMore = () => {
 const refreshFeed = () => {
   loadFeed(false);
   loadStatistics();
-};
-
-const handleReaction = (data: { caseId: number; reactionType: string }) => {
-  console.log("Reaction:", data);
-};
-const handleComment = (caseId: number) => {
-  console.log("Comment on case:", caseId);
 };
 
 const openCaseModal = (caseId: number) => {

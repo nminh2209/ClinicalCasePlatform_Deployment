@@ -252,7 +252,6 @@ const react = async (
 
     emit("react", { caseId: props.post.id, reactionType });
   } catch (error) {
-    console.error("Failed to react:", error);
     toast.error("Không thể thực hiện reaction");
   }
 };

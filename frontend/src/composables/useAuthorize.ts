@@ -29,11 +29,8 @@ export function requireRoles(requiredRoles: string[]) {
     }
 
     if (!requiredRoles.includes(userRole)) {
-      console.warn(
-        `Component guard: access denied for role ${userRole} (required: ${requiredRoles.join(",")})`,
-      );
       toast.error(
-        "Access denied: You do not have permission to view this page.",
+        "Truy cập bị từ chối: bạn không có quyền truy cập vào trang này.",
       );
       router.push("/home");
       return;

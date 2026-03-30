@@ -102,16 +102,10 @@
         </div>
 
         <div class="flex justify-end space-x-2 mt-6">
-          <Button
-            type="button"
-            @click="$emit('update:open', false)"
-          >
+          <Button type="button" @click="$emit('update:open', false)">
             Huỷ
           </Button>
-          <Button
-            type="submit"
-            :disabled="!canSubmit || loading"
-          >
+          <Button type="submit" :disabled="!canSubmit || loading">
             <span v-if="loading"><i class="pi pi-hourglass"></i></span>
             Tạo liên kết
           </Button>
@@ -236,7 +230,6 @@ const handleSubmit = async () => {
     emit("guest-created", guest);
     emit("update:open", false);
   } catch (error) {
-    console.error("Failed to create guest access:", error);
     toast.toast.error("Không thể tạo liên kết khách mời");
   } finally {
     loading.value = false;

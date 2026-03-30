@@ -226,10 +226,6 @@ function initializeWebSpeechAPI() {
   recognition.interimResults = props.interimResults;
   recognition.lang = props.language;
 
-  recognition.onstart = () => {
-    console.log("Speech recognition started");
-  };
-
   recognition.onresult = (event: SpeechRecognitionEvent) => {
     let interimTranscript = "";
     let finalTranscript = "";
@@ -259,7 +255,6 @@ function initializeWebSpeechAPI() {
   };
 
   recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-    console.error("Speech recognition error:", event.error);
     handleError(`Speech recognition error: ${event.error}`);
     stopRecording();
   };
@@ -299,7 +294,6 @@ async function startRecording() {
       await startMediaRecording();
     }
   } catch (err) {
-    console.error("Failed to start recording:", err);
     handleError(
       "Failed to start recording. Please check microphone permissions.",
     );
@@ -331,7 +325,6 @@ async function startMediaRecording() {
     startTimer();
     emit("recording-start");
   } catch (err) {
-    console.error("Failed to start media recording:", err);
     handleError("Failed to access microphone. Please check permissions.");
   }
 }
@@ -389,7 +382,6 @@ async function processAudioWithBackend(audioBlob: Blob) {
       throw new Error(response.data.error || "Transcription failed");
     }
   } catch (err: any) {
-    console.error("Backend transcription error:", err);
     handleError(
       err.response?.data?.error || err.message || "Failed to transcribe audio",
     );

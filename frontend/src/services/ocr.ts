@@ -219,7 +219,6 @@ export const ocrService = {
 
     // Skip autofill if OCR returned no text
     if (!ocr.text || ocr.text.trim() === "") {
-      console.warn("OCR returned empty text, skipping autofill");
       return {
         ocr,
         autofill: {
