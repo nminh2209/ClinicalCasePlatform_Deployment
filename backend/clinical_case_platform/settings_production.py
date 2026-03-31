@@ -57,7 +57,14 @@ else:
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Security Settings
-SECURE_SSL_REDIRECT = not DEBUG  # Only redirect to HTTPS in production
+# Trust Render/Cloudflare proxy headers so Django correctly detects HTTPS.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+# Allow override via env if a platform-specific proxy setup needs it.
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True") == "True"
+if DEBUG:
+    SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_BROWSER_XSS_FILTER = True
