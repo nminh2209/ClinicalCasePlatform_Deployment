@@ -1092,7 +1092,7 @@ class TestFullLifecycle:
         # 10. Student reacts to own published case
         resp = s.post(
             f"/api/cases/{case_id}/react/",
-            {"reaction_type": "insightful"},
+            {"reaction_type": "like"},
             format="json",
         )
         assert resp.status_code in [

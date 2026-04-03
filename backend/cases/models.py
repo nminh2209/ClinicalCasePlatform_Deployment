@@ -155,7 +155,7 @@ class Case(models.Model):
         default=False, help_text="Ca bệnh nổi bật (được chọn bởi giảng viên)"
     )
     reaction_count = models.PositiveIntegerField(
-        default=0, help_text="Tổng số reactions (likes, loves, etc.)"
+        default=0, help_text="Tổng số lượt thích trên social feed"
     )
     cloned_from_title = models.CharField(
         max_length=300,
@@ -270,21 +270,14 @@ class Case(models.Model):
             LearningOutcomes.objects.create(case=self, learning_objectives="")
 
     def get_reaction_summary(self):
-        """Get summary of reactions for this case"""
+        """Get summary of reactions for this case."""
         from comments.models import Comment
-        from django.db.models import Count
 
-        reactions = (
-            Comment.objects.filter(case=self, is_reaction=True)
-            .values("reaction_type")
-            .annotate(count=Count("id"))
-        )
-
-        summary = {
-            "total": self.reaction_count,
-            "breakdown": {r["reaction_type"]: r["count"] for r in reactions},
+        total_likes = Comment.objects.filter(case=self, is_reaction=True).count()
+        return {
+            "total": total_likes,
+            "breakdown": {"like": total_likes},
         }
-        return summary
 
     def can_be_published(self):
         """Check if case can be published to public feed"""

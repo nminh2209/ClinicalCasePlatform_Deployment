@@ -1931,6 +1931,36 @@ class CaseListCreateView(generics.ListCreateAPIView):
             # Instructors should not see draft cases (only students see their own drafts)
             queryset = queryset.exclude(case_status="draft")
 
+            # Dedicated grading pool mode:
+            # only ungraded submitted cases from instructor's own department,
+            # hidden if actively claimed by another instructor.
+            grading_pool = (
+                self.request.query_params.get("grading_pool", "false").lower()
+                == "true"
+            )
+            if grading_pool:
+                if department_id is None:
+                    return queryset.none()
+
+                department_scope = Q(student__department_id=department_id) | Q(
+                    repository__department_id=department_id
+                )
+                claim_visibility_q = (
+                    Q(grading_claim__isnull=True)
+                    | Q(grading_claim__is_active=False)
+                    | Q(grading_claim__claimed_by=user)
+                )
+
+                queryset = (
+                    queryset.filter(
+                        department_scope,
+                        case_status=Case.StatusChoices.SUBMITTED,
+                        grade__isnull=True,
+                    )
+                    .filter(claim_visibility_q)
+                    .distinct()
+                )
+
         # Students: only their own cases, public cases, or cases shared to them/department/public
         elif user.is_authenticated and getattr(user, "is_student", False):
             department_id = user.department_id  # type: ignore[attr-defined]

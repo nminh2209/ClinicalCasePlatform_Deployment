@@ -110,64 +110,16 @@
 
     <!-- Action Buttons -->
     <div class="flex px-2 py-1 gap-1">
-      <!-- Like (blue when active; mutually exclusive with love) -->
       <Button
-        :icon="
-          likeLoveReaction === 'like'
-            ? 'pi pi-thumbs-up-fill'
-            : 'pi pi-thumbs-up'
-        "
+        :icon="isLiked ? 'pi pi-thumbs-up-fill' : 'pi pi-thumbs-up'"
         label="Thích"
         text
         size="small"
         :class="[
           'reaction-btn',
-          likeLoveReaction === 'like'
-            ? 'reaction-active-blue'
-            : 'reaction-inactive',
+          isLiked ? 'reaction-active-blue' : 'reaction-inactive',
         ]"
-        @click="react('like')"
-      />
-
-      <!-- Love (red when active; mutually exclusive with like) -->
-      <Button
-        :icon="likeLoveReaction === 'love' ? 'pi pi-heart-fill' : 'pi pi-heart'"
-        label="Yêu thích"
-        text
-        size="small"
-        :class="[
-          'reaction-btn',
-          likeLoveReaction === 'love'
-            ? 'reaction-active-red'
-            : 'reaction-inactive',
-        ]"
-        @click="react('love')"
-      />
-
-      <!-- Insightful (yellow, independent toggle) -->
-      <Button
-        :icon="insightfulActive ? 'pi pi-star-fill' : 'pi pi-star'"
-        label="Hữu ích"
-        text
-        size="small"
-        :class="[
-          'reaction-btn',
-          insightfulActive ? 'reaction-active-yellow' : 'reaction-inactive',
-        ]"
-        @click="react('insightful')"
-      />
-
-      <!-- Learned (green, independent toggle) -->
-      <Button
-        :icon="learnedActive ? 'pi pi-verified' : 'pi pi-graduation-cap'"
-        label="Học được"
-        text
-        size="small"
-        :class="[
-          'reaction-btn',
-          learnedActive ? 'reaction-active-green' : 'reaction-inactive',
-        ]"
-        @click="react('learned')"
+        @click="react()"
       />
 
       <!-- Comment -->
@@ -210,49 +162,36 @@ const emit = defineEmits(["react", "comment", "refresh", "view-details"]);
 const { toast } = useToast();
 
 const expanded = ref(false);
-
-// like and love are mutually exclusive — stored as a single nullable ref.
-// insightful and learned are independent boolean toggles.
-const likeLoveReaction = ref<"like" | "love" | null>(
-  props.post.user_reaction === "like" || props.post.user_reaction === "love"
-    ? props.post.user_reaction
-    : null,
-);
-const insightfulActive = ref(props.post.user_reaction === "insightful");
-const learnedActive = ref(props.post.user_reaction === "learned");
+const isLiked = ref(props.post.user_reaction === "like");
 
 const toggleExpand = () => {
   expanded.value = !expanded.value;
 };
 
-const react = async (
-  reactionType: "like" | "love" | "insightful" | "learned",
-) => {
-  try {
-    await feedService.toggleReaction(props.post.id, reactionType, null);
+const react = async () => {
+  const currentReaction = isLiked.value ? "like" : null;
 
-    if (reactionType === "like" || reactionType === "love") {
-      if (likeLoveReaction.value === reactionType) {
-        // Same button — toggle off
-        likeLoveReaction.value = null;
-        props.post.reaction_count--;
-      } else {
-        // Switch within the pair (or activate from null)
-        const wasNull = likeLoveReaction.value === null;
-        likeLoveReaction.value = reactionType;
-        if (wasNull) props.post.reaction_count++;
-      }
-    } else if (reactionType === "insightful") {
-      insightfulActive.value = !insightfulActive.value;
-      props.post.reaction_count += insightfulActive.value ? 1 : -1;
-    } else if (reactionType === "learned") {
-      learnedActive.value = !learnedActive.value;
-      props.post.reaction_count += learnedActive.value ? 1 : -1;
+  try {
+    const response = await feedService.toggleReaction(
+      props.post.id,
+      "like",
+      currentReaction,
+    );
+
+    isLiked.value = !isLiked.value;
+    props.post.user_reaction = isLiked.value ? "like" : null;
+
+    if (typeof response?.total_reactions === "number") {
+      props.post.reaction_count = response.total_reactions;
     }
 
-    emit("react", { caseId: props.post.id, reactionType });
+    emit("react", {
+      caseId: props.post.id,
+      reactionType: isLiked.value ? "like" : null,
+    });
   } catch (error) {
-    toast.error("Không thể thực hiện reaction");
+    console.error("Failed to react:", error);
+    toast.error("Không thể thực hiện lượt thích");
   }
 };
 

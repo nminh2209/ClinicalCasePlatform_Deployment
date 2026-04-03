@@ -214,20 +214,21 @@ def react_to_case(request, pk):
     """
     POST /api/cases/{id}/react/
 
-    Add or update user's reaction to a case
+    Add or update the user's single supported reaction to a case.
 
     Body:
     {
-        "reaction_type": "like" | "love" | "insightful" | "learned"
+        "reaction_type": "like"
     }
     """
     user: User = request.user
     case = get_object_or_404(Case, pk=pk, is_published_to_feed=True)
 
-    reaction_type = request.data.get("reaction_type")
-    if reaction_type not in ["like", "love", "insightful", "learned"]:
+    reaction_type = request.data.get("reaction_type", "like")
+    if reaction_type != "like":
         return Response(
-            {"error": "Invalid reaction type"}, status=status.HTTP_400_BAD_REQUEST
+            {"error": "Only the 'like' reaction is supported."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     # Get or create reaction (using Comment model)
@@ -295,16 +296,13 @@ def get_case_reactions(request, pk):
     """
     GET /api/cases/{id}/reactions/
 
-    Get detailed reaction summary for a case
+    Get detailed reaction summary for a case.
 
     Returns:
     {
         "total": 45,
         "breakdown": {
-            "like": 20,
-            "love": 15,
-            "insightful": 8,
-            "learned": 2
+            "like": 45
         },
         "user_reaction": "like",
         "recent_reactions": [...]
@@ -321,7 +319,7 @@ def get_case_reactions(request, pk):
         case=case, author=user, is_reaction=True
     ).first()
 
-    summary["user_reaction"] = user_reaction.reaction_type if user_reaction else None
+    summary["user_reaction"] = "like" if user_reaction else None
 
     # Get recent reactions with user info
     recent_reactions = (
@@ -333,7 +331,7 @@ def get_case_reactions(request, pk):
     summary["recent_reactions"] = [
         {
             "user": r.author.get_full_name(),
-            "reaction_type": r.reaction_type,
+            "reaction_type": "like",
             "created_at": r.created_at,
         }
         for r in recent_reactions

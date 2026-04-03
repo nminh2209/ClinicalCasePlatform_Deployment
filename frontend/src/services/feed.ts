@@ -32,21 +32,15 @@ export interface FeedPost {
     total: number;
     breakdown: {
       like?: number;
-      love?: number;
-      insightful?: number;
-      learned?: number;
     };
   };
-  user_reaction?: "like" | "love" | "insightful" | "learned" | null;
+  user_reaction?: "like" | null;
 }
 
 export interface ReactionSummary {
   total: number;
   breakdown: {
     like?: number;
-    love?: number;
-    insightful?: number;
-    learned?: number;
   };
   user_reaction: string | null;
   recent_reactions: Array<{
@@ -136,10 +130,7 @@ export const feedService = {
    * @param caseId Case ID
    * @param reactionType Type of reaction
    */
-  async reactToCase(
-    caseId: number,
-    reactionType: "like" | "love" | "insightful" | "learned",
-  ) {
+  async reactToCase(caseId: number, reactionType: "like") {
     const response = await api.post(`/cases/${caseId}/react/`, {
       reaction_type: reactionType,
     });
@@ -180,8 +171,8 @@ export const feedService = {
    */
   async toggleReaction(
     caseId: number,
-    reactionType: "like" | "love" | "insightful" | "learned",
-    currentReaction: string | null,
+    reactionType: "like",
+    currentReaction: "like" | null,
   ) {
     if (currentReaction === reactionType) {
       // Remove reaction if clicking same type

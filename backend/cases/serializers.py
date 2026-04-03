@@ -1334,7 +1334,7 @@ class PublicFeedSerializer(serializers.ModelSerializer):
         try:
             return obj.get_reaction_summary()
         except Exception:
-            return {"like": 0, "love": 0, "insightful": 0, "learned": 0}
+            return {"total": obj.reaction_count, "breakdown": {"like": obj.reaction_count}}
 
     def get_user_reaction(self, obj):
         """Get current user's reaction to this case"""
@@ -1344,9 +1344,9 @@ class PublicFeedSerializer(serializers.ModelSerializer):
 
             try:
                 reaction = Comment.objects.filter(
-                    case=obj, user=request.user, is_reaction=True
+                    case=obj, author=request.user, is_reaction=True
                 ).first()
-                return reaction.reaction_type if reaction else None
+                return "like" if reaction else None
             except Exception:
                 return None
         return None

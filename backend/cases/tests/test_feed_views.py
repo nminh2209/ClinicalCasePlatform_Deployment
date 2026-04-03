@@ -76,3 +76,36 @@ class TestFeedViews:
             status.HTTP_403_FORBIDDEN,
             status.HTTP_404_NOT_FOUND,
         ]
+
+    def test_public_feed_only_accepts_like_reaction(
+        self, api_client, student_user, instructor_user, test_repository
+    ):
+        """Public feed should only accept the single supported reaction: like."""
+        case = Case.objects.create(
+            title="Published Feed Case",
+            student=student_user,
+            repository=test_repository,
+            patient_name="Patient",
+            patient_age=30,
+            patient_gender="male",
+            specialty="Cardiology",
+            case_status="approved",
+            is_published_to_feed=True,
+            published_by=instructor_user,
+        )
+
+        api_client.force_authenticate(user=student_user)
+
+        invalid_response = api_client.post(
+            f"/api/cases/{case.id}/react/",
+            {"reaction_type": "insightful"},
+            format="json",
+        )
+        assert invalid_response.status_code == status.HTTP_400_BAD_REQUEST
+
+        valid_response = api_client.post(
+            f"/api/cases/{case.id}/react/",
+            {"reaction_type": "like"},
+            format="json",
+        )
+        assert valid_response.status_code == status.HTTP_200_OK

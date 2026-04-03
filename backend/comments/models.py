@@ -7,7 +7,7 @@ from django.db import models
 class Comment(models.Model):
     """
     Comments on cases for discussion and collaboration
-    Also used for reactions (likes) on public feed cases
+    Also used for single like reactions on public feed cases
     """
 
     case = models.ForeignKey(
@@ -39,11 +39,8 @@ class Comment(models.Model):
         blank=True,
         choices=[
             ("like", "👍 Thích"),
-            ("love", "❤️ Yêu thích"),
-            ("insightful", "💡 Hữu ích"),
-            ("learned", "📚 Học được nhiều"),
         ],
-        help_text="Type of reaction if is_reaction=True",
+        help_text="Reaction type if is_reaction=True (currently only like)",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
