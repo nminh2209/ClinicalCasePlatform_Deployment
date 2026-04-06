@@ -41,10 +41,18 @@
     <!-- ── Filters and Search ───────────────────────────── -->
     <div class="filters-section">
       <div class="search-and-filters">
-        <div class="search-container">
+        <div class="search-container" style="display: flex; gap: 8px">
           <SearchAutocomplete
             v-model="searchQuery"
             placeholder="Tìm kiếm hồ sơ bệnh án theo tên, chuyên khoa, bệnh nhân..."
+            @keyup.enter="performSearch"
+            style="flex: 1"
+          />
+          <Button
+            label="Tìm kiếm"
+            icon="pi pi-search"
+            class="search-btn"
+            @click="performSearch"
           />
         </div>
         <div class="filter-options">
@@ -68,6 +76,7 @@
           <Select
             v-model="dateSort"
             :options="[
+              { label: 'Độ liên quan', value: 'relevance' },
               { label: 'Mới nhất', value: 'newest' },
               { label: 'Cũ nhất', value: 'oldest' },
             ]"
@@ -1173,10 +1182,12 @@ const authStore = useAuthStore();
 const casesStore = useCasesStore();
 const { specialties, loading: choicesLoading } = useChoices();
 
-const searchQuery = ref("");
+const searchQuery = ref(sessionStorage.getItem("last_case_search_q") || "");
 const activeFilter = ref("all");
 const specialtyFilter = ref("");
-const dateSort = ref("newest");
+const dateSort = ref(
+  sessionStorage.getItem("last_case_search_q") ? "relevance" : "newest",
+);
 const selectedCase = ref<Record<string, any> | null>(null);
 const showExportMenu = ref<number | string | null>(null);
 const exporting = ref(false);
@@ -1334,21 +1345,11 @@ const filteredCases = computed(() => {
     filtered = filtered.filter((c) => c.specialty === specialtyFilter.value);
   }
 
-  // Filter by search query
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(
-      (c) =>
-        c.title.toLowerCase().includes(query) ||
-        c.specialty.toLowerCase().includes(query) ||
-        c.patient_name.toLowerCase().includes(query) ||
-        (c.keywords && c.keywords.toLowerCase().includes(query)) ||
-        (c.diagnosis && c.diagnosis.toLowerCase().includes(query)),
-    );
-  }
+  // FTS search query filter is handled directly by the backend '?q=' parameter
+  // so we skip local filtering to allow better ranking and synonym matching.
 
-  // Sort by date
-  if (dateSort.value) {
+  // Sort by date OR relevance
+  if (dateSort.value && dateSort.value !== "relevance") {
     filtered = [...filtered].sort((a, b) => {
       const dateA = new Date(a.created_at).getTime();
       const dateB = new Date(b.created_at).getTime();
@@ -1419,7 +1420,7 @@ async function loadCases(page: number = 1) {
     }
 
     if (searchQuery.value) {
-      params.search = searchQuery.value;
+      params.q = searchQuery.value;
     }
 
     await casesStore.fetchCases(params);
@@ -1433,6 +1434,16 @@ async function loadCases(page: number = 1) {
     }
     await loadStatistics();
   } catch {}
+}
+
+function performSearch() {
+  sessionStorage.setItem("last_case_search_q", searchQuery.value);
+  if (searchQuery.value && dateSort.value !== "relevance") {
+    dateSort.value = "relevance";
+  } else if (!searchQuery.value && dateSort.value === "relevance") {
+    dateSort.value = "newest";
+  }
+  loadCases(1);
 }
 
 function goToPage(page: number) {
@@ -1477,7 +1488,8 @@ function setActiveFilter(filter: string) {
 loadCases(1);
 
 function applyFilters() {
-  // Filters are applied reactively through computed property
+  // Trigger backend fetch to apply filters correctly on the whole dataset
+  loadCases(1);
 }
 
 function toggleExportMenu(caseId: string) {
@@ -1606,7 +1618,7 @@ function getStatusCount(status: string) {
     const searchResults = cases.value;
 
     if (status === "all") {
-      return searchResults.length;
+      return pagination.value.count || searchResults.length;
     }
 
     if (status === "submitted") {
