@@ -94,6 +94,79 @@ class User(AbstractUser):
         return self.department.name if self.department else "Chưa phân khoa"
 
 
+class RoleModificationRequest(models.Model):
+    """
+    Tracks student requests to be upgraded to instructor role.
+    Only admins can approve or reject these requests.
+    """
+
+    class StatusChoices(models.TextChoices):
+        PENDING = "pending", "Đang chờ xét duyệt"
+        APPROVED = "approved", "Đã chấp thuận"
+        REJECTED = "rejected", "Đã từ chối"
+
+    requester = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="role_requests",
+        help_text="User submitting the request",
+    )
+    full_name = models.CharField(max_length=200, help_text="Full legal name of requester")
+    email = models.EmailField(help_text="Email address for verification")
+    student_id = models.CharField(max_length=50, help_text="Student ID for verification")
+    requested_role = models.CharField(
+        max_length=20,
+        choices=[("instructor", "Giảng viên")],
+        default="instructor",
+        help_text="The role being requested (always instructor)",
+    )
+    department = models.ForeignKey(
+        "cases.Department",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="role_requests",
+        help_text="Department/faculty of the requester",
+    )
+    specialty = models.CharField(max_length=200, help_text="Medical specialty or field")
+    reason = models.TextField(help_text="Justification for requesting the role change")
+    employee_id = models.CharField(
+        max_length=50, blank=True, help_text="Staff/employee ID if already appointed"
+    )
+    institution = models.CharField(
+        max_length=200, blank=True, help_text="Hospital or institution affiliation"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=StatusChoices.choices,
+        default=StatusChoices.PENDING,
+    )
+    rejection_reason = models.TextField(
+        blank=True, help_text="Admin's reason for rejection (required when rejecting)"
+    )
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_role_requests",
+        help_text="Admin who reviewed this request",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "accounts_role_modification_request"
+        ordering = ["-created_at"]
+        verbose_name = "Yêu cầu thay đổi vai trò"
+        verbose_name_plural = "Yêu cầu thay đổi vai trò"
+
+    def __str__(self):
+        return (
+            f"{self.requester.get_full_name()} → {self.requested_role} ({self.status})"
+        )
+
+
 class Session(models.Model):
     """
     Custom session model for JWT token management

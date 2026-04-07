@@ -21,6 +21,9 @@ class Notification(models.Model):
         PERMISSION_GRANTED = "permission_granted", "Permission Granted"
         INQUIRY = "inquiry", "Inquiry"
         SYSTEM = "system", "System"
+        ROLE_REQUEST = "role_request", "Role Modification Request"
+        ROLE_APPROVED = "role_approved", "Role Approved"
+        ROLE_REJECTED = "role_rejected", "Role Rejected"
 
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,

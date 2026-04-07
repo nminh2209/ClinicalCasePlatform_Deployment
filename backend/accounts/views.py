@@ -27,12 +27,14 @@ from django_filters.rest_framework import DjangoFilterBackend  # type: ignore[re
 from django.conf import settings
 
 # from django.contrib.auth import login
-from .models import User
+from django.utils import timezone
+from .models import User, RoleModificationRequest
 from .serializers import (
     AdminUserSerializer,
     ChangePasswordSerializer,
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
+    RoleModificationRequestSerializer,
     UserLoginSerializer,
     UserProfileSerializer,
     UserRegistrationSerializer,
@@ -499,3 +501,220 @@ class MicrosoftLoginView(generics.GenericAPIView):
                 {"error": f"Authentication failed: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+def _push_notification_via_ws(notification) -> None:
+    """Push a Notification instance to the recipient's WebSocket channel group."""
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+
+        channel_layer = get_channel_layer()
+        if not channel_layer:
+            return
+        async_to_sync(channel_layer.group_send)(
+            f"notifications_{notification.recipient_id}",
+            {
+                "type": "notification_message",
+                "notification": {
+                    "id": notification.id,
+                    "type": notification.notification_type,
+                    "title": notification.title,
+                    "message": notification.message,
+                    "action_url": notification.action_url,
+                    "is_read": notification.is_read,
+                },
+            },
+        )
+    except Exception:
+        pass  # WS push failure must never block the HTTP response
+
+
+class IsStudent(permissions.BasePermission):
+    """Allow access only to users with role=student."""
+
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        return getattr(request.user, "role", None) == "student"
+
+
+class RoleModificationRequestMyView(generics.ListAPIView):
+    """
+    Students retrieve only their own past role modification requests.
+    GET /api/auth/role-requests/my/
+    """
+
+    serializer_class = RoleModificationRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return RoleModificationRequest.objects.filter(
+            requester=self.request.user
+        ).select_related("department", "reviewed_by")
+
+
+class RoleModificationRequestCreateView(generics.CreateAPIView):
+    """
+    Students submit a role modification request (student → instructor).
+    POST /api/auth/role-requests/
+    """
+
+    serializer_class = RoleModificationRequestSerializer
+    permission_classes = [IsStudent]
+
+    def perform_create(self, serializer):
+        from notifications.models import Notification
+
+        role_request = serializer.save(requester=self.request.user)
+
+        # Notify all admin users about the new request
+        admin_users = User.objects.filter(role="admin", is_active=True)
+        for admin in admin_users:
+            notif = Notification.objects.create(
+                recipient=admin,
+                notification_type=Notification.NotificationType.ROLE_REQUEST,
+                title="Yêu cầu thay đổi vai trò mới",
+                message=(
+                    f"{role_request.requester.get_full_name()} (MSSV: {role_request.student_id}) "
+                    f"đã gửi yêu cầu trở thành Giảng viên."
+                ),
+                action_url="/admin/role-approval",
+            )
+            _push_notification_via_ws(notif)
+
+
+class RoleModificationRequestListView(generics.ListAPIView):
+    """
+    Admins retrieve all role modification requests.
+    GET /api/auth/role-requests/
+    """
+
+    serializer_class = RoleModificationRequestSerializer
+    permission_classes = [IsRoleAdmin]
+
+    def get_queryset(self):
+        qs = RoleModificationRequest.objects.select_related(
+            "requester", "department", "reviewed_by"
+        )
+        status_param = self.request.query_params.get("status")
+        if status_param:
+            qs = qs.filter(status=status_param)
+        return qs
+
+
+class RoleModificationRequestDetailView(generics.RetrieveAPIView):
+    """
+    Retrieve a single role modification request.
+    GET /api/auth/role-requests/{id}/
+    """
+
+    serializer_class = RoleModificationRequestSerializer
+    permission_classes = [IsRoleAdmin]
+    queryset = RoleModificationRequest.objects.select_related(
+        "requester", "department", "reviewed_by"
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsRoleAdmin])
+def approve_role_request(request, pk):
+    """
+    Approve a role modification request.
+    Updates the requester's role to instructor and notifies them.
+    POST /api/auth/role-requests/{id}/approve/
+    """
+    from notifications.models import Notification
+
+    try:
+        role_request = RoleModificationRequest.objects.select_related(
+            "requester"
+        ).get(pk=pk, status="pending")
+    except RoleModificationRequest.DoesNotExist:
+        return Response(
+            {"error": "Request not found or already processed."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Promote the user
+    requester = role_request.requester
+    requester.role = User.RoleChoices.INSTRUCTOR
+    requester.save(update_fields=["role", "updated_at"])
+
+    # Mark request as approved
+    role_request.status = RoleModificationRequest.StatusChoices.APPROVED
+    role_request.reviewed_by = request.user
+    role_request.reviewed_at = timezone.now()
+    role_request.save(update_fields=["status", "reviewed_by", "reviewed_at", "updated_at"])
+
+    # Notify requester
+    notif = Notification.objects.create(
+        recipient=requester,
+        notification_type=Notification.NotificationType.ROLE_APPROVED,
+        title="Yêu cầu thay đổi vai trò đã được chấp thuận",
+        message=(
+            "Chúc mừng! Yêu cầu trở thành Giảng viên của bạn đã được chấp thuận. "
+            "Vui lòng đăng xuất và đăng nhập lại để vai trò mới có hiệu lực."
+        ),
+        action_url="/home",
+    )
+    _push_notification_via_ws(notif)
+
+    return Response(
+        {"message": "Request approved. User role updated to instructor."},
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsRoleAdmin])
+def reject_role_request(request, pk):
+    """
+    Reject a role modification request. Requires a rejection_reason.
+    POST /api/auth/role-requests/{id}/reject/
+    """
+    from notifications.models import Notification
+
+    rejection_reason = request.data.get("rejection_reason", "").strip()
+    if not rejection_reason:
+        return Response(
+            {"error": "rejection_reason is required when rejecting a request."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        role_request = RoleModificationRequest.objects.select_related(
+            "requester"
+        ).get(pk=pk, status="pending")
+    except RoleModificationRequest.DoesNotExist:
+        return Response(
+            {"error": "Request not found or already processed."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Mark request as rejected
+    role_request.status = RoleModificationRequest.StatusChoices.REJECTED
+    role_request.rejection_reason = rejection_reason
+    role_request.reviewed_by = request.user
+    role_request.reviewed_at = timezone.now()
+    role_request.save(
+        update_fields=["status", "rejection_reason", "reviewed_by", "reviewed_at", "updated_at"]
+    )
+
+    # Notify requester
+    notif = Notification.objects.create(
+        recipient=role_request.requester,
+        notification_type=Notification.NotificationType.ROLE_REJECTED,
+        title="Yêu cầu thay đổi vai trò bị từ chối",
+        message=(
+            f"Yêu cầu trở thành Giảng viên của bạn đã bị từ chối. "
+            f"Lý do: {rejection_reason}"
+        ),
+        action_url="/role-request",
+    )
+    _push_notification_via_ws(notif)
+
+    return Response(
+        {"message": "Request rejected."},
+        status=status.HTTP_200_OK,
+    )

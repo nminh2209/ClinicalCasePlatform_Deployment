@@ -100,3 +100,6 @@ requirements-minimal.txt
 WARP.md
 .pids/
 pyrightconfig.json
+
+# Agentic files
+CLAUDE.md

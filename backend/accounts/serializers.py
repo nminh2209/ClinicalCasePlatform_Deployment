@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import serializers  # type: ignore[reportMissingTypeStubs]
 
-from .models import User
+from .models import User, RoleModificationRequest
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -25,17 +25,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             "username",
             "first_name",
             "last_name",
-            "role",
             "department",
             "student_id",
-            "employee_id",
             "password",
             "password_confirm",
         ]
         extra_kwargs = {
-            "department": {"required": False, "allow_null": True},
+            # Department is now mandatory at signup
+            "department": {"required": True, "allow_null": False},
             "student_id": {"required": False, "allow_blank": True},
-            "employee_id": {"required": False, "allow_blank": True},
         }
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
@@ -44,10 +42,86 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data: Dict[str, Any]) -> User:
-        # Remove password_confirm before creating the user
         validated_data.pop("password_confirm", None)
+        # All new accounts are created as students — role cannot be chosen at signup
+        validated_data["role"] = User.RoleChoices.STUDENT
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class RoleModificationRequestSerializer(serializers.ModelSerializer):
+    """Serializer for students to submit a role modification request."""
+
+    requester_name = serializers.CharField(
+        source="requester.get_full_name", read_only=True
+    )
+    requester_email = serializers.EmailField(source="requester.email", read_only=True)
+    department_name = serializers.SerializerMethodField()
+    reviewed_by_name = serializers.SerializerMethodField()
+
+    class Meta:  # type: ignore[misc, assignment]
+        model = RoleModificationRequest
+        fields = [
+            "id",
+            "requester",
+            "requester_name",
+            "requester_email",
+            "full_name",
+            "email",
+            "student_id",
+            "requested_role",
+            "department",
+            "department_name",
+            "specialty",
+            "reason",
+            "employee_id",
+            "institution",
+            "status",
+            "rejection_reason",
+            "reviewed_by",
+            "reviewed_by_name",
+            "reviewed_at",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "requester",
+            "status",
+            "rejection_reason",
+            "reviewed_by",
+            "reviewed_at",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_department_name(self, obj: RoleModificationRequest) -> str | None:
+        try:
+            dept = getattr(obj, "department", None)
+            return getattr(dept, "vietnamese_name", None) or getattr(dept, "name", None)
+        except Exception:
+            return None
+
+    def get_reviewed_by_name(self, obj: RoleModificationRequest) -> str | None:
+        try:
+            reviewer = getattr(obj, "reviewed_by", None)
+            return reviewer.get_full_name() if reviewer else None
+        except Exception:
+            return None
+
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        """Prevent duplicate pending requests."""
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            existing = RoleModificationRequest.objects.filter(
+                requester=request.user, status="pending"
+            ).exists()
+            if existing:
+                raise serializers.ValidationError(
+                    "Bạn đã có một yêu cầu đang chờ xét duyệt. "
+                    "Vui lòng đợi quản trị viên xử lý trước khi gửi yêu cầu mới."
+                )
+        return attrs
 
 
 class UserLoginSerializer(serializers.Serializer):

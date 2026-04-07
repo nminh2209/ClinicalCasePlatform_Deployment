@@ -24,6 +24,15 @@
           <p class="form-subtitle">Tạo tài khoản mới để truy cập hệ thống</p>
         </div>
 
+        <!-- Teacher notice -->
+        <Message severity="info" :closable="false" class="teacher-notice">
+          <span>
+            Nếu bạn là <strong>Giảng viên</strong>, hãy đăng ký với tư cách Sinh
+            viên và gửi <strong>Yêu cầu thay đổi vai trò</strong> đến quản trị
+            viên sau khi đăng nhập.
+          </span>
+        </Message>
+
         <!-- Success Message — PrimeVue Message -->
         <Message
           v-if="successMessage"
@@ -89,57 +98,35 @@
             </div>
           </div>
 
-          <!-- Role Selection -->
+          <!-- Department Selection (required) -->
           <div class="form-group">
-            <label for="role" class="form-label">Vai trò</label>
-            <Select
-              id="role"
-              v-model="formData.role"
-              :options="roleOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Chọn vai trò"
-              class="form-input"
-              required
-            />
-          </div>
-
-          <!-- Department Selection -->
-          <div class="form-group">
-            <label for="department" class="form-label">Khoa / Bộ môn</label>
+            <label for="department" class="form-label">
+              Khoa / Bộ môn <span class="required-star">*</span>
+            </label>
             <Select
               id="department"
               v-model="formData.department"
               :options="departmentOptions"
               optionLabel="label"
               optionValue="value"
-              placeholder="Chọn khoa (có thể bỏ qua)"
+              placeholder="Chọn khoa / bộ môn"
               class="form-input"
               :loading="departmentsLoading"
-              showClear
+              required
             />
+            <p v-if="departmentError" class="field-error">
+              {{ departmentError }}
+            </p>
           </div>
 
-          <!-- Student ID (conditional) -->
-          <div v-if="formData.role === 'student'" class="form-group">
+          <!-- Student ID -->
+          <div class="form-group">
             <label for="student_id" class="form-label">Mã sinh viên</label>
             <InputText
               id="student_id"
               v-model="formData.student_id"
               type="text"
               placeholder="SV2024001"
-              class="form-input"
-            />
-          </div>
-
-          <!-- Employee ID (conditional) -->
-          <div v-if="formData.role === 'instructor'" class="form-group">
-            <label for="employee_id" class="form-label">Mã giảng viên</label>
-            <InputText
-              id="employee_id"
-              v-model="formData.employee_id"
-              type="text"
-              placeholder="GV2024001"
               class="form-input"
             />
           </div>
@@ -195,7 +182,7 @@
             class="submit-button"
             :disabled="
               loading ||
-              !formData.role ||
+              !formData.department ||
               !formData.email ||
               !formData.username ||
               !formData.first_name ||
@@ -248,24 +235,18 @@ const formData = ref({
   username: "",
   first_name: "",
   last_name: "",
-  role: "",
   department: null as number | null,
   student_id: "",
-  employee_id: "",
   password: "",
   password_confirm: "",
 });
 
 const error = ref("");
+const departmentError = ref("");
 const successMessage = ref("");
 const loading = ref(false);
 const departmentsLoading = ref(false);
 const departmentOptions = ref<{ label: string; value: number }[]>([]);
-
-const roleOptions = [
-  { label: "Sinh viên", value: "student" },
-  { label: "Giảng viên", value: "instructor" },
-];
 
 const loadDepartments = async () => {
   departmentsLoading.value = true;
@@ -290,7 +271,14 @@ onMounted(loadDepartments);
 const handleSubmit = async () => {
   loading.value = true;
   error.value = "";
+  departmentError.value = "";
   successMessage.value = "";
+
+  if (!formData.value.department) {
+    departmentError.value = "Vui lòng chọn khoa / bộ môn";
+    loading.value = false;
+    return;
+  }
 
   if (formData.value.password !== formData.value.password_confirm) {
     error.value = "Mật khẩu xác nhận không khớp";
@@ -305,24 +293,19 @@ const handleSubmit = async () => {
   }
 
   try {
+    // role is always student — set server-side, not chosen by the user
     const payload: any = {
       email: formData.value.email,
       username: formData.value.username,
       first_name: formData.value.first_name,
       last_name: formData.value.last_name,
-      role: formData.value.role,
+      department: formData.value.department,
       password: formData.value.password,
       password_confirm: formData.value.password_confirm,
     };
 
-    if (formData.value.role === "student" && formData.value.student_id) {
+    if (formData.value.student_id) {
       payload.student_id = formData.value.student_id;
-    }
-    if (formData.value.role === "instructor" && formData.value.employee_id) {
-      payload.employee_id = formData.value.employee_id;
-    }
-    if (formData.value.department) {
-      payload.department = formData.value.department;
     }
 
     await api.post("/auth/register/", payload);
@@ -523,6 +506,23 @@ const handleSubmit = async () => {
 /* PrimeVue Dropdown trigger icon */
 :deep(.p-dropdown .p-dropdown-trigger) {
   color: var(--muted-foreground) !important;
+}
+
+.teacher-notice {
+  margin-bottom: 1rem;
+  border-radius: 12px !important;
+  font-size: 0.875rem !important;
+}
+
+.required-star {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.field-error {
+  font-size: 0.8125rem;
+  color: #ef4444;
+  margin-top: 0.25rem;
 }
 
 .form-hint {

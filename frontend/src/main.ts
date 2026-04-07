@@ -41,6 +41,8 @@ import UserManagement from "./views/UserManagement.vue";
 import SharedCases from "./views/SharedCases.vue";
 import PublicFeed from "./views/PublicFeed.vue";
 import CaseSummary from "./views/CaseSummary.vue";
+import RoleModificationRequest from "./views/RoleModificationRequest.vue";
+import RoleModificationApproval from "./views/RoleModificationApproval.vue";
 import ToastService from "primevue/toastservice";
 
 // Fallback logger for route guards (before component mount)
@@ -119,10 +121,22 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresRoles: ["student", "instructor"] },
   },
 
+  // Student-only: role modification request
+  {
+    path: "/role-request",
+    component: RoleModificationRequest,
+    meta: { requiresAuth: true, requiresRoles: ["student"] },
+  },
+
   // Admin routes
   {
     path: "/admin/users",
     component: UserManagement,
+    meta: { requiresAuth: true, requiresRoles: ["admin"] },
+  },
+  {
+    path: "/admin/role-approval",
+    component: RoleModificationApproval,
     meta: { requiresAuth: true, requiresRoles: ["admin"] },
   },
 

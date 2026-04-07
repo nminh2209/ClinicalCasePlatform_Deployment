@@ -13,6 +13,12 @@ from .views import (
     MicrosoftLoginView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
+    RoleModificationRequestCreateView,
+    RoleModificationRequestListView,
+    RoleModificationRequestDetailView,
+    RoleModificationRequestMyView,
+    approve_role_request,
+    reject_role_request,
     UserListView,
     UserLoginView,
     UserProfileView,
@@ -51,4 +57,36 @@ urlpatterns = [
     path("users/", UserListView.as_view(), name="user-list"),
     # Admin user management (ViewSet routes)
     path("", include(router.urls)),
+
+    # Role modification requests
+    path(
+        "role-requests/",
+        RoleModificationRequestCreateView.as_view(),
+        name="role-request-create",
+    ),
+    path(
+        "role-requests/my/",
+        RoleModificationRequestMyView.as_view(),
+        name="role-request-my",
+    ),
+    path(
+        "role-requests/list/",
+        RoleModificationRequestListView.as_view(),
+        name="role-request-list",
+    ),
+    path(
+        "role-requests/<int:pk>/",
+        RoleModificationRequestDetailView.as_view(),
+        name="role-request-detail",
+    ),
+    path(
+        "role-requests/<int:pk>/approve/",
+        approve_role_request,
+        name="role-request-approve",
+    ),
+    path(
+        "role-requests/<int:pk>/reject/",
+        reject_role_request,
+        name="role-request-reject",
+    ),
 ]

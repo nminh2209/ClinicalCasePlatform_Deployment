@@ -18,6 +18,45 @@
       />
     </div>
 
+    <!-- Role approved: mandatory re-login dialog -->
+    <Dialog
+      v-model:visible="roleApprovedDialog"
+      header="Vai trò đã được nâng cấp!"
+      :modal="true"
+      :closable="false"
+      style="max-width: 460px; width: 95vw"
+    >
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem 0;
+          text-align: center;
+        "
+      >
+        <i class="pi pi-check-circle" style="font-size: 3rem; color: #16a34a" />
+        <p>
+          Chúc mừng! Yêu cầu trở thành <strong>Giảng viên</strong> của bạn đã
+          được chấp thuận.
+        </p>
+        <p>
+          Để vai trò mới có hiệu lực, bạn
+          <strong>phải đăng xuất và đăng nhập lại</strong>. Sau khi đăng nhập,
+          bạn sẽ được chuyển sang giao diện Giảng viên.
+        </p>
+      </div>
+      <template #footer>
+        <Button
+          label="Đăng xuất ngay"
+          icon="pi pi-sign-out"
+          severity="success"
+          @click="handleRoleApprovedLogout"
+        />
+      </template>
+    </Dialog>
+
     <Popover ref="popoverRef" class="notification-popover">
       <!-- Header -->
       <div class="notif-header">
@@ -114,6 +153,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import Popover from "primevue/popover";
 import Badge from "primevue/badge";
 import axios from "axios";
@@ -134,6 +174,7 @@ const emit = defineEmits(["navigate"]);
 const popoverRef = ref(null);
 const notifications = ref([]);
 const loading = ref(false);
+const roleApprovedDialog = ref(false);
 
 let websocket = null;
 let reconnectTimeout = null;
@@ -172,6 +213,10 @@ const connectWebSocket = () => {
             actionUrl: data.notification.action_url,
           };
           notifications.value.unshift(newNotif);
+          // Automatically show re-login dialog when role is approved via WebSocket
+          if (newNotif.type === "role_approved") {
+            roleApprovedDialog.value = true;
+          }
           if (Notification.permission === "granted") {
             new Notification(newNotif.title, {
               body: newNotif.message,
@@ -288,6 +333,9 @@ const getIconClass = (type) => {
     comment: "pi pi-comment",
     assignment: "pi pi-file-edit",
     reminder: "pi pi-clock",
+    role_request: "pi pi-user-edit",
+    role_approved: "pi pi-check-circle",
+    role_rejected: "pi pi-times-circle",
   };
   return map[type] || "pi pi-bell";
 };
@@ -299,21 +347,44 @@ const getIconColor = (type) => {
     comment: "text-indigo-500",
     assignment: "text-purple-500",
     reminder: "text-orange-500",
+    role_request: "text-violet-500",
+    role_approved: "text-green-500",
+    role_rejected: "text-red-500",
   };
   return map[type] || "text-gray-400";
 };
 
+const handleRoleApprovedLogout = () => {
+  roleApprovedDialog.value = false;
+  // Clear auth and redirect to login
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user");
+  window.location.href = "/login";
+};
+
 const onNotificationClick = (notification) => {
   markAsRead(notification.id);
+  if (notification.type === "role_approved") {
+    // Show mandatory re-login dialog instead of navigating
+    roleApprovedDialog.value = true;
+    return;
+  }
   if (notification.actionUrl) window.location.href = notification.actionUrl;
 };
 
 const filteredNotifications = computed(() => {
   if (props.userRole === "student") {
     return notifications.value.filter((n) =>
-      ["grade", "comment", "assignment", "reminder", "feedback"].includes(
-        n.type,
-      ),
+      [
+        "grade",
+        "comment",
+        "assignment",
+        "reminder",
+        "feedback",
+        "role_approved",
+        "role_rejected",
+      ].includes(n.type),
     );
   }
   if (props.userRole === "instructor") {
@@ -321,6 +392,7 @@ const filteredNotifications = computed(() => {
       ["submission", "comment"].includes(n.type),
     );
   }
+  // admin sees everything including role_request
   return notifications.value;
 });
 

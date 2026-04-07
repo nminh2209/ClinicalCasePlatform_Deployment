@@ -3,7 +3,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import Session, User
+from .models import Session, User, RoleModificationRequest
 
 
 @admin.register(User)
@@ -57,6 +57,32 @@ class UserAdmin(BaseUserAdmin):
             },
         ),
     )
+
+
+@admin.register(RoleModificationRequest)
+class RoleModificationRequestAdmin(admin.ModelAdmin):
+    list_display = [
+        "requester",
+        "full_name",
+        "student_id",
+        "requested_role",
+        "department",
+        "status",
+        "reviewed_by",
+        "reviewed_at",
+        "created_at",
+    ]
+    list_filter = ["status", "requested_role", "department", "created_at"]
+    search_fields = [
+        "requester__email",
+        "requester__first_name",
+        "requester__last_name",
+        "full_name",
+        "student_id",
+        "email",
+    ]
+    readonly_fields = ["created_at", "updated_at", "reviewed_at"]
+    ordering = ["-created_at"]
 
 
 @admin.register(Session)

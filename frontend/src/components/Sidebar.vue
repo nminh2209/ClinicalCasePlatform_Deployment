@@ -95,6 +95,16 @@
           <i class="pi pi-arrow-right-arrow-left" />
           <span v-show="!isCollapsed || isMobileOpen">Ca bệnh chia sẻ</span>
         </router-link>
+
+        <router-link
+          to="/role-request"
+          class="nav-item"
+          :class="{ active: $route.path === '/role-request' }"
+          @click="closeMobileOnNavigate"
+        >
+          <i class="pi pi-user-edit" />
+          <span v-show="!isCollapsed || isMobileOpen">Yêu cầu đổi vai trò</span>
+        </router-link>
       </template>
 
       <template v-else-if="role === 'instructor'">
@@ -148,6 +158,16 @@
         >
           <i class="pi pi-users" />
           <span v-show="!isCollapsed || isMobileOpen">Quản lý Người dùng</span>
+        </router-link>
+
+        <router-link
+          to="/admin/role-approval"
+          class="nav-item"
+          :class="{ active: $route.path === '/admin/role-approval' }"
+          @click="closeMobileOnNavigate"
+        >
+          <i class="pi pi-shield" />
+          <span v-show="!isCollapsed || isMobileOpen">Duyệt đổi vai trò</span>
         </router-link>
       </template>
     </nav>
