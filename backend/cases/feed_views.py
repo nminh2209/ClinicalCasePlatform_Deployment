@@ -152,24 +152,35 @@ def publish_to_feed(request, pk):
 
     case = get_object_or_404(Case, pk=pk)
 
-    # Check if case can be published
-    if not case.can_be_published():
+    # Case must be approved before it can appear on the public feed
+    if case.case_status != Case.StatusChoices.APPROVED:
         return Response(
-            {"error": "Case must be approved and not already published"},
+            {"error": "Ca bệnh phải được phê duyệt trước khi xuất bản lên feed"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Update case
-    case.is_published_to_feed = True
-    case.published_to_feed_at = timezone.now()
-    case.published_by = user
-    case.feed_visibility = request.data.get("feed_visibility", "department")
-    case.is_featured = request.data.get("is_featured", False)
-    case.save()
+    feed_visibility = request.data.get("feed_visibility", "department")
+    is_featured = request.data.get("is_featured", False)
+
+    if not case.is_published_to_feed:
+        # First publish
+        case.is_published_to_feed = True
+        case.published_to_feed_at = timezone.now()
+        case.published_by = user
+        case.feed_visibility = feed_visibility
+        case.is_featured = is_featured
+        case.save()
+        message = "Case published to feed successfully"
+    else:
+        # Already published — update visibility / featured flag (idempotent)
+        case.feed_visibility = feed_visibility
+        case.is_featured = is_featured
+        case.save(update_fields=["feed_visibility", "is_featured"])
+        message = "Feed visibility updated successfully"
 
     return Response(
         {
-            "message": "Case published to feed successfully",
+            "message": message,
             "case_id": case.id,  # type: ignore[attr-defined]
             "published_at": case.published_to_feed_at,
             "visibility": case.feed_visibility,
@@ -208,15 +219,14 @@ def unpublish_from_feed(request, pk):
     )
 
 
-@api_view(["POST"])
+@api_view(["POST", "DELETE"])
 @permission_classes([permissions.IsAuthenticated])
 def react_to_case(request, pk):
     """
-    POST /api/cases/{id}/react/
+    POST /api/cases/{id}/react/   — add/update reaction
+    DELETE /api/cases/{id}/react/ — remove reaction
 
-    Add or update the user's single supported reaction to a case.
-
-    Body:
+    Body (POST only):
     {
         "reaction_type": "like"
     }
@@ -224,6 +234,27 @@ def react_to_case(request, pk):
     user: User = request.user
     case = get_object_or_404(Case, pk=pk, is_published_to_feed=True)
 
+    if request.method == "DELETE":
+        deleted_count, _ = Comment.objects.filter(
+            case=case, author=user, is_reaction=True
+        ).delete()
+
+        if deleted_count == 0:
+            return Response(
+                {"error": "No reaction found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        case.reaction_count = Comment.objects.filter(case=case, is_reaction=True).count()
+        case.save(update_fields=["reaction_count"])
+
+        return Response(
+            {
+                "message": "Reaction removed successfully",
+                "total_reactions": case.reaction_count,
+            }
+        )
+
+    # POST — add or update reaction
     reaction_type = request.data.get("reaction_type", "like")
     if reaction_type != "like":
         return Response(
@@ -231,18 +262,16 @@ def react_to_case(request, pk):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Get or create reaction (using Comment model)
     reaction, created = Comment.objects.update_or_create(
         case=case,
         author=user,
         is_reaction=True,
         defaults={
             "reaction_type": reaction_type,
-            "content": "",  # Empty content for reactions
+            "content": "",
         },
     )
 
-    # Update case reaction count
     case.reaction_count = Comment.objects.filter(case=case, is_reaction=True).count()
     case.save(update_fields=["reaction_count"])
 
@@ -257,37 +286,9 @@ def react_to_case(request, pk):
     )
 
 
-@api_view(["DELETE"])
-@permission_classes([permissions.IsAuthenticated])
 def remove_reaction(request, pk):
-    """
-    DELETE /api/cases/{id}/react/
-
-    Remove user's reaction from a case
-    """
-    user: User = request.user
-    case = get_object_or_404(Case, pk=pk, is_published_to_feed=True)
-
-    # Delete reaction
-    deleted_count, _ = Comment.objects.filter(
-        case=case, author=user, is_reaction=True
-    ).delete()
-
-    if deleted_count == 0:
-        return Response(
-            {"error": "No reaction found"}, status=status.HTTP_404_NOT_FOUND
-        )
-
-    # Update case reaction count
-    case.reaction_count = Comment.objects.filter(case=case, is_reaction=True).count()
-    case.save(update_fields=["reaction_count"])
-
-    return Response(
-        {
-            "message": "Reaction removed successfully",
-            "total_reactions": case.reaction_count,
-        }
-    )
+    """Kept for import compatibility; logic merged into react_to_case."""
+    pass
 
 
 @api_view(["GET"])

@@ -1142,6 +1142,7 @@
         <CaseSharingPanel
           v-if="selectedCaseForSharing"
           :case-id="selectedCaseForSharing.id"
+          @permission-created="loadCases(currentPage)"
         />
       </Dialog>
     </div>
@@ -1950,6 +1951,17 @@ onMounted(() => {
   border-color: transparent !important;
   color: white !important;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* The Aura theme sets checkedBackground: surface.0 (white) on .p-togglebutton-content
+   when checked — this is the white rectangle covering the text. Remove it. */
+:deep(
+  .collection-select-btn
+    .p-togglebutton.p-togglebutton-checked
+    .p-togglebutton-content
+) {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 :deep(

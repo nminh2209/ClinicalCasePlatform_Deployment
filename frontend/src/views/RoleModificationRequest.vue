@@ -42,9 +42,9 @@
     <div v-if="!existingPending" class="form-card">
       <h2 class="section-title">Thông tin xác minh</h2>
       <p class="section-hint">
-        Tất cả các trường có dấu <span class="required-star">*</span> đều bắt
-        buộc. Thông tin này được sử dụng để xác minh danh tính và tư cách của
-        bạn.
+        Các trường có dấu <span class="required-star">*</span> là bắt buộc.
+        Thông tin này được sử dụng để xác minh danh tính và tư cách giảng viên
+        của bạn.
       </p>
 
       <form @submit.prevent="handleSubmit" novalidate>
@@ -79,20 +79,14 @@
           <p v-if="errors.email" class="field-error">{{ errors.email }}</p>
         </div>
 
-        <!-- Student ID -->
+        <!-- Student ID (optional — not applicable for instructor requests) -->
         <div class="form-group">
-          <label class="form-label"
-            >Mã số sinh viên <span class="required-star">*</span></label
-          >
+          <label class="form-label">Mã số sinh viên (nếu có)</label>
           <InputText
             v-model="form.student_id"
             placeholder="SV2024001"
             class="form-input"
-            :class="{ 'input-error': errors.student_id }"
           />
-          <p v-if="errors.student_id" class="field-error">
-            {{ errors.student_id }}
-          </p>
         </div>
 
         <!-- Department -->
@@ -295,8 +289,6 @@ const validate = (): boolean => {
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
     e.email = "Địa chỉ email không hợp lệ.";
   }
-  if (!form.value.student_id.trim())
-    e.student_id = "Vui lòng nhập mã số sinh viên.";
   if (!form.value.department) e.department = "Vui lòng chọn khoa / bộ môn.";
   if (!form.value.specialty.trim())
     e.specialty = "Vui lòng nhập chuyên ngành / lĩnh vực.";

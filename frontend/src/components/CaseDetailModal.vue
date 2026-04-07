@@ -514,7 +514,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["close", "refresh"]);
+const emit = defineEmits(["close", "refresh", "comment-added"]);
 
 const { toast } = useToast();
 
@@ -596,7 +596,7 @@ const submitComment = async () => {
     });
     newComment.value = "";
     await loadComments();
-    emit("refresh");
+    emit("comment-added", props.caseId);
     toast.success("Đã gửi bình luận");
   } catch (err: any) {
     toast.error("Không thể gửi bình luận");

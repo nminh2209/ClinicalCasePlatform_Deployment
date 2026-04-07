@@ -116,6 +116,7 @@
       :is-open="showCaseModal"
       @close="closeCaseModal"
       @refresh="loadFeed"
+      @comment-added="handleCommentAdded"
     />
   </div>
 </template>
@@ -201,6 +202,11 @@ const loadMore = () => {
 const refreshFeed = () => {
   loadFeed(false);
   loadStatistics();
+};
+
+const handleCommentAdded = (caseId: number) => {
+  const post = feedPosts.value.find((p) => p.id === caseId);
+  if (post) post.comments_count = (post.comments_count || 0) + 1;
 };
 
 const openCaseModal = (caseId: number) => {

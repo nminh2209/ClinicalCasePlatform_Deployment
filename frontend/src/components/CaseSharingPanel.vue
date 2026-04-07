@@ -247,7 +247,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, onUnmounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useToast } from "@/composables/useToast";
 import sharingService from "@/services/sharing";
 import Button from "primevue/button";
@@ -290,6 +290,7 @@ interface GuestAccess {
 }
 
 const props = defineProps<{ caseId: number }>();
+const emit = defineEmits<{ (e: "permission-created"): void }>();
 
 const { toast } = useToast();
 
@@ -443,25 +444,14 @@ const deleteGuestAccess = async (guestId: number) => {
   }
 };
 
-const onPermissionCreated = (permission: any) => {
-  const fullPermission: Permission = {
-    ...permission,
-    is_active: true,
-    is_expired: false,
-  };
-  permissions.value.unshift(fullPermission);
-  const cacheKey = props.caseId;
-  const cachedData = dataCache.value.get(cacheKey);
-  if (cachedData) {
-    cachedData.permissions = [...permissions.value];
-    cachedData.timestamp = Date.now();
-  } else {
-    dataCache.value.set(cacheKey, {
-      permissions: [...permissions.value],
-      guests: [...guestAccesses.value],
-      timestamp: Date.now(),
-    });
-  }
+const onPermissionCreated = async (_permission: any) => {
+  // Refresh from server so the panel shows accurate, server-confirmed state
+  // (avoids the stale-cache / duplicate-display bug)
+  await loadPermissions();
+  // Invalidate local cache so the next open also fetches fresh data
+  dataCache.value.delete(props.caseId);
+  // Notify parent (e.g. Cases.vue) so it can refresh the case list
+  emit("permission-created");
 };
 
 const revokePermission = async (permissionId: number) => {

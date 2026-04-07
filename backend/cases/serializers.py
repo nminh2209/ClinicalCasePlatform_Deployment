@@ -252,13 +252,12 @@ class CaseListSerializer(serializers.ModelSerializer):
     )
     comment_count = serializers.IntegerField(read_only=True)
     # Cloned case tracking fields
-    cloned_from = serializers.PrimaryKeyRelatedField(read_only=True)
-    cloned_from_title = serializers.CharField(
-        source="cloned_from.title", read_only=True, allow_null=True
-    )
-    cloned_from_instructor_name = serializers.CharField(
-        source="cloned_from.student.get_full_name", read_only=True, allow_null=True
-    )
+    cloned_from = serializers.SerializerMethodField()
+    cloned_from_title = serializers.CharField(read_only=True)
+    cloned_from_instructor_name = serializers.CharField(read_only=True)
+
+    def get_cloned_from(self, obj):
+        return obj.cloned_from_title or None
 
     fts_rank = serializers.FloatField(read_only=True)
     trigram_score = serializers.FloatField(read_only=True)
@@ -391,12 +390,8 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     repository_name = serializers.CharField(source="repository.name", read_only=True)
     comment_count = serializers.IntegerField(read_only=True)
     has_grade = serializers.BooleanField(read_only=True)
-    cloned_from_title = serializers.CharField(
-        source="cloned_from.title", read_only=True, allow_null=True
-    )
-    cloned_from_instructor_name = serializers.CharField(
-        source="cloned_from.student.get_full_name", read_only=True, allow_null=True
-    )
+    cloned_from_title = serializers.CharField(read_only=True)
+    cloned_from_instructor_name = serializers.CharField(read_only=True)
 
     # Medical sections
     clinical_history = ClinicalHistorySerializer(read_only=True)

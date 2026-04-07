@@ -482,10 +482,6 @@ onBeforeUnmount(() => disconnectWebSocket());
 }
 
 /* Notification list */
-.notif-list {
-  divide-y: 1px solid var(--border);
-}
-
 .notif-item {
   padding: 0.75rem 1rem;
   cursor: pointer;

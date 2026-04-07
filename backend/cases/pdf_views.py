@@ -26,9 +26,9 @@ def export_case_pdf(request, pk):
     """
     case = get_object_or_404(Case, pk=pk)
 
-    # Check permissions
+    # Check permissions: owner, any instructor, or publicly published case
     user = request.user
-    if case.student != user and not user.is_instructor:
+    if case.student != user and not user.is_instructor and not case.is_published_to_feed:
         return Response(
             {"error": "You don't have permission to export this case"},
             status=status.HTTP_403_FORBIDDEN,

@@ -877,21 +877,110 @@ class EnhancedCasePermissionViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
+        from django.utils import timezone as tz
+
         case_id = self.kwargs.get("case_pk")
         case = get_object_or_404(Case, id=case_id)
+        user = self.request.user
 
-        permission = serializer.save(case=case, granted_by=self.request.user)
+        # Authorization: only the case owner, instructors, or admins may grant permissions
+        if not (case.student == user or user.is_instructor or user.is_admin_user):  # type: ignore[attr-defined]
+            raise PermissionDenied("Bạn không có quyền chia sẻ ca bệnh này")
+
+        share_type = serializer.validated_data.get(
+            "share_type", CasePermission.ShareTypeChoices.INDIVIDUAL
+        )
+
+        # --- Idempotent create: prevent duplicate public/department permissions ---
+        if share_type == CasePermission.ShareTypeChoices.PUBLIC:
+            permission, created = CasePermission.objects.get_or_create(
+                case=case,
+                share_type=CasePermission.ShareTypeChoices.PUBLIC,
+                defaults={
+                    "permission_type": serializer.validated_data.get("permission_type", "view"),
+                    "granted_by": user,
+                    "expires_at": serializer.validated_data.get("expires_at"),
+                    "notes": serializer.validated_data.get("notes", ""),
+                    "is_active": True,
+                },
+            )
+            if not created:
+                # Overwrite permission level if re-shared
+                new_ptype = serializer.validated_data.get("permission_type")
+                if new_ptype and new_ptype != permission.permission_type:
+                    permission.permission_type = new_ptype
+                permission.granted_by = user
+                permission.is_active = True
+                permission.save(update_fields=["permission_type", "granted_by", "is_active"])
+            # Expose the instance so DRF serialises it correctly in the response
+            serializer.instance = permission
+
+        elif share_type == CasePermission.ShareTypeChoices.DEPARTMENT:
+            target_department = serializer.validated_data.get("target_department")
+            permission, created = CasePermission.objects.get_or_create(
+                case=case,
+                share_type=CasePermission.ShareTypeChoices.DEPARTMENT,
+                target_department=target_department,
+                defaults={
+                    "permission_type": serializer.validated_data.get("permission_type", "view"),
+                    "granted_by": user,
+                    "expires_at": serializer.validated_data.get("expires_at"),
+                    "notes": serializer.validated_data.get("notes", ""),
+                    "is_active": True,
+                },
+            )
+            if not created:
+                new_ptype = serializer.validated_data.get("permission_type")
+                if new_ptype and new_ptype != permission.permission_type:
+                    permission.permission_type = new_ptype
+                permission.granted_by = user
+                permission.is_active = True
+                permission.save(update_fields=["permission_type", "granted_by", "is_active"])
+            serializer.instance = permission
+
+        else:
+            # Individual / class_group: allow multiple (different users/groups)
+            permission = serializer.save(case=case, granted_by=user)
+            created = True
+
+        # --- Auto-publish approved cases to the public feed on public/department share ---
+        if share_type in (
+            CasePermission.ShareTypeChoices.PUBLIC,
+            CasePermission.ShareTypeChoices.DEPARTMENT,
+        ) and case.case_status == Case.StatusChoices.APPROVED:
+            desired_visibility = (
+                "university"
+                if share_type == CasePermission.ShareTypeChoices.PUBLIC
+                else "department"
+            )
+            if not case.is_published_to_feed:
+                case.is_published_to_feed = True
+                case.published_to_feed_at = tz.now()
+                case.published_by = user
+                case.feed_visibility = desired_visibility
+                case.save(
+                    update_fields=[
+                        "is_published_to_feed",
+                        "published_to_feed_at",
+                        "published_by",
+                        "feed_visibility",
+                    ]
+                )
+            elif desired_visibility == "university" and case.feed_visibility == "department":
+                # Upgrade visibility: department → university
+                case.feed_visibility = "university"
+                case.save(update_fields=["feed_visibility"])
 
         # Log the permission grant
         PermissionAuditLog.log_permission_change(
             case=case,
             target_user=permission.user,
-            actor_user=self.request.user,
+            actor_user=user,
             action=PermissionAuditLog.ActionChoices.GRANTED,
             permission_type=permission.permission_type,
             description=f"Granted {permission.get_permission_type_display()} permission via {permission.get_share_type_display()}",
             request=self.request,
-            additional_data={"permission_id": permission.id},
+            additional_data={"permission_id": permission.id, "auto_published": not created},
         )
 
     def perform_update(self, serializer):

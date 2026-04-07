@@ -11,17 +11,6 @@
           class="p-2"
         />
       </div>
-
-      <div class="search-container">
-        <IconField>
-          <InputIcon class="pi pi-search" />
-          <InputText
-            v-model="searchQuery"
-            placeholder="Tìm kiếm bệnh nhân, hồ sơ bệnh án..."
-            class="search-input"
-          />
-        </IconField>
-      </div>
     </div>
 
     <div class="header-right">
@@ -46,21 +35,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
-import { useRouter } from "vue-router";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
 import Avatar from "primevue/avatar";
 import NotificationCenter from "./NotificationCenter.vue";
 
 defineEmits(["menu-click"]);
 
 const authStore = useAuthStore();
-const router = useRouter();
-const searchQuery = ref("");
 
 const user = computed(() => authStore.user);
 
@@ -77,11 +60,6 @@ const formatRole = (role) => {
     admin: "Quản trị viên",
   };
   return roleMap[role] || role;
-};
-
-const logout = () => {
-  authStore.logout();
-  router.push("/login");
 };
 </script>
 

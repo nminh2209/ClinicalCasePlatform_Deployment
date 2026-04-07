@@ -146,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useToast } from "@/composables/useToast";
 import feedService from "@/services/feed";
 import Button from "primevue/button";
@@ -162,35 +162,39 @@ const emit = defineEmits(["react", "comment", "refresh", "view-details"]);
 const { toast } = useToast();
 
 const expanded = ref(false);
-const isLiked = ref(props.post.user_reaction === "like");
+const isLiked = computed(() => props.post.user_reaction === "like");
 
 const toggleExpand = () => {
   expanded.value = !expanded.value;
 };
 
 const react = async () => {
-  const currentReaction = isLiked.value ? "like" : null;
+  const wasLiked = isLiked.value;
+
+  // Optimistic update
+  props.post.user_reaction = wasLiked ? null : "like";
+  props.post.reaction_count += wasLiked ? -1 : 1;
 
   try {
     const response = await feedService.toggleReaction(
       props.post.id,
       "like",
-      currentReaction,
+      wasLiked ? "like" : null,
     );
 
-    isLiked.value = !isLiked.value;
-    props.post.user_reaction = isLiked.value ? "like" : null;
-
+    // Reconcile with server value if returned
     if (typeof response?.total_reactions === "number") {
       props.post.reaction_count = response.total_reactions;
     }
 
     emit("react", {
       caseId: props.post.id,
-      reactionType: isLiked.value ? "like" : null,
+      reactionType: wasLiked ? null : "like",
     });
   } catch (error) {
-    console.error("Failed to react:", error);
+    // Revert optimistic update on failure
+    props.post.user_reaction = wasLiked ? "like" : null;
+    props.post.reaction_count += wasLiked ? 1 : -1;
     toast.error("Không thể thực hiện lượt thích");
   }
 };

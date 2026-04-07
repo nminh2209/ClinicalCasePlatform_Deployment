@@ -163,6 +163,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useToast } from "@/composables/useToast";
 import { sharingService } from "@/services/sharing";
+import feedService from "@/services/feed";
 import api from "@/services/api";
 import type {
   SharePermission,
@@ -389,13 +390,49 @@ const handleSubmit = async () => {
       permissionData,
     );
 
+    // For public/department shares, also explicitly publish to the feed so the
+    // case appears on the public feed immediately (backend auto-publishes
+    // approved cases, but we call it here too for belt-and-suspenders).
+    let feedPublished = false;
+    if (
+      form.value.shareType === "public" ||
+      form.value.shareType === "department"
+    ) {
+      const feedVisibility =
+        form.value.shareType === "public" ? "university" : "department";
+      try {
+        await feedService.publishToFeed(props.caseId, {
+          feed_visibility: feedVisibility,
+        });
+        feedPublished = true;
+      } catch (feedErr: any) {
+        const errMsg: string = feedErr?.response?.data?.error ?? "";
+        if (errMsg.includes("phê duyệt") || errMsg.includes("approved")) {
+          // Case not yet approved — sharing permission was created, but it
+          // won't appear on the feed until the case is approved.
+          toast.toast.warning(
+            "Quyền chia sẻ đã được cấp. Ca bệnh sẽ xuất hiện trên feed sau khi được phê duyệt.",
+          );
+          emit("permission-created", permission);
+          emit("update:open", false);
+          return;
+        }
+        // Already published or other non-critical error — ignore silently
+        feedPublished = true;
+      }
+    }
+
     let successMessage = "";
     if (form.value.shareType === "department") {
       const deptName =
         userDepartment.value?.vietnamese_name || userDepartment.value?.name;
-      successMessage = `Đã chia sẻ với tất cả sinh viên trong khoa ${deptName}!`;
+      successMessage = feedPublished
+        ? `Đã chia sẻ với khoa ${deptName} và xuất bản lên feed!`
+        : `Đã chia sẻ với tất cả sinh viên trong khoa ${deptName}!`;
     } else if (form.value.shareType === "public") {
-      successMessage = "Ca bệnh đã được công khai!";
+      successMessage = feedPublished
+        ? "Ca bệnh đã được công khai và xuất hiện trên feed!"
+        : "Ca bệnh đã được công khai!";
     } else {
       successMessage = `Đã chia sẻ với ${form.value.selectedUser?.full_name || "user"}!`;
     }
