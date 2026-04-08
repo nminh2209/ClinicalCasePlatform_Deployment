@@ -8,7 +8,8 @@ Using existing Case and Comment models (no new tables)
 from typing import TYPE_CHECKING
 
 from comments.models import Comment
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Exists, IntegerField, OuterRef, Q, Subquery, Value
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, status
@@ -43,6 +44,32 @@ class PublicFeedListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user  # Type hint removed to avoid Pylance warning
+
+        # Correlated subqueries for counts — avoids JOIN-based aggregation
+        # issues that arise when multiple Count() annotations share a relation.
+        comment_count_sq = (
+            Comment.objects.filter(case_id=OuterRef("pk"), is_reaction=False)
+            .order_by()
+            .values("case_id")
+            .annotate(cnt=Count("id"))
+            .values("cnt")
+        )
+        reaction_count_sq = (
+            Comment.objects.filter(case_id=OuterRef("pk"), is_reaction=True)
+            .order_by()
+            .values("case_id")
+            .annotate(cnt=Count("id"))
+            .values("cnt")
+        )
+
+        # Correlated Exists for the current user's reaction — evaluated
+        # per-row in SQL, no in-memory distribution like Prefetch.
+        user_reaction_exists = Comment.objects.filter(
+            case_id=OuterRef("pk"),
+            author=user,
+            is_reaction=True,
+        )
+
         queryset = (
             Case.objects.filter(
                 is_published_to_feed=True, case_status=Case.StatusChoices.APPROVED
@@ -51,7 +78,15 @@ class PublicFeedListView(generics.ListAPIView):
                 "student", "student__department", "published_by", "repository"
             )
             .annotate(
-                comments_count=Count("comments", filter=Q(comments__is_reaction=False)),
+                comments_count=Coalesce(
+                    Subquery(comment_count_sq, output_field=IntegerField()),
+                    Value(0),
+                ),
+                live_reaction_count=Coalesce(
+                    Subquery(reaction_count_sq, output_field=IntegerField()),
+                    Value(0),
+                ),
+                has_user_reaction=Exists(user_reaction_exists),
             )
             .order_by("-published_to_feed_at")
         )
@@ -232,17 +267,13 @@ def react_to_case(request, pk):
     }
     """
     user: User = request.user
-    case = get_object_or_404(Case, pk=pk, is_published_to_feed=True)
+    case = get_object_or_404(Case, pk=pk)
 
     if request.method == "DELETE":
-        deleted_count, _ = Comment.objects.filter(
+        # Idempotent: always succeeds even if no reaction existed
+        Comment.objects.filter(
             case=case, author=user, is_reaction=True
         ).delete()
-
-        if deleted_count == 0:
-            return Response(
-                {"error": "No reaction found"}, status=status.HTTP_404_NOT_FOUND
-            )
 
         case.reaction_count = Comment.objects.filter(case=case, is_reaction=True).count()
         case.save(update_fields=["reaction_count"])
@@ -251,6 +282,7 @@ def react_to_case(request, pk):
             {
                 "message": "Reaction removed successfully",
                 "total_reactions": case.reaction_count,
+                "user_reaction": None,
             }
         )
 
@@ -282,6 +314,7 @@ def react_to_case(request, pk):
             "message": f"Reaction {action} successfully",
             "reaction_type": reaction_type,
             "total_reactions": case.reaction_count,
+            "user_reaction": reaction_type,
         }
     )
 
@@ -309,7 +342,7 @@ def get_case_reactions(request, pk):
         "recent_reactions": [...]
     }
     """
-    case = get_object_or_404(Case, pk=pk, is_published_to_feed=True)
+    case = get_object_or_404(Case, pk=pk)
     user: User = request.user
 
     # Get reaction summary

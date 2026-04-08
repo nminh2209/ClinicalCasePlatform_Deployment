@@ -1238,6 +1238,7 @@ class PublicFeedSerializer(serializers.ModelSerializer):
 
     student = serializers.SerializerMethodField()
     published_by = serializers.SerializerMethodField()
+    reaction_count = serializers.SerializerMethodField()
     reactions = serializers.SerializerMethodField()
     user_reaction = serializers.SerializerMethodField()
     comments_count = serializers.IntegerField(read_only=True)
@@ -1324,26 +1325,34 @@ class PublicFeedSerializer(serializers.ModelSerializer):
             "full_name": full_name,
         }
 
+    def get_reaction_count(self, obj):
+        """Use the annotated live count when available, fall back to model field."""
+        if hasattr(obj, "live_reaction_count"):
+            return obj.live_reaction_count
+        return obj.reaction_count
+
     def get_reactions(self, obj):
         """Get reaction summary"""
-        try:
-            return obj.get_reaction_summary()
-        except Exception:
-            return {"total": obj.reaction_count, "breakdown": {"like": obj.reaction_count}}
+        count = self.get_reaction_count(obj)
+        return {"total": count, "breakdown": {"like": count}}
 
     def get_user_reaction(self, obj):
-        """Get current user's reaction to this case"""
+        """Get current user's reaction to this case.
+
+        Uses the ``has_user_reaction`` boolean annotation (Exists subquery)
+        when available — evaluated per-row in SQL, guaranteed correct.
+        Falls back to a per-object query for contexts without the annotation.
+        """
+        if hasattr(obj, "has_user_reaction"):
+            return "like" if obj.has_user_reaction else None
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             from comments.models import Comment
 
-            try:
-                reaction = Comment.objects.filter(
-                    case=obj, author=request.user, is_reaction=True
-                ).first()
-                return "like" if reaction else None
-            except Exception:
-                return None
+            reaction = Comment.objects.filter(
+                case=obj, author=request.user, is_reaction=True
+            ).first()
+            return "like" if reaction else None
         return None
 
 

@@ -893,18 +893,15 @@ class EnhancedCasePermissionViewSet(viewsets.ModelViewSet):
 
         # --- Idempotent create: prevent duplicate public/department permissions ---
         if share_type == CasePermission.ShareTypeChoices.PUBLIC:
-            permission, created = CasePermission.objects.get_or_create(
+            existing = CasePermission.objects.filter(
                 case=case,
                 share_type=CasePermission.ShareTypeChoices.PUBLIC,
-                defaults={
-                    "permission_type": serializer.validated_data.get("permission_type", "view"),
-                    "granted_by": user,
-                    "expires_at": serializer.validated_data.get("expires_at"),
-                    "notes": serializer.validated_data.get("notes", ""),
-                    "is_active": True,
-                },
             )
-            if not created:
+            permission = existing.first()
+            if permission:
+                created = False
+                # Clean up any duplicates that were created before
+                existing.exclude(pk=permission.pk).delete()
                 # Overwrite permission level if re-shared
                 new_ptype = serializer.validated_data.get("permission_type")
                 if new_ptype and new_ptype != permission.permission_type:
@@ -912,30 +909,49 @@ class EnhancedCasePermissionViewSet(viewsets.ModelViewSet):
                 permission.granted_by = user
                 permission.is_active = True
                 permission.save(update_fields=["permission_type", "granted_by", "is_active"])
+            else:
+                created = True
+                permission = CasePermission.objects.create(
+                    case=case,
+                    share_type=CasePermission.ShareTypeChoices.PUBLIC,
+                    permission_type=serializer.validated_data.get("permission_type", "view"),
+                    granted_by=user,
+                    expires_at=serializer.validated_data.get("expires_at"),
+                    notes=serializer.validated_data.get("notes", ""),
+                    is_active=True,
+                )
             # Expose the instance so DRF serialises it correctly in the response
             serializer.instance = permission
 
         elif share_type == CasePermission.ShareTypeChoices.DEPARTMENT:
             target_department = serializer.validated_data.get("target_department")
-            permission, created = CasePermission.objects.get_or_create(
+            existing = CasePermission.objects.filter(
                 case=case,
                 share_type=CasePermission.ShareTypeChoices.DEPARTMENT,
                 target_department=target_department,
-                defaults={
-                    "permission_type": serializer.validated_data.get("permission_type", "view"),
-                    "granted_by": user,
-                    "expires_at": serializer.validated_data.get("expires_at"),
-                    "notes": serializer.validated_data.get("notes", ""),
-                    "is_active": True,
-                },
             )
-            if not created:
+            permission = existing.first()
+            if permission:
+                created = False
+                existing.exclude(pk=permission.pk).delete()
                 new_ptype = serializer.validated_data.get("permission_type")
                 if new_ptype and new_ptype != permission.permission_type:
                     permission.permission_type = new_ptype
                 permission.granted_by = user
                 permission.is_active = True
                 permission.save(update_fields=["permission_type", "granted_by", "is_active"])
+            else:
+                created = True
+                permission = CasePermission.objects.create(
+                    case=case,
+                    share_type=CasePermission.ShareTypeChoices.DEPARTMENT,
+                    target_department=target_department,
+                    permission_type=serializer.validated_data.get("permission_type", "view"),
+                    granted_by=user,
+                    expires_at=serializer.validated_data.get("expires_at"),
+                    notes=serializer.validated_data.get("notes", ""),
+                    is_active=True,
+                )
             serializer.instance = permission
 
         else:

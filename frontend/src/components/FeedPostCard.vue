@@ -162,6 +162,7 @@ const emit = defineEmits(["react", "comment", "refresh", "view-details"]);
 const { toast } = useToast();
 
 const expanded = ref(false);
+const reacting = ref(false);
 const isLiked = computed(() => props.post.user_reaction === "like");
 
 const toggleExpand = () => {
@@ -169,11 +170,16 @@ const toggleExpand = () => {
 };
 
 const react = async () => {
+  if (reacting.value) return;
+  reacting.value = true;
+
   const wasLiked = isLiked.value;
+  const previousReaction = props.post.user_reaction;
+  const previousCount = props.post.reaction_count;
 
   // Optimistic update
   props.post.user_reaction = wasLiked ? null : "like";
-  props.post.reaction_count += wasLiked ? -1 : 1;
+  props.post.reaction_count = previousCount + (wasLiked ? -1 : 1);
 
   try {
     const response = await feedService.toggleReaction(
@@ -182,9 +188,12 @@ const react = async () => {
       wasLiked ? "like" : null,
     );
 
-    // Reconcile with server value if returned
+    // Reconcile with server values
     if (typeof response?.total_reactions === "number") {
       props.post.reaction_count = response.total_reactions;
+    }
+    if (response?.user_reaction !== undefined) {
+      props.post.user_reaction = response.user_reaction;
     }
 
     emit("react", {
@@ -193,9 +202,11 @@ const react = async () => {
     });
   } catch (error) {
     // Revert optimistic update on failure
-    props.post.user_reaction = wasLiked ? "like" : null;
-    props.post.reaction_count += wasLiked ? 1 : -1;
+    props.post.user_reaction = previousReaction;
+    props.post.reaction_count = previousCount;
     toast.error("Không thể thực hiện lượt thích");
+  } finally {
+    reacting.value = false;
   }
 };
 

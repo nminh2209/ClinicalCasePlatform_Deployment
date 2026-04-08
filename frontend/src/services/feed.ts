@@ -142,8 +142,16 @@ export const feedService = {
    * @param caseId Case ID
    */
   async removeReaction(caseId: number) {
-    const response = await api.delete(`/cases/${caseId}/react/`);
-    return response.data;
+    try {
+      const response = await api.delete(`/cases/${caseId}/react/`);
+      return response.data;
+    } catch (error: any) {
+      // 404 means there was no reaction to remove — that's the desired state
+      if (error?.response?.status === 404) {
+        return { total_reactions: null, user_reaction: null };
+      }
+      throw error;
+    }
   },
 
   /**

@@ -103,3 +103,6 @@ pyrightconfig.json
 
 # Agentic files
 CLAUDE.md
+AGENTS.md
+.gitnexus/
+.claude/
