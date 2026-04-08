@@ -378,6 +378,129 @@ def generate_template_pdf(template):
     return renderer.render_template_structure()
 
 
+def _get_pdf_font_paths():
+    """
+    Cross-platform font resolution for PDF generation.
+
+    Searches for a Unicode-capable TrueType font (DejaVu Sans, Noto Sans, Arial)
+    across Windows, macOS, and Linux (including Docker containers).  Tries
+    environment-variable overrides first, then OS-specific font directories.
+
+    Returns:
+        (base_font_name, bold_font_name, base_font_path, bold_font_path)
+        or None if no suitable font is found.
+    """
+    import os
+    import platform
+
+    # 1. Environment / settings override
+    explicit_base = os.environ.get("CLINICAL_PDF_BASE_FONT")
+    explicit_bold = os.environ.get("CLINICAL_PDF_BOLD_FONT")
+    if explicit_base and os.path.exists(explicit_base):
+        base_name = os.path.splitext(os.path.basename(explicit_base))[0]
+        bold_path = explicit_bold or explicit_base.replace(".ttf", "-Bold.ttf").replace(".TTF", "-Bold.TTF")
+        bold_name = os.path.splitext(os.path.basename(bold_path))[0]
+        return base_name, bold_name, explicit_base, bold_path
+
+    system = platform.system()
+
+    # Ordered list of font filenames to try (best Unicode coverage first)
+    font_candidates = [
+        "DejaVuSans.ttf",
+        "DejaVuSans-Bold.ttf",
+        "NotoSans-Regular.ttf",
+        "NotoSans-Bold.ttf",
+        "NotoSans.ttf",
+        "Arial.ttf",
+        "arial.ttf",
+        "LiberationSans-Regular.ttf",
+        "FreeSans.ttf",
+        "UnDotum.ttf",  # Korean but covers most Vietnamese diacritics
+    ]
+
+    def find_font(filename):
+        """Search all known system font directories for a file."""
+        search_dirs = []
+        if system == "Windows":
+            search_dirs.append("C:/Windows/Fonts")
+            search_dirs.append(os.path.join(os.environ.get("WINDIR", "C:/Windows"), "Fonts"))
+        elif system == "Darwin":  # macOS
+            search_dirs.extend([
+                "/System/Library/Fonts",
+                "/Library/Fonts",
+                os.path.expanduser("~/Library/Fonts"),
+            ])
+        else:  # Linux / Docker
+            search_dirs.extend([
+                "/usr/share/fonts",
+                "/usr/local/share/fonts",
+                os.path.expanduser("~/.fonts"),
+                "/opt/fonts",
+                # Common Docker volume mounts
+                "/app/fonts",
+                "/var/lib/fonts",
+            ])
+            # Recursively scan subdirectories
+            for base in list(search_dirs):
+                if os.path.isdir(base):
+                    for root, _, files in os.walk(base):
+                        for f in files:
+                            if f.lower().endswith(".ttf"):
+                                search_dirs.append(os.path.join(root, f))
+
+        for directory in search_dirs:
+            if os.path.isfile(directory):
+                # directory is actually a file path (from recursive scan)
+                if os.path.basename(directory).lower() == filename.lower():
+                    return directory
+            elif os.path.isdir(directory):
+                candidate = os.path.join(directory, filename)
+                if os.path.exists(candidate):
+                    return candidate
+            # Check if it's an exact path passed in font_candidates
+            if os.path.isfile(directory) and os.path.basename(directory).lower() == filename.lower():
+                return directory
+        return None
+
+    # Try to find base and bold fonts
+    base_path = find_font("DejaVuSans.ttf")
+    bold_path = find_font("DejaVuSans-Bold.ttf")
+    if base_path:
+        return "DejaVuSans", "DejaVuSans-Bold", base_path, bold_path or base_path.replace("Regular", "Bold")
+
+    base_path = find_font("NotoSans-Regular.ttf") or find_font("NotoSans.ttf")
+    bold_path = find_font("NotoSans-Bold.ttf")
+    if base_path:
+        bold_path = bold_path or base_path.replace("Regular", "Bold").replace("NotoSans", "NotoSans-Bold")
+        base_name = os.path.splitext(os.path.basename(base_path))[0]
+        bold_name = os.path.splitext(os.path.basename(bold_path))[0]
+        return base_name, bold_name, base_path, bold_path
+
+    base_path = find_font("Arial.ttf") or find_font("arial.ttf")
+    bold_path = find_font("arialbd.ttf") or (base_path.replace(".ttf", "bd.ttf") if base_path else None)
+    if base_path:
+        return "Arial", "Arial-Bold", base_path, bold_path or base_path
+
+    # Last resort: check any .ttf in font dirs
+    for directory in ["/usr/share/fonts", "/usr/local/share/fonts",
+                      "/Library/Fonts", "C:/Windows/Fonts"]:
+        if os.path.isdir(directory):
+            try:
+                for f in os.listdir(directory):
+                    if f.lower().endswith(".ttf") and "bold" not in f.lower():
+                        base_path = os.path.join(directory, f)
+                        bold_candidate = os.path.join(directory, f.replace(".ttf", "-Bold.ttf"))
+                        if not os.path.exists(bold_candidate):
+                            bold_candidate = base_path  # reuse if no bold variant
+                        base_name = os.path.splitext(f)[0]
+                        bold_name = base_name + "-Bold"
+                        return base_name, bold_name, base_path, bold_candidate
+            except OSError:
+                continue
+
+    return None
+
+
 def generate_case_pdf(case):
     """
     Generate PDF for completed case
@@ -398,36 +521,32 @@ def generate_case_pdf(case):
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     from io import BytesIO
-    import os
+    import logging
 
-    # Register Unicode font for Vietnamese support
-    try:
-        # Try to use DejaVu Sans (common on Windows/Linux)
-        font_path = "C:/Windows/Fonts/DejaVuSans.ttf"
-        if os.path.exists(font_path):
-            pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
-            pdfmetrics.registerFont(
-                TTFont("DejaVuSans-Bold", "C:/Windows/Fonts/DejaVuSans-Bold.ttf")
-            )
-            base_font = "DejaVuSans"
-            bold_font = "DejaVuSans-Bold"
-        else:
-            # Fallback to Arial Unicode MS if available
-            font_path = "C:/Windows/Fonts/arial.ttf"
-            if os.path.exists(font_path):
-                pdfmetrics.registerFont(TTFont("Arial", font_path))
-                pdfmetrics.registerFont(
-                    TTFont("Arial-Bold", "C:/Windows/Fonts/arialbd.ttf")
-                )
-                base_font = "Arial"
-                bold_font = "Arial-Bold"
-            else:
-                # Last resort: use Helvetica (won't show Vietnamese correctly)
-                base_font = "Helvetica"
-                bold_font = "Helvetica-Bold"
-    except:
+    logger = logging.getLogger(__name__)
+
+    # Cross-platform font registration for Vietnamese support
+    font_result = _get_pdf_font_paths()
+    if font_result:
+        base_name, bold_name, base_path, bold_path = font_result
+        try:
+            pdfmetrics.registerFont(TTFont(base_name, base_path))
+            pdfmetrics.registerFont(TTFont(bold_name, bold_path))
+            base_font = base_name
+            bold_font = bold_name
+        except Exception as font_err:
+            logger.warning("Failed to register PDF font %s: %s", base_path, font_err)
+            base_font = "Helvetica"
+            bold_font = "Helvetica-Bold"
+    else:
         base_font = "Helvetica"
         bold_font = "Helvetica-Bold"
+        logger.warning(
+            "No suitable Unicode font found for PDF generation. "
+            "Vietnamese characters may not render correctly. "
+            "Set CLINICAL_PDF_BASE_FONT and CLINICAL_PDF_BOLD_FONT environment variables "
+            "or install DejaVu Sans / Noto Sans."
+        )
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=2 * cm, bottomMargin=2 * cm)

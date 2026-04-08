@@ -8,7 +8,7 @@ Using existing Case and Comment models (no new tables)
 from typing import TYPE_CHECKING
 
 from comments.models import Comment
-from django.db.models import Count, Exists, IntegerField, OuterRef, Q, Subquery, Value
+from django.db.models import Count, IntegerField, OuterRef, Q, Subquery, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -62,14 +62,6 @@ class PublicFeedListView(generics.ListAPIView):
             .values("cnt")
         )
 
-        # Correlated Exists for the current user's reaction — evaluated
-        # per-row in SQL, no in-memory distribution like Prefetch.
-        user_reaction_exists = Comment.objects.filter(
-            case_id=OuterRef("pk"),
-            author=user,
-            is_reaction=True,
-        )
-
         queryset = (
             Case.objects.filter(
                 is_published_to_feed=True, case_status=Case.StatusChoices.APPROVED
@@ -86,7 +78,6 @@ class PublicFeedListView(generics.ListAPIView):
                     Subquery(reaction_count_sq, output_field=IntegerField()),
                     Value(0),
                 ),
-                has_user_reaction=Exists(user_reaction_exists),
             )
             .order_by("-published_to_feed_at")
         )
@@ -114,15 +105,51 @@ class PublicFeedListView(generics.ListAPIView):
 
         return queryset
 
+    def get_serializer_context(self):
+        """Inject per-user reaction set into serializer context.
+
+        Pre-fetches all reaction records for the current user across all
+        cases returned in this feed page.  This replaces the unreliable
+        Exists-annotation approach and guarantees the correct user is used.
+
+        Note: queryset attribute is set by list() before this is called,
+        so we reuse it to avoid a second DB query.
+        """
+        context = super().get_serializer_context()
+        user = self.request.user
+
+        # Reuse the queryset already built by list() — avoids a second DB round-trip
+        queryset = getattr(self, "_feed_page_ids", None)
+        if queryset is None:
+            queryset = self.filter_queryset(self.get_queryset())
+
+        case_ids = list(queryset.values_list("pk", flat=True))
+
+        # Build a set of case IDs the current user has liked
+        liked_ids: set[int] = set(
+            Comment.objects.filter(
+                case_id__in=case_ids,
+                author=user,
+                is_reaction=True,
+            ).values_list("case_id", flat=True)
+        )
+
+        context["user_liked_case_ids"] = liked_ids
+        return context
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
 
         if page is not None:
+            # Store the full (pre-pagination) queryset on self so
+            # get_serializer_context can reuse it without a second query
+            self._feed_page_ids = queryset
             serializer = self.get_serializer(page, many=True)
             response_data = self.get_paginated_response(serializer.data)
             return response_data
 
+        self._feed_page_ids = queryset
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

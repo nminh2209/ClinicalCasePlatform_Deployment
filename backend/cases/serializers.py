@@ -1339,12 +1339,14 @@ class PublicFeedSerializer(serializers.ModelSerializer):
     def get_user_reaction(self, obj):
         """Get current user's reaction to this case.
 
-        Uses the ``has_user_reaction`` boolean annotation (Exists subquery)
-        when available — evaluated per-row in SQL, guaranteed correct.
-        Falls back to a per-object query for contexts without the annotation.
+        Uses the ``user_liked_case_ids`` set injected via serializer context
+        (set in PublicFeedListView.get_serializer_context).  Falls back to a
+        per-object query for contexts that don't provide it (e.g. DRF browsable
+        API or serializers used outside the feed view).
         """
-        if hasattr(obj, "has_user_reaction"):
-            return "like" if obj.has_user_reaction else None
+        liked_ids: set | None = self.context.get("user_liked_case_ids")
+        if liked_ids is not None:
+            return "like" if obj.id in liked_ids else None
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             from comments.models import Comment
