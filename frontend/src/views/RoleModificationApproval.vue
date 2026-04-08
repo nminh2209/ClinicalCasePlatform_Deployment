@@ -57,7 +57,7 @@
           <div class="info-grid">
             <div class="info-item">
               <span class="info-label">MSSV</span>
-              <span class="info-value">{{ req.student_id }}</span>
+              <span class="info-value">{{ req.student_id || "—" }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Khoa / Bộ môn</span>
@@ -172,7 +172,7 @@
           </label>
           <Textarea
             v-model="rejectDialog.reason"
-            placeholder="Nhập lý do từ chối…"
+            placeholder="Nhập lý do từ chối..."
             rows="4"
             style="width: 100%; resize: vertical"
             :class="{ 'p-invalid': rejectDialog.reasonError }"
@@ -191,7 +191,7 @@
         />
         <Button
           label="Xác nhận từ chối"
-          icon="pi pi-times"
+          icon="pi pi-check"
           severity="danger"
           :loading="rejectDialog.loading"
           @click="confirmReject"

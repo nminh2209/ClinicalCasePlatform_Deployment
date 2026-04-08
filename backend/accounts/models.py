@@ -113,7 +113,7 @@ class RoleModificationRequest(models.Model):
     )
     full_name = models.CharField(max_length=200, help_text="Full legal name of requester")
     email = models.EmailField(help_text="Email address for verification")
-    student_id = models.CharField(max_length=50, help_text="Student ID for verification")
+    student_id = models.CharField(max_length=50, blank=True, help_text="Student ID for verification")
     requested_role = models.CharField(
         max_length=20,
         choices=[("instructor", "Giảng viên")],
