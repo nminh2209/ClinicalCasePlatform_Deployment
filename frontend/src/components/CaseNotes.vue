@@ -92,7 +92,7 @@
     <Tag
       style="color: var(--destructive)"
       severity="danger"
-      v-if="!canEdit && !isDraft"
+      v-if="!canEdit"
       value="Ca bệnh đã được nộp. Không thể chỉnh sửa."
     />
 
@@ -1835,8 +1835,8 @@ const isOwner = computed(
     caseOwnerId.value &&
     authStore.user.id === caseOwnerId.value,
 );
-const isDraft = computed(() => caseStatus.value === "draft");
-const canEdit = computed(() => isOwner.value && isDraft.value);
+const isSubmitted = computed(() => caseStatus.value === "submitted");
+const canEdit = computed(() => isOwner.value && !isSubmitted.value);
 
 const fileInput = ref<HTMLInputElement>();
 const isDragOver = ref(false);
