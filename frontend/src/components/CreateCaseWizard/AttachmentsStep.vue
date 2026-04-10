@@ -117,17 +117,17 @@
                 </div>
 
                 <div class="flex items-center gap-2 ml-4">
-                  <!-- OCR Button -->
+                  <!-- OCR Button (text-only, fast) -->
                   <Button
                     outlined
                     severity="secondary"
                     size="small"
-                    @click="runOCR(file)"
+                    @click="runOCR(file, 'text')"
                     :disabled="isOcrProcessing"
                     :title="
                       isOcrProcessing
                         ? 'Đang xử lý OCR...'
-                        : 'Trích xuất văn bản (OCR)'
+                        : 'Trích xuất văn bản (chỉ text, nhanh)'
                     "
                     :class="{
                       'opacity-50 cursor-not-allowed': isOcrProcessing,
@@ -143,6 +143,30 @@
                         <i class="pi pi-spin pi-spinner text-xs" />
                         <span class="text-xs">...</span>
                       </span>
+                    </template>
+                  </Button>
+
+                  <!-- Full OCR Button (text + tables + images, slower) -->
+                  <Button
+                    outlined
+                    severity="secondary"
+                    size="small"
+                    @click="runOCR(file, 'full')"
+                    :disabled="isOcrProcessing"
+                    :title="
+                      isOcrProcessing
+                        ? 'Đang xử lý OCR...'
+                        : 'Trích xuất văn bản + bảng + hình ảnh (chậm hơn)'
+                    "
+                    :class="{
+                      'opacity-50 cursor-not-allowed': isOcrProcessing,
+                    }"
+                  >
+                    <template #default>
+                      <span
+                        class="text-xs font-bold border border-gray-400 rounded px-1"
+                        >OCR+</span
+                      >
                     </template>
                   </Button>
 
@@ -515,7 +539,7 @@ const addFiles = async (files: File[]) => {
   };
 };
 
-const runOCR = async (fileObj: any) => {
+const runOCR = async (fileObj: any, mode: "text" | "full" = "text") => {
   if (ocrProcessing.value) return;
 
   const fileToProcess = fileObj.file;
@@ -537,10 +561,13 @@ const runOCR = async (fileObj: any) => {
       ocrProcessing: true,
     };
 
+    // Default to "text" mode for speed. Use "full" only when user explicitly
+    // requests table/image extraction (OCR+ button), since full mode queues
+    // a slow Celery task (PaddleX table_recognition, ~50s/page on CPU).
     const { ocr, autofill } = await ocrService.extractAndAutofill(
       fileToProcess,
       0.6,
-      "full",
+      mode,
       signal,
     );
     ocrResult.value = ocr;
