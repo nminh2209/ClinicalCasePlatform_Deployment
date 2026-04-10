@@ -2157,50 +2157,6 @@ class CaseListCreateView(generics.ListCreateAPIView):
             return CaseCreateUpdateSerializer
         return CaseListSerializer
 
-    def perform_create(self, serializer):
-        """Auto-assign repository based on user's department if not provided"""
-        from repositories.models import Repository
-        from .medical_models import MedicalAttachment
-
-        # Check if repository was provided in validated_data
-        repository = serializer.validated_data.get("repository")
-
-        if not repository:
-            # Auto-assign default repository for user's department
-            user_department = self.request.user.department
-            # Get or create a default repository for the department
-            repository, created = Repository.objects.get_or_create(
-                department=user_department,
-                is_public=False,
-                defaults={
-                    "name": f"Kho bệnh án {user_department.name}",
-                    "description": f"Default repository for {user_department.name}",
-                    "owner": self.request.user,
-                },
-            )
-            case = serializer.save(repository=repository)
-        else:
-            case = serializer.save()
-
-        # Process attachments from multipart upload
-        request_data = self.request.data
-        attachment_keys = [
-            key for key in request_data.keys() if key.startswith("attachment_")
-        ]
-
-        for key in attachment_keys:
-            file = request_data[key]
-            # Create MedicalAttachment
-            MedicalAttachment.objects.create(
-                case=case,
-                file=file,
-                attachment_type="other",  # Default type
-                title=file.name,
-                uploaded_by=self.request.user,
-                file_size=file.size,
-                file_type=file.content_type or "",
-            )
-
     def create(self, request, *args, **kwargs):
         """
         Handle case creation with potential file uploads
