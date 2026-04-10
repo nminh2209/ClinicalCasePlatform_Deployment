@@ -178,11 +178,26 @@ class HeadingMatcher:
             from sentence_transformers import SentenceTransformer
 
             logger.info("Loading Vietnamese SBERT model (CPU mode)...")
-            self._model = SentenceTransformer(
-                "keepitreal/vietnamese-sbert",
-                device="cpu",  # Force CPU to avoid CUDA issues
-            )
-            logger.info("Vietnamese SBERT loaded on CPU")
+
+            # Try local cache first to avoid chatty HuggingFace HEAD probes
+            # on every container restart. Fall back to online download if the
+            # model has not been cached yet (first run after volume init).
+            try:
+                self._model = SentenceTransformer(
+                    "keepitreal/vietnamese-sbert",
+                    device="cpu",
+                    local_files_only=True,
+                )
+                logger.info("Vietnamese SBERT loaded from local cache")
+            except Exception:
+                logger.info(
+                    "Vietnamese SBERT not cached yet; downloading from HuggingFace..."
+                )
+                self._model = SentenceTransformer(
+                    "keepitreal/vietnamese-sbert",
+                    device="cpu",
+                )
+                logger.info("Vietnamese SBERT loaded on CPU (downloaded)")
 
             # Pre-compute embeddings for all field headings
             self._precompute_embeddings()
@@ -299,65 +314,96 @@ def extract_headings_from_text(ocr_text: str) -> List[Tuple[str, str]]:
     results = []
     lines = ocr_text.split("\n")
 
-    # Patterns for heading detection
+    # Patterns for heading detection. Order matters: more specific patterns
+    # are checked first so that "1. Họ và tên: A" isn't swallowed by the
+    # generic "Heading: content" pattern.
+    #
+    # Note on case-insensitivity: `re.IGNORECASE` is applied at match time,
+    # so the uppercase-only patterns below still need an explicit check on
+    # the raw line (see ALLCAPS_HEADING_RE logic) to avoid false positives.
     patterns = [
-        # "1. Heading: content" or "1. Heading"
-        r"^(\d+)\.\s*([^:]+)(?::\s*(.*))?$",
-        # "a. Heading: content" or "a. Heading"
-        r"^([a-z])\.\s*([^:]+)(?::\s*(.*))?$",
-        # "II. Heading" (Roman numerals)
-        r"^([IVX]+)\.\s*([^:]+)(?::\s*(.*))?$",
-        # "Heading: content"
-        r"^([A-ZÀ-Ỹa-zà-ỹ\s]+):\s*(.+)$",
-        # "EPA 1: Heading"
+        # "1. Heading: content" or "1. Heading" (content optional)
+        r"^(\d+)\.\s*([^:]+?)(?::\s*(.*))?$",
+        # "a. Heading: content" or "a. Heading" (content optional)
+        r"^([a-z])\.\s*([^:]+?)(?::\s*(.*))?$",
+        # "II. Heading" (Roman numerals, content optional)
+        r"^([IVX]+)\.\s*([^:]+?)(?::\s*(.*))?$",
+        # "EPA 1: Heading" (keep before the generic "Heading:" pattern)
         r"^(EPA\s*\d+):\s*(.+)$",
+        # "Heading: content" OR "Heading:" (content optional — medical
+        # records often put the heading on its own line, e.g. "BỆNH SỬ:"
+        # followed by content on the next line).
+        r"^([A-ZÀ-Ỹa-zà-ỹ][A-ZÀ-Ỹa-zà-ỹ\s/&-]*?):\s*(.*)$",
     ]
+
+    # Standalone ALL-CAPS heading lines ("BỆNH SỬ", "TIỀN SỬ", "KHÁM LÂM SÀNG")
+    # are extremely common in Vietnamese medical records but get missed by
+    # the colon-based patterns above. This matches a line that is entirely
+    # uppercase letters (Vietnamese diacritics allowed) plus spaces, with a
+    # minimum length to avoid catching single-letter noise from OCR.
+    ALLCAPS_HEADING_RE = re.compile(
+        r"^([A-ZÀ-Ỹ][A-ZÀ-Ỹ\s/&-]{2,60})$"
+    )
 
     current_heading = None
     current_content = []
 
-    for line in lines:
-        line = line.strip()
+    def _flush():
+        """Save the in-progress heading even if its content is empty —
+        downstream code can still match the heading and fill a blank value."""
+        nonlocal current_heading, current_content
+        if current_heading:
+            content = "\n".join(current_content).strip()
+            results.append((current_heading, content))
+        current_heading = None
+        current_content = []
+
+    for raw_line in lines:
+        line = raw_line.strip()
         if not line:
             continue
 
         matched = False
-        for pattern in patterns:
-            match = re.match(pattern, line, re.IGNORECASE)
-            if match:
-                # Save previous heading/content
-                if current_heading:
-                    content = "\n".join(current_content).strip()
-                    if content:
-                        results.append((current_heading, content))
 
-                groups = match.groups()
-                if len(groups) == 3:
-                    # Pattern with prefix, heading, content
-                    current_heading = groups[1].strip()
-                    current_content = [groups[2]] if groups[2] else []
-                elif len(groups) == 2:
-                    # Pattern with heading, content
-                    current_heading = groups[0].strip()
-                    current_content = [groups[1]] if groups[1] else []
-                else:
-                    current_heading = groups[0].strip()
-                    current_content = []
+        # Check ALL-CAPS standalone headings first — these are the strongest
+        # signal in Vietnamese medical records.
+        allcaps = ALLCAPS_HEADING_RE.match(line)
+        if allcaps and not re.search(r"\d", line):
+            _flush()
+            current_heading = allcaps.group(1).strip()
+            current_content = []
+            matched = True
 
-                matched = True
-                break
+        if not matched:
+            for pattern in patterns:
+                match = re.match(pattern, line, re.IGNORECASE)
+                if match:
+                    _flush()
+                    groups = match.groups()
+                    if len(groups) == 3:
+                        # Pattern with prefix, heading, optional content
+                        current_heading = groups[1].strip()
+                        current_content = [groups[2]] if groups[2] else []
+                    elif len(groups) == 2:
+                        current_heading = groups[0].strip()
+                        current_content = [groups[1]] if groups[1] else []
+                    else:
+                        current_heading = groups[0].strip()
+                        current_content = []
+                    matched = True
+                    break
 
         if not matched and current_heading:
             # Continue accumulating content for current heading
             current_content.append(line)
 
     # Don't forget the last heading
-    if current_heading:
-        content = "\n".join(current_content).strip()
-        if content:
-            results.append((current_heading, content))
+    _flush()
 
-    return results
+    # Drop pairs with empty content UNLESS they are the only entry for a
+    # heading — empty content still lets the user see the field was detected
+    # but we avoid cluttering the result with purely decorative headings.
+    return [(h, c) for (h, c) in results if c]
 
 
 def autofill_from_ocr(

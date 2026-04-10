@@ -14,7 +14,10 @@ export interface OCRResult {
     elapsed_ms: number;
     engine: string;
     text_extraction_ms?: number;
+    autofill_ms?: number;
   };
+  // Inline autofill result (backend now runs it together with extraction)
+  autofill?: AutofillResult;
   // Phase 2: Table/Image extraction job (if mode="full")
   table_job_id?: string;
   table_job_status?: string;
@@ -227,6 +230,14 @@ export const ocrService = {
           metadata: { fields_matched: 0, elapsed_ms: 0 },
         },
       };
+    }
+
+    // Backend now runs autofill inline with /ocr/extract/ to save a
+    // round-trip. Prefer the inline result when present and fall back to
+    // the dedicated endpoint only if the backend didn't include it (older
+    // server, failure during inline autofill, etc).
+    if (ocr.autofill) {
+      return { ocr, autofill: ocr.autofill };
     }
 
     const autofill = await this.autofill(ocr.text, confidenceThreshold);

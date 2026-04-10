@@ -89,13 +89,61 @@ class OCRExtractView(views.APIView):
             result = ocr_service.process(abs_file_path)
             text_elapsed = time.time() - start
 
+            # 4b. Run autofill inline using the just-extracted text.
+            # This saves a second HTTP round-trip from the frontend. SBERT is
+            # pre-warmed at startup so this typically adds only ~100–300ms.
+            autofill_elapsed = 0.0
+            autofill_payload = None
+            ocr_text = result.get("text", "")
+            if ocr_text and ocr_text.strip():
+                try:
+                    from .heading_matcher import autofill_from_ocr
+
+                    confidence = float(
+                        request.data.get("autofill_confidence", 0.6)
+                    )
+                    af_start = time.time()
+                    structured_data = autofill_from_ocr(ocr_text, confidence)
+                    autofill_elapsed = time.time() - af_start
+
+                    flat_data = {}
+                    for key, value in structured_data.items():
+                        if isinstance(value, dict) and "value" in value:
+                            flat_data[key] = value["value"]
+                        elif isinstance(value, dict):
+                            flat_data[key] = {}
+                            for child_key, child_value in value.items():
+                                if (
+                                    isinstance(child_value, dict)
+                                    and "value" in child_value
+                                ):
+                                    flat_data[key][child_key] = child_value["value"]
+
+                    autofill_payload = {
+                        "structured": flat_data,
+                        "matches": structured_data,
+                        "metadata": {
+                            "fields_matched": len(structured_data),
+                            "elapsed_ms": int(autofill_elapsed * 1000),
+                        },
+                    }
+                except Exception as e:
+                    import logging
+
+                    logging.getLogger(__name__).warning(
+                        f"Inline autofill skipped after extract: {e}"
+                    )
+
             response_data = {
                 **result,
                 "metadata": {
                     **result.get("metadata", {}),
                     "text_extraction_ms": int(text_elapsed * 1000),
+                    "autofill_ms": int(autofill_elapsed * 1000),
                 },
             }
+            if autofill_payload is not None:
+                response_data["autofill"] = autofill_payload
 
             # 5. Phase 2: Async table/image extraction (if mode="full")
             # Frontend decides whether to use mode=full (with Celery) or mode=text (skip)

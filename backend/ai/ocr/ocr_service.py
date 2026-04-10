@@ -125,6 +125,14 @@ class OCRService:
                 from vietocr.tool.predictor import Predictor
                 from vietocr.tool.config import Cfg
                 import torch
+                import multiprocessing
+
+                # On CPU, allow PyTorch to use all available cores.
+                # Docker default was 6/12 — recognition is the bottleneck.
+                if not torch.cuda.is_available():
+                    cpu_count = multiprocessing.cpu_count()
+                    torch.set_num_threads(cpu_count)
+                    logger.info(f"Torch num_threads set to {cpu_count}")
 
                 config = Cfg.load_config_from_name("vgg_transformer")
                 config["cnn"]["pretrained"] = False
@@ -393,6 +401,9 @@ class OCRService:
         """
         import torch
 
+        _stage_times = {}
+        _t_stage = time.time()
+
         # Convert to numpy if needed
         img_np = np.array(img) if not isinstance(img, np.ndarray) else img
         pil_img = Image.fromarray(img_np) if isinstance(img_np, np.ndarray) else img
@@ -404,6 +415,8 @@ class OCRService:
         # Each word is [x1_rel, y1_rel, x2_rel, y2_rel, confidence]
         with torch.no_grad():
             detection_result = detector([img_np])
+        _stage_times["detection"] = time.time() - _t_stage
+        _t_stage = time.time()
 
         # Extract boxes from detection result
         text_regions = []
@@ -473,35 +486,77 @@ class OCRService:
                 y2 = max(r["bbox"][3] for r in current_line)
                 merged_lines.append((x1, y1, x2, y2))
 
+        _stage_times["merge"] = time.time() - _t_stage
+        _t_stage = time.time()
+
         logger.info(
             f"DocTR: {len(text_regions)} words merged to {len(merged_lines)} lines"
         )
 
-        # Recognize each merged line with VietOCR (much fewer calls!)
+        # Filter out thin/invalid lines and crop all at once
+        valid_lines = [
+            (x1, y1, x2, y2)
+            for x1, y1, x2, y2 in merged_lines
+            if (x2 - x1) >= 10 and (y2 - y1) >= 8
+        ]
+        crops = [pil_img.crop(bbox) for bbox in valid_lines]
+        _stage_times["crop"] = time.time() - _t_stage
+        _t_stage = time.time()
+
+        # Recognize all line crops. VietOCR's predict_batch() buckets crops by
+        # post-resize width (rounded to nearest 10), so lines of varying lengths
+        # still land in many small buckets on CPU. We pre-group by width so the
+        # number of forward passes stays reasonable — see _recognize_uniform_batch.
         recognized_lines = []
         regions_data = []
 
-        for x1, y1, x2, y2 in merged_lines:
-            # Skip very thin lines
-            if (x2 - x1) < 10 or (y2 - y1) < 8:
-                continue
-
-            # Crop and recognize the full line
-            crop = pil_img.crop((x1, y1, x2, y2))
-
+        if crops:
             try:
-                text = recognizer.predict(crop)
+                texts = self._recognize_uniform_batch(recognizer, crops)
+            except Exception as e:
+                logger.error(
+                    f"VietOCR uniform batch error: {e}; falling back to predict_batch"
+                )
+                try:
+                    texts = recognizer.predict_batch(crops)
+                except Exception as ee:
+                    logger.error(
+                        f"VietOCR predict_batch also failed: {ee}; per-line fallback"
+                    )
+                    texts = []
+                    for crop in crops:
+                        try:
+                            texts.append(recognizer.predict(crop))
+                        except Exception as eee:
+                            logger.warning(f"per-line recognition error: {eee}")
+                            texts.append("")
+
+            for bbox, text in zip(valid_lines, texts):
                 if text and text.strip():
+                    x1, y1, x2, y2 = bbox
                     recognized_lines.append(text.strip())
                     regions_data.append(
-                        {"type": "text", "bbox": [x1, y1, x2, y2], "text": text.strip()}
+                        {
+                            "type": "text",
+                            "bbox": [x1, y1, x2, y2],
+                            "text": text.strip(),
+                        }
                     )
-            except Exception as e:
-                logger.warning(f"DocTR recognition error: {e}")
-                continue
+
+        _stage_times["recognition"] = time.time() - _t_stage
 
         # Combine into full text
         plain_text = "\n".join(recognized_lines)
+
+        # Log per-stage timing to help identify bottlenecks
+        logger.info(
+            f"Page {page_num} timing: "
+            f"detection={_stage_times.get('detection', 0):.2f}s, "
+            f"merge={_stage_times.get('merge', 0):.2f}s, "
+            f"crop={_stage_times.get('crop', 0):.2f}s, "
+            f"recognition={_stage_times.get('recognition', 0):.2f}s "
+            f"(n={len(crops)})"
+        )
 
         return {
             "page_num": page_num,
@@ -509,6 +564,101 @@ class OCRService:
             "regions": regions_data,
             "tables": [],  # DocTR mode doesn't extract tables
         }
+
+    def _recognize_uniform_batch(self, recognizer, crops, max_batch=32):
+        """
+        Recognize multiple line crops with minimal forward passes.
+
+        VietOCR's built-in predict_batch buckets crops by post-resize width
+        (rounded to nearest 10px), so 30 text lines of varying lengths can
+        end up in 15–20 separate buckets → 15–20 forward passes on CPU,
+        which is nearly as slow as sequential prediction.
+
+        This helper groups crops into a small number of coarse width buckets
+        (quantized to 64px) so each bucket contains many crops, reducing the
+        number of forward passes significantly. Within each bucket, crops are
+        right-padded with white to uniform width before a single forward pass.
+
+        Tradeoff: right-padding with whitespace is benign for transformer
+        recognition — it's equivalent to trailing blank space at end of line.
+        """
+        import torch
+        import math
+        from collections import defaultdict
+
+        if not crops:
+            return []
+
+        config = recognizer.config
+        image_height = config["dataset"]["image_height"]
+        image_min_width = config["dataset"]["image_min_width"]
+        image_max_width = config["dataset"]["image_max_width"]
+
+        # Step 1: resize each crop to (image_height, proportional_width) in RGB
+        resized = []
+        for crop in crops:
+            img = crop.convert("RGB")
+            w, h = img.size
+            new_w = int(image_height * float(w) / float(h))
+            # Clamp to model's accepted width range
+            new_w = max(new_w, image_min_width)
+            new_w = min(new_w, image_max_width)
+            resized_img = img.resize((new_w, image_height), Image.ANTIALIAS)
+            resized.append(np.asarray(resized_img))
+
+        # Step 2: quantize widths to coarse buckets (multiple of 64px).
+        # Tradeoff: VietOCR's translate() runs the decoder until ALL samples
+        # in a batch hit EOS. Bigger buckets mean fewer forward passes but
+        # mix short+long lines, wasting decoder steps. 64px was measured as
+        # the sweet spot on a 34-line A4 page (6 buckets, ~14s vs 17s@256).
+        BUCKET_STEP = 64
+        buckets: "defaultdict[int, list[tuple[int, np.ndarray]]]" = defaultdict(list)
+        for idx, arr in enumerate(resized):
+            bw = arr.shape[1]  # width
+            bucket_w = min(
+                image_max_width,
+                max(image_min_width, math.ceil(bw / BUCKET_STEP) * BUCKET_STEP),
+            )
+            buckets[bucket_w].append((idx, arr))
+
+        # Step 3: for each bucket, right-pad crops with white and run one
+        # forward pass (chunked by max_batch to bound memory).
+        from vietocr.tool.translate import translate
+
+        results = [""] * len(crops)
+        device = config.get("device", "cpu")
+
+        logger.info(
+            f"Uniform batch: {len(crops)} crops → {len(buckets)} width buckets "
+            f"({sorted(buckets.keys())})"
+        )
+
+        with torch.inference_mode():
+            for bucket_w, entries in buckets.items():
+                for chunk_start in range(0, len(entries), max_batch):
+                    chunk = entries[chunk_start : chunk_start + max_batch]
+                    tensors = []
+                    for _, arr in chunk:
+                        h_arr, w_arr, _ = arr.shape
+                        if w_arr < bucket_w:
+                            # Right-pad with white (255)
+                            pad = np.full(
+                                (h_arr, bucket_w - w_arr, 3), 255, dtype=arr.dtype
+                            )
+                            arr = np.concatenate([arr, pad], axis=1)
+                        # CHW + normalize to [0,1]
+                        chw = arr.transpose(2, 0, 1).astype(np.float32) / 255.0
+                        tensors.append(torch.from_numpy(chw).unsqueeze(0))
+
+                    batch = torch.cat(tensors, dim=0).to(device)
+                    decoded, _ = translate(batch, recognizer.model)
+                    decoded = decoded.tolist()
+                    texts = recognizer.vocab.batch_decode(decoded)
+
+                    for (orig_idx, _), text in zip(chunk, texts):
+                        results[orig_idx] = text
+
+        return results
 
     def _convert_to_images(self, file_path, max_pages=None):
         """Convert PDF/Image to PIL Images."""
@@ -1020,6 +1170,17 @@ def prewarm_models():
             # NOTE: PPStructure is NOT preloaded to avoid memory issues
             # It will be loaded on-demand by the Celery worker
             # logger.info("⚠️ PPStructure will be loaded on-demand (not prewarmed)")
+
+            # Pre-warm the Vietnamese SBERT heading matcher used by autofill.
+            # Without this, the first autofill request pays ~2s model load on top
+            # of the already-slow OCR extraction. Loaded after VietOCR because
+            # the OCR request arrives first and we don't want to delay it.
+            try:
+                from .heading_matcher import prewarm_matcher
+
+                prewarm_matcher()
+            except Exception as e:
+                logger.warning(f"HeadingMatcher pre-warm skipped: {e}")
 
             elapsed = time.time() - start
             logger.info(f"✅ OCR models pre-warmed in {elapsed:.1f}s")
