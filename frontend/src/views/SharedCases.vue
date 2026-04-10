@@ -24,9 +24,9 @@
         <div>
           <Select
             v-model="specialtyFilter"
-            :options="specialties"
-            optionLabel="name"
-            optionValue="name"
+            :options="specialtyOptions"
+            optionLabel="label"
+            optionValue="value"
             placeholder="Tất cả chuyên khoa"
             :disabled="choicesLoading"
             class="text-sm filter-options me-3"
@@ -136,6 +136,17 @@ const { specialties, loading: choicesLoading } = useChoices();
 const searchQuery = ref("");
 const specialtyFilter = ref("");
 const dateSort = ref("newest");
+
+const specialtyOptions = computed(() => [
+  {
+    label: choicesLoading.value ? "Đang tải..." : "Tất cả chuyên khoa",
+    value: "",
+  },
+  ...(specialties.value || []).map((s: any) => ({
+    label: s.name,
+    value: s.name,
+  })),
+]);
 const cases = ref<any[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -184,8 +195,7 @@ async function loadCases() {
   error.value = null;
 
   try {
-    // Fetch only approved cases from all user
-    const data = await casesService.getCases({ case_status: "approved" });
+    const data = await casesService.getCases({});
 
     // Check if data is an array or if it's paginated
     if (Array.isArray(data)) {

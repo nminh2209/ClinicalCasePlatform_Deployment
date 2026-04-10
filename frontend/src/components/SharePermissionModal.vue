@@ -34,7 +34,7 @@
           :suggestions="searchResults"
           optionLabel="full_name"
           fluid
-          placeholder="Tìm kiếm giảng viên..."
+          placeholder="Tìm kiếm người dùng (giảng viên hoặc sinh viên)..."
           :delay="300"
           :min-length="2"
           @complete="searchUsers"
@@ -136,6 +136,16 @@
           rows="3"
         />
       </div>
+
+      <div
+        v-if="conflictMessage"
+        class="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md"
+      >
+        <i class="pi pi-exclamation-triangle text-amber-600 mt-0.5" />
+        <div class="text-sm text-amber-800">
+          {{ conflictMessage }}
+        </div>
+      </div>
     </div>
 
     <template #footer>
@@ -163,7 +173,6 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useToast } from "@/composables/useToast";
 import { sharingService } from "@/services/sharing";
-import feedService from "@/services/feed";
 import api from "@/services/api";
 import type {
   SharePermission,
@@ -226,6 +235,7 @@ const loading = ref(false);
 const searchResults = ref<User[]>([]);
 const departments = ref<Department[]>([]);
 const userDepartment = ref<Department | null>(null);
+const existingPermissions = ref<any[]>([]);
 
 const form = ref({
   shareType: "individual" as ShareType,
@@ -258,7 +268,48 @@ const getPermissionData = (): CreatePermissionRequest => {
   return data;
 };
 
+const isPermissionActive = (p: any): boolean => {
+  if (!p || p.is_active === false) return false;
+  if (p.is_expired === true) return false;
+  if (p.expires_at) {
+    const expires = new Date(p.expires_at).getTime();
+    if (!Number.isNaN(expires) && expires <= Date.now()) return false;
+  }
+  return true;
+};
+
+const conflictMessage = computed<string | null>(() => {
+  const active = existingPermissions.value.filter(isPermissionActive);
+  if (form.value.shareType === "public") {
+    if (active.some((p) => p.share_type === "public")) {
+      return "Ca bệnh này đã được chia sẻ công khai. Hãy thu hồi quyền hiện tại trước khi chia sẻ lại.";
+    }
+  } else if (form.value.shareType === "department") {
+    const deptId = userDepartment.value?.id;
+    if (deptId == null) return null;
+    if (
+      active.some(
+        (p) => p.share_type === "department" && p.target_department === deptId,
+      )
+    ) {
+      const deptName =
+        userDepartment.value?.vietnamese_name || userDepartment.value?.name;
+      return `Ca bệnh này đã được chia sẻ với khoa ${deptName}. Hãy thu hồi quyền hiện tại trước khi chia sẻ lại.`;
+    }
+  } else if (form.value.shareType === "individual") {
+    const userId = form.value.selectedUser?.id;
+    if (userId == null) return null;
+    if (
+      active.some((p) => p.share_type === "individual" && p.user === userId)
+    ) {
+      return `Ca bệnh này đã được chia sẻ với ${form.value.selectedUser?.full_name}. Hãy thu hồi quyền hiện tại trước khi chia sẻ lại.`;
+    }
+  }
+  return null;
+});
+
 const canSubmit = computed(() => {
+  if (conflictMessage.value) return false;
   if (form.value.shareType === "individual")
     return !!form.value.selectedUser && !!form.value.permissionType;
   if (form.value.shareType === "department")
@@ -274,6 +325,7 @@ watch(
       form.value.shareType = props.shareType || "individual";
       loadDepartments();
       loadUserDepartment();
+      loadExistingPermissions();
     } else {
       resetForm();
     }
@@ -299,6 +351,17 @@ const resetForm = () => {
     message: "",
   };
   searchResults.value = [];
+  existingPermissions.value = [];
+};
+
+const loadExistingPermissions = async () => {
+  try {
+    const data = await sharingService.getCasePermissions(props.caseId);
+    const list = Array.isArray(data) ? data : (data?.results ?? []);
+    existingPermissions.value = list;
+  } catch {
+    existingPermissions.value = [];
+  }
 };
 
 const loadDepartments = async () => {
@@ -348,7 +411,7 @@ const searchUsers = async (event: { query: string }) => {
   }
   try {
     const response = await api.get("/auth/users/", {
-      params: { search: event.query, role: "instructor", page_size: 10 },
+      params: { search: event.query, page_size: 10 },
     });
     const users = Array.isArray(response.data)
       ? response.data
@@ -390,49 +453,13 @@ const handleSubmit = async () => {
       permissionData,
     );
 
-    // For public/department shares, also explicitly publish to the feed so the
-    // case appears on the public feed immediately (backend auto-publishes
-    // approved cases, but we call it here too for belt-and-suspenders).
-    let feedPublished = false;
-    if (
-      form.value.shareType === "public" ||
-      form.value.shareType === "department"
-    ) {
-      const feedVisibility =
-        form.value.shareType === "public" ? "university" : "department";
-      try {
-        await feedService.publishToFeed(props.caseId, {
-          feed_visibility: feedVisibility,
-        });
-        feedPublished = true;
-      } catch (feedErr: any) {
-        const errMsg: string = feedErr?.response?.data?.error ?? "";
-        if (errMsg.includes("phê duyệt") || errMsg.includes("approved")) {
-          // Case not yet approved — sharing permission was created, but it
-          // won't appear on the feed until the case is approved.
-          toast.toast.warning(
-            "Quyền chia sẻ đã được cấp. Ca bệnh sẽ xuất hiện trên feed sau khi được phê duyệt.",
-          );
-          emit("permission-created", permission);
-          emit("update:open", false);
-          return;
-        }
-        // Already published or other non-critical error — ignore silently
-        feedPublished = true;
-      }
-    }
-
     let successMessage = "";
     if (form.value.shareType === "department") {
       const deptName =
         userDepartment.value?.vietnamese_name || userDepartment.value?.name;
-      successMessage = feedPublished
-        ? `Đã chia sẻ với khoa ${deptName} và xuất bản lên feed!`
-        : `Đã chia sẻ với tất cả sinh viên trong khoa ${deptName}!`;
+      successMessage = `Đã chia sẻ với tất cả sinh viên trong khoa ${deptName}!`;
     } else if (form.value.shareType === "public") {
-      successMessage = feedPublished
-        ? "Ca bệnh đã được công khai và xuất hiện trên feed!"
-        : "Ca bệnh đã được công khai!";
+      successMessage = "Ca bệnh đã được công khai cho tất cả người dùng!";
     } else {
       successMessage = `Đã chia sẻ với ${form.value.selectedUser?.full_name || "user"}!`;
     }
@@ -440,8 +467,17 @@ const handleSubmit = async () => {
     toast.toast.success(successMessage);
     emit("permission-created", permission);
     emit("update:open", false);
-  } catch {
-    toast.toast.error("Không thể cấp quyền truy cập");
+  } catch (err: any) {
+    if (err?.response?.status === 409) {
+      const detail: string =
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        "Ca bệnh này đã được chia sẻ trước đó. Hãy thu hồi quyền hiện tại trước khi chia sẻ lại.";
+      toast.toast.warning(detail);
+      await loadExistingPermissions();
+    } else {
+      toast.toast.error("Không thể cấp quyền truy cập");
+    }
   } finally {
     loading.value = false;
   }

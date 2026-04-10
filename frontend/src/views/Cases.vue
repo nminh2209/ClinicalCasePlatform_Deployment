@@ -59,15 +59,9 @@
           <Select
             v-model="specialtyFilter"
             @change="applyFilters"
-            :options="[
-              {
-                name: choicesLoading ? 'Đang tải...' : 'Tất cả chuyên khoa',
-                id: '',
-              },
-              ...specialties,
-            ]"
-            optionLabel="name"
-            optionValue="name"
+            :options="specialtyOptions"
+            optionLabel="label"
+            optionValue="value"
             :disabled="choicesLoading"
             placeholder="Tất cả chuyên khoa"
             class="specialty-select"
@@ -1186,6 +1180,17 @@ const { specialties, loading: choicesLoading } = useChoices();
 const searchQuery = ref(sessionStorage.getItem("last_case_search_q") || "");
 const activeFilter = ref("all");
 const specialtyFilter = ref("");
+
+const specialtyOptions = computed(() => [
+  {
+    label: choicesLoading.value ? "Đang tải..." : "Tất cả chuyên khoa",
+    value: "",
+  },
+  ...(specialties.value || []).map((s: any) => ({
+    label: s.name,
+    value: s.name,
+  })),
+]);
 const dateSort = ref(
   sessionStorage.getItem("last_case_search_q") ? "relevance" : "newest",
 );

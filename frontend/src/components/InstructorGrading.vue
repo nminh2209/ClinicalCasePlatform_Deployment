@@ -1943,7 +1943,7 @@
     <SharePermissionModal
       v-model:open="showShareModal"
       :case-id="Number(caseId)"
-      @permission-granted="handlePermissionGranted"
+      @permission-created="handlePermissionGranted"
     />
   </div>
 </template>
@@ -2577,7 +2577,6 @@ async function submitGrade() {
 
 function handlePermissionGranted() {
   showShareModal.value = false;
-  toast.success("Đã chia sẻ ca bệnh thành công!");
 }
 
 // === Lifecycle ===

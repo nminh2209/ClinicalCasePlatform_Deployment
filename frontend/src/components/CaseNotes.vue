@@ -2435,13 +2435,4 @@ onMounted(async () => {
   border-color: var(--primary-hover) !important;
   box-shadow: 0 6px 16px var(--shadow-blue-hover) !important;
 }
-.badge {
-  background: linear-gradient(
-    135deg,
-    var(--accent) 0%,
-    rgba(59, 130, 246, 0.1) 100%
-  );
-  border: 1px solid var(--shadow-blue);
-  color: var(--primary);
-}
 </style>
