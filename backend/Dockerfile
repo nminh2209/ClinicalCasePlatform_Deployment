@@ -108,7 +108,7 @@ USER appuser
 
 # ── Default environment variables ─────────────────────────────────────────────
 # Override these at runtime (docker-compose env section or -e flags).
-ENV DJANGO_SETTINGS_MODULE=clinical_case_platform.settings \
+ENV DJANGO_SETTINGS_MODULE=clinical_case_platform.settings_production \
     PYTHONPATH=/app \
     # Database
     DB_ENGINE=django.db.backends.postgresql \
@@ -130,9 +130,11 @@ ENV DJANGO_SETTINGS_MODULE=clinical_case_platform.settings \
 
 EXPOSE 8000
 
-# Run migrations, seed data, then start daphne ASGI server
+# Run migrations, optional seed data, then start daphne ASGI server
 CMD ["bash", "-lc", \
     "python manage.py migrate --noinput \
-    && python scripts/setup/populate_test_data.py \
+    && if [ \"${RUN_SEED_DATA:-false}\" = \"true\" ]; then python scripts/setup/populate_test_data.py; fi \
+    && python scripts/setup/populate_medical_terms.py || true \
     && python manage.py rebuild_case_search \
-    && daphne -b 0.0.0.0 -p 8000 clinical_case_platform.asgi:application"]
+    && python manage.py seed_case_choices \
+    && daphne -b 0.0.0.0 -p ${PORT:-8000} clinical_case_platform.asgi:application"]
