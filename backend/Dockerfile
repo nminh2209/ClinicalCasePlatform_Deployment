@@ -134,7 +134,7 @@ EXPOSE 8000
 CMD ["bash", "-lc", \
     "python manage.py migrate --noinput \
     && if [ \"${RUN_SEED_DATA:-false}\" = \"true\" ]; then python scripts/setup/populate_test_data.py; fi \
-    && if [ \"${RUN_SEED_DATA:-false}\" = \"true\" ]; then python scripts/setup/populate_medical_terms.py || true; fi \
+    && python scripts/setup/populate_medical_terms.py || true \
     && python manage.py rebuild_case_search \
     && python manage.py seed_case_choices \
     && daphne -b 0.0.0.0 -p ${PORT:-8000} clinical_case_platform.asgi:application"]
