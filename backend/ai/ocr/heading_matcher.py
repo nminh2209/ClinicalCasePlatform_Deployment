@@ -29,8 +29,30 @@ FIELD_MAPPINGS: Dict[str, List[str]] = {
     "patient_gender": ["Giới tính", "Giới", "Nam/Nữ"],
     "patient_ethnicity": ["Dân tộc", "Ethnicity"],
     "patient_occupation": ["Nghề nghiệp", "Occupation"],
-    "medical_record_number": ["Mã số bệnh án", "Số hồ sơ", "MSV", "Mã bệnh nhân"],
-    "admission_date": ["Ngày vào viện", "Ngày nhập viện", "Admission date"],
+    "patient_address": [
+        "Địa chỉ",
+        "Nơi ở",
+        "Address",
+        "Địa chỉ hiện tại",
+        "Nơi cư trú",
+    ],
+    "medical_record_number": [
+        "Mã số bệnh án",
+        "Số hồ sơ",
+        "MSV",
+        "Mã bệnh nhân",
+        "Số bệnh án",
+        "Mã hồ sơ",
+    ],
+    "admission_date": [
+        "Ngày vào viện",
+        "Ngày nhập viện",
+        "Admission date",
+        "Ngày nhập ICU",
+        "Ngày vào khoa",
+        "Ngày nhập khoa",
+        "Ngày giờ vào viện",
+    ],
     "discharge_date": ["Ngày ra viện", "Ngày xuất viện", "Discharge date"],
     # Clinical History
     "clinical_history.chief_complaint": [
@@ -106,13 +128,23 @@ FIELD_MAPPINGS: Dict[str, List[str]] = {
         "Kết quả xét nghiệm",
         "Laboratory",
         "Cận lâm sàng",
+        "Đề xuất cận lâm sàng",
+        "Khí máu",
+        "Khí máu động mạch",
+        "Bilan nhiễm trùng",
+        "Công thức máu",
+        "Sinh hóa máu",
+        "Tổng phân tích tế bào máu",
     ],
     "detailed_investigations.imaging_studies": [
         "Chẩn đoán hình ảnh",
         "X-quang",
+        "XQ ngực thẳng",
         "CT",
+        "MSCT",
         "MRI",
         "Siêu âm",
+        "Siêu âm tim",
     ],
     "detailed_investigations.ecg_findings": ["Điện tâm đồ", "ECG", "EKG", "Điện tim"],
     # Diagnosis & Management
@@ -120,6 +152,10 @@ FIELD_MAPPINGS: Dict[str, List[str]] = {
         "Chẩn đoán",
         "Chẩn đoán xác định",
         "Chẩn đoán chính",
+        "Chẩn đoán sơ bộ",
+        "Chẩn đoán ban đầu",
+        "Biện luận chẩn đoán",
+        "Biện luận chẩn đoán sơ bộ",
         "Primary diagnosis",
         "Diagnosis",
     ],
@@ -174,6 +210,22 @@ class HeadingMatcher:
         # Force CPU to avoid CUDA compatibility issues with torch versions
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
+        # Suppress the chatty HuggingFace Hub HEAD probes that
+        # SentenceTransformer fires on every init (model card / discussions /
+        # commit info). They each take 100–300ms and clutter logs during
+        # benchmarks. Even with `local_files_only=True`, the Transformers
+        # pipeline path still hits a few telemetry endpoints unless the
+        # HF_HUB_OFFLINE flag is set.
+        try:
+            from huggingface_hub.utils import logging as hf_logging
+
+            hf_logging.set_verbosity_error()
+        except Exception:
+            pass
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+        logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+
         try:
             from sentence_transformers import SentenceTransformer
 
@@ -183,11 +235,20 @@ class HeadingMatcher:
             # on every container restart. Fall back to online download if the
             # model has not been cached yet (first run after volume init).
             try:
-                self._model = SentenceTransformer(
-                    "keepitreal/vietnamese-sbert",
-                    device="cpu",
-                    local_files_only=True,
-                )
+                prev_offline = os.environ.get("HF_HUB_OFFLINE")
+                os.environ["HF_HUB_OFFLINE"] = "1"
+                try:
+                    self._model = SentenceTransformer(
+                        "keepitreal/vietnamese-sbert",
+                        device="cpu",
+                        local_files_only=True,
+                    )
+                finally:
+                    # Restore env so a subsequent online fallback can work
+                    if prev_offline is None:
+                        os.environ.pop("HF_HUB_OFFLINE", None)
+                    else:
+                        os.environ["HF_HUB_OFFLINE"] = prev_offline
                 logger.info("Vietnamese SBERT loaded from local cache")
             except Exception:
                 logger.info(
@@ -442,14 +503,64 @@ def autofill_from_ocr(
     headings = [h[0] for h in heading_pairs]
     matches = _matcher_instance.match_all_headings(headings)
 
-    # Build structured result
+    # Build structured result.
+    #
+    # Collision policy: two headings in the same document can resolve to the
+    # same template field (e.g. page 1 has both "Ngày vào viện" at 100% and
+    # "Ngày làm bệnh án" at 67%, both mapping to `admission_date`). The
+    # previous implementation did last-wins, which dropped the stronger hit.
+    # We now keep the highest-confidence match; ties prefer the longer
+    # content block (more information is better than less). Alternates are
+    # preserved in a `_alternates` list so the UI can expose them if needed.
     result: Dict[str, Any] = {}
+
+    def _set_field(container: Dict[str, Any], key: str, new_entry: Dict[str, Any]):
+        """Write new_entry at container[key], resolving conflicts by
+        preferring higher confidence (and on ties, longer content)."""
+        existing = container.get(key)
+        if existing is None:
+            container[key] = new_entry
+            return
+
+        existing_conf = existing.get("confidence", 0.0)
+        new_conf = new_entry.get("confidence", 0.0)
+
+        if new_conf > existing_conf or (
+            new_conf == existing_conf
+            and len(new_entry.get("value", "")) > len(existing.get("value", ""))
+        ):
+            # New wins → demote existing to alternates
+            alternates = existing.pop("_alternates", [])
+            alternates.append(
+                {
+                    "value": existing.get("value", ""),
+                    "confidence": existing_conf,
+                    "matched_heading": existing.get("matched_heading", ""),
+                }
+            )
+            new_entry["_alternates"] = alternates
+            container[key] = new_entry
+        else:
+            # Existing wins → append new as an alternate
+            existing.setdefault("_alternates", []).append(
+                {
+                    "value": new_entry.get("value", ""),
+                    "confidence": new_conf,
+                    "matched_heading": new_entry.get("matched_heading", ""),
+                }
+            )
 
     for heading, content in heading_pairs:
         field_name, confidence = matches.get(heading, (None, 0.0))
 
         if field_name is None:
             continue
+
+        new_entry = {
+            "value": content,
+            "confidence": round(confidence, 3),
+            "matched_heading": heading,
+        }
 
         # Handle nested fields (e.g., "clinical_history.chief_complaint")
         if "." in field_name:
@@ -460,17 +571,9 @@ def autofill_from_ocr(
             if parent not in result:
                 result[parent] = {}
 
-            result[parent][child] = {
-                "value": content,
-                "confidence": round(confidence, 3),
-                "matched_heading": heading,
-            }
+            _set_field(result[parent], child, new_entry)
         else:
-            result[field_name] = {
-                "value": content,
-                "confidence": round(confidence, 3),
-                "matched_heading": heading,
-            }
+            _set_field(result, field_name, new_entry)
 
     return result
 
