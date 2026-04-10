@@ -15,15 +15,7 @@ from django.utils.dateparse import parse_date
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, parsers, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.exceptions import APIException, PermissionDenied, ValidationError
-
-
-class DuplicatePermissionError(APIException):
-    """Raised when a case is already shared with the same target (active, non-expired)."""
-
-    status_code = 409
-    default_detail = "Ca bệnh đã được chia sẻ trước đó."
-    default_code = "duplicate_permission"
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from cases.search.queries import rank_cases
 from cases.pagination import CaseSearchPagination
@@ -899,54 +891,91 @@ class EnhancedCasePermissionViewSet(viewsets.ModelViewSet):
             "share_type", CasePermission.ShareTypeChoices.INDIVIDUAL
         )
 
-        # --- Lock: refuse to re-share if an active, non-expired permission
-        # already exists for the same (case, share_type, target). Expired or
-        # revoked permissions do not block re-sharing. ---
-        now = tz.now()
-        active_filter = Q(is_active=True) & (
-            Q(expires_at__isnull=True) | Q(expires_at__gt=now)
-        )
-        conflict_qs = CasePermission.objects.filter(
-            case=case, share_type=share_type
-        ).filter(active_filter)
-
-        if share_type == CasePermission.ShareTypeChoices.DEPARTMENT:
-            target_department = serializer.validated_data.get("target_department")
-            conflict_qs = conflict_qs.filter(target_department=target_department)
-            target_label = (
-                f"với khoa {getattr(target_department, 'vietnamese_name', None) or getattr(target_department, 'name', '')}".strip()
-                if target_department is not None
-                else "với khoa này"
+        # --- Idempotent create: prevent duplicate public/department permissions ---
+        if share_type == CasePermission.ShareTypeChoices.PUBLIC:
+            existing = CasePermission.objects.filter(
+                case=case,
+                share_type=CasePermission.ShareTypeChoices.PUBLIC,
             )
-        elif share_type == CasePermission.ShareTypeChoices.INDIVIDUAL:
-            target_user = serializer.validated_data.get("user")
-            conflict_qs = conflict_qs.filter(user=target_user)
-            if target_user is not None:
-                display_name = target_user.get_full_name() or target_user.email
-                target_label = f"với {display_name}"
+            permission = existing.first()
+            if permission:
+                created = False
+                # Clean up any duplicates that were created before
+                existing.exclude(pk=permission.pk).delete()
+                # Overwrite permission level if re-shared
+                new_ptype = serializer.validated_data.get("permission_type")
+                if new_ptype and new_ptype != permission.permission_type:
+                    permission.permission_type = new_ptype
+                permission.granted_by = user
+                permission.is_active = True
+                permission.save(
+                    update_fields=["permission_type", "granted_by", "is_active"]
+                )
             else:
-                target_label = "với người dùng này"
-        elif share_type == CasePermission.ShareTypeChoices.CLASS_GROUP:
-            class_group = serializer.validated_data.get("class_group", "")
-            conflict_qs = conflict_qs.filter(class_group=class_group)
-            target_label = f"với lớp {class_group}" if class_group else "với lớp này"
-        else:  # PUBLIC
-            target_label = "công khai"
+                created = True
+                permission = CasePermission.objects.create(
+                    case=case,
+                    share_type=CasePermission.ShareTypeChoices.PUBLIC,
+                    permission_type=serializer.validated_data.get(
+                        "permission_type", "view"
+                    ),
+                    granted_by=user,
+                    expires_at=serializer.validated_data.get("expires_at"),
+                    notes=serializer.validated_data.get("notes", ""),
+                    is_active=True,
+                )
+            # Expose the instance so DRF serialises it correctly in the response
+            serializer.instance = permission
 
-        if conflict_qs.exists():
-            raise DuplicatePermissionError(
-                f"Ca bệnh này đã được chia sẻ {target_label}. "
-                "Hãy thu hồi quyền chia sẻ hiện tại trước khi chia sẻ lại."
+        elif share_type == CasePermission.ShareTypeChoices.DEPARTMENT:
+            target_department = serializer.validated_data.get("target_department")
+            existing = CasePermission.objects.filter(
+                case=case,
+                share_type=CasePermission.ShareTypeChoices.DEPARTMENT,
+                target_department=target_department,
             )
+            permission = existing.first()
+            if permission:
+                created = False
+                existing.exclude(pk=permission.pk).delete()
+                new_ptype = serializer.validated_data.get("permission_type")
+                if new_ptype and new_ptype != permission.permission_type:
+                    permission.permission_type = new_ptype
+                permission.granted_by = user
+                permission.is_active = True
+                permission.save(
+                    update_fields=["permission_type", "granted_by", "is_active"]
+                )
+            else:
+                created = True
+                permission = CasePermission.objects.create(
+                    case=case,
+                    share_type=CasePermission.ShareTypeChoices.DEPARTMENT,
+                    target_department=target_department,
+                    permission_type=serializer.validated_data.get(
+                        "permission_type", "view"
+                    ),
+                    granted_by=user,
+                    expires_at=serializer.validated_data.get("expires_at"),
+                    notes=serializer.validated_data.get("notes", ""),
+                    is_active=True,
+                )
+            serializer.instance = permission
 
-        permission = serializer.save(case=case, granted_by=user)
-        created = True
+        else:
+            # Individual / class_group: allow multiple (different users/groups)
+            permission = serializer.save(case=case, granted_by=user)
+            created = True
 
         # --- Auto-publish approved cases to the public feed on public/department share ---
-        if share_type in (
-            CasePermission.ShareTypeChoices.PUBLIC,
-            CasePermission.ShareTypeChoices.DEPARTMENT,
-        ) and case.case_status == Case.StatusChoices.APPROVED:
+        if (
+            share_type
+            in (
+                CasePermission.ShareTypeChoices.PUBLIC,
+                CasePermission.ShareTypeChoices.DEPARTMENT,
+            )
+            and case.case_status == Case.StatusChoices.APPROVED
+        ):
             desired_visibility = (
                 "university"
                 if share_type == CasePermission.ShareTypeChoices.PUBLIC
@@ -965,7 +994,10 @@ class EnhancedCasePermissionViewSet(viewsets.ModelViewSet):
                         "feed_visibility",
                     ]
                 )
-            elif desired_visibility == "university" and case.feed_visibility == "department":
+            elif (
+                desired_visibility == "university"
+                and case.feed_visibility == "department"
+            ):
                 # Upgrade visibility: department → university
                 case.feed_visibility = "university"
                 case.save(update_fields=["feed_visibility"])
@@ -979,7 +1011,10 @@ class EnhancedCasePermissionViewSet(viewsets.ModelViewSet):
             permission_type=permission.permission_type,
             description=f"Granted {permission.get_permission_type_display()} permission via {permission.get_share_type_display()}",
             request=self.request,
-            additional_data={"permission_id": permission.id, "auto_published": not created},
+            additional_data={
+                "permission_id": permission.id,
+                "auto_published": not created,
+            },
         )
 
     def perform_update(self, serializer):
@@ -2006,9 +2041,8 @@ class CaseListCreateView(generics.ListCreateAPIView):
             )
 
             if department_id is not None:
-                dept_filter = (
-                    Q(student__department_id=department_id)
-                    | Q(repository__department_id=department_id)
+                dept_filter = Q(student__department_id=department_id) | Q(
+                    repository__department_id=department_id
                 )
             else:
                 dept_filter = Q(pk__in=[])
@@ -2023,8 +2057,7 @@ class CaseListCreateView(generics.ListCreateAPIView):
             # only ungraded submitted cases from instructor's own department,
             # hidden if actively claimed by another instructor.
             grading_pool = (
-                self.request.query_params.get("grading_pool", "false").lower()
-                == "true"
+                self.request.query_params.get("grading_pool", "false").lower() == "true"
             )
             if grading_pool:
                 if department_id is None:
@@ -2069,9 +2102,7 @@ class CaseListCreateView(generics.ListCreateAPIView):
                 | Q(permissions__share_type="public")
             )
 
-            queryset = queryset.filter(
-                Q(student=user) | Q(is_public=True) | permission_q
-            ).distinct()
+            queryset = queryset.filter(Q(student=user) | permission_q).distinct()
 
         # Date range filtering
         date_from = self.request.query_params.get("date_from")
@@ -2348,7 +2379,9 @@ class CaseDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         # If no permission, check if it's a public repository or public case.
         # Draft cases remain private to the owner even in public repositories.
-        if (case.repository.is_public or case.is_public) and case.case_status != Case.StatusChoices.DRAFT:
+        if (
+            case.repository.is_public or case.is_public
+        ) and case.case_status != Case.StatusChoices.DRAFT:
             return case
 
         # No access
@@ -2413,7 +2446,9 @@ class CaseSearchAPIView(generics.ListAPIView):
 
         base_qs = Case.objects.all()  # or public-only, depending on intent
         return rank_cases(base_qs, query)
-#dummy
+
+
+# dummy
 class CaseSuggestionAPIView(generics.ListAPIView):
     serializer_class = CaseSearchTokenSerializer
 
@@ -2425,13 +2460,10 @@ class CaseSuggestionAPIView(generics.ListAPIView):
 
         normalized = unaccent(query).strip()
 
-         # Ignore 1-character queries
+        # Ignore 1-character queries
         if len(normalized) < 2:
             return CaseSearchToken.objects.none()
 
-
-        return (
-            CaseSearchToken.objects
-            .filter(token__startswith=normalized)
-            .order_by("-frequency", "display")[:10]
-        )
+        return CaseSearchToken.objects.filter(token__startswith=normalized).order_by(
+            "-frequency", "display"
+        )[:10]
