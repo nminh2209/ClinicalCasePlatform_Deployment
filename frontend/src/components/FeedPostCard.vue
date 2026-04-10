@@ -110,6 +110,7 @@
 
     <!-- Action Buttons -->
     <div class="flex px-2 py-1 gap-1">
+      <!-- [DEMO] Like button hidden due to known bug
       <Button
         :icon="isLiked ? 'pi pi-thumbs-up-fill' : 'pi pi-thumbs-up'"
         label="Thích"
@@ -121,6 +122,7 @@
         ]"
         @click="react()"
       />
+      [DEMO] -->
 
       <!-- Comment -->
       <Button
