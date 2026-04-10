@@ -430,11 +430,10 @@ onUnmounted(() => {
 });
 
 const isOcrProcessing = computed(() => {
-  if (ocrProcessing.value || localData.value?.ocrProcessing === true)
-    return true;
-  const tableJobStatus = localData.value?.ocrResult?.table_job_status;
-  if (tableJobStatus === "queued" || tableJobStatus === "running") return true;
-  return false;
+  // Only track Phase 1 (text extraction + autofill) status here.
+  // Phase 2 (table/image extraction) is a background Celery task
+  // monitored independently by OCRResultsStep.
+  return ocrProcessing.value || localData.value?.ocrProcessing === true;
 });
 
 const attachmentTypeOptions = [

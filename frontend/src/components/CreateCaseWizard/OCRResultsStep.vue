@@ -287,6 +287,7 @@ import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import ProgressSpinner from "primevue/progressspinner";
 import { ocrService, type TableResult, type ImageResult } from "@/services/ocr";
+import api from "@/services/api";
 
 const props = defineProps<{ caseData: any }>();
 const emit = defineEmits<{ "update:caseData": [any] }>();
@@ -453,13 +454,8 @@ const pollTableImageJob = async (jobId: string) => {
             return;
           }
 
-          const response = await fetch(`/api/ocr/jobs/${jobId}/`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            },
-            signal,
-          });
-          const data = await response.json();
+          const response = await api.get(`/ocr/jobs/${jobId}/`, { signal });
+          const data = response.data;
 
           if (data.status === "done" || data.status === "SUCCESS") {
             resolve(data);
@@ -469,7 +465,7 @@ const pollTableImageJob = async (jobId: string) => {
             setTimeout(checkStatus, intervalMs);
           }
         } catch (error: any) {
-          if (error.name === "AbortError") {
+          if (error.name === "AbortError" || error.name === "CanceledError") {
             reject(new Error("Polling was cancelled"));
           } else {
             reject(error);
